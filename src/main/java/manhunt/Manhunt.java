@@ -505,7 +505,7 @@ public class Manhunt implements ModInitializer {
 			if (pingingEnabled) {
 				for (ServerPlayerEntity player : sender.getServer().getPlayerManager().getPlayerList()) {
 					var playerName = player.getName().getString();
-					if (message.getContent().contains(Text.of(playerName))) {
+					if (message.getSignedContent().contains(playerName)) {
 						player.playSound(SoundEvents.BLOCK_BELL_USE, SoundCategory.PLAYERS, 1f, 1f);
 						player.sendMessage(Text.literal("You have been pinged!").formatted(Formatting.GOLD));
 					}
