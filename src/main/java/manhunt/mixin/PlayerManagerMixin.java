@@ -37,7 +37,9 @@ public abstract class PlayerManagerMixin {
     @Inject(at = @At(value = "TAIL"), method = "onPlayerConnect")
     private void onPlayerJoin(ClientConnection connection, ServerPlayerEntity player, ConnectedClientData clientData, CallbackInfo info) {
         if (ManhuntGame.state == PREGAME) {
-            var lobbyWorld = player.getServer().getWorld(lobbyRegistryKey);
+            player.getScoreboard().getPlayerScore(player.getName().getString(), player.getScoreboard().getNullableObjective("time")).setScore(0);
+            player.teleport(player.getServer().getWorld(lobbyRegistryKey), 0.5, 63, 0, 0, 0);
+            player.getInventory().clear();
 
             ManhuntGame.updateGameMode(player);
             player.addStatusEffect(
@@ -60,27 +62,7 @@ public abstract class PlayerManagerMixin {
                             false
                     )
             );
-            player.teleport(lobbyWorld, 0.5, 63, 0, 0, 0);
             player.playSound(SoundEvents.ENTITY_PLAYER_LEVELUP, SoundCategory.BLOCKS, 0.5f, 0.5f);
-            Song bohemianRhapsody = NBSDecoder.parse(new File("/home/libreh/songs/bohemian_rhapsody.nbs"));
-            Song callMeMaybe = NBSDecoder.parse(new File("/home/libreh/songs/call_me_maybe.nbs"));
-            Song dynamite = NBSDecoder.parse(new File("/home/libreh/songs/dynamite.nbs"));
-            Song hesAPirate = NBSDecoder.parse(new File("/home/libreh/songs/hes_a_pirate.nbs"));
-            Song heySoulSister = NBSDecoder.parse(new File("/home/libreh/songs/hey_soul_sister.nbs"));
-            Song indianaJones = NBSDecoder.parse(new File("/home/libreh/songs/indiana_jones.nbs"));
-            Song paradise = NBSDecoder.parse(new File("/home/libreh/songs/paradise.nbs"));
-            Song smellsLikeTeenSpirit = NBSDecoder.parse(new File("/home/libreh/songs/smells_like_teen_spirit.nbs"));
-            Song somebodyThatIUsedToKnow = NBSDecoder.parse(new File("/home/libreh/songs/somebody_that_i_used_to_know.nbs"));
-            Song vivaLaVida = NBSDecoder.parse(new File("/home/libreh/songs/viva_la_vida.nbs"));
-            Playlist playlist = new Playlist(bohemianRhapsody, callMeMaybe, dynamite, hesAPirate, heySoulSister, indianaJones, paradise, smellsLikeTeenSpirit, somebodyThatIUsedToKnow, vivaLaVida);
-            Playlist tempPlaylist = new Playlist(dynamite, hesAPirate, vivaLaVida);
-            PositionSongPlayer psp = new PositionSongPlayer(tempPlaylist, player.getWorld());
-            psp.setBlockPos(new BlockPos(0, 63, 0));
-            psp.setDistance(64);
-            psp.addPlayer(player);
-            //psp.setPlaying(true);
-            psp.setRepeatMode(RepeatMode.ALL);
-            psp.setAutoDestroy(true);
         }
 
         if (ManhuntGame.state == ManhuntState.PLAYING) {

@@ -40,6 +40,8 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity {
 
     @Inject(at = @At("HEAD"), method = "onDeath")
     public void onDeath(DamageSource source, CallbackInfo ci) {
+        ManhuntConfig.load();
+
         Scoreboard scoreboard = server.getScoreboard();
 
         if (this.getScoreboardTeam() != null) {
@@ -62,6 +64,7 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity {
 
     @Inject(at = @At("HEAD"), method = "damage")
     public boolean onDamage(DamageSource source, float amount, CallbackInfoReturnable ci) {
+        ManhuntConfig.load();
         if (ManhuntConfig.disableBedExplosions) {
             return !source.getType().deathMessageType().equals(DeathMessageType.INTENTIONAL_GAME_DESIGN);
         }

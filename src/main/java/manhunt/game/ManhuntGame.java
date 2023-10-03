@@ -1,5 +1,6 @@
 package manhunt.game;
 
+import manhunt.config.ManhuntConfig;
 import net.minecraft.advancement.AdvancementEntry;
 import net.minecraft.advancement.AdvancementProgress;
 import net.minecraft.entity.effect.StatusEffectInstance;
@@ -35,6 +36,8 @@ public class ManhuntGame {
     }
 
     public static void start(MinecraftServer server) {
+        ManhuntConfig.load();
+
         ManhuntGame.state(PLAYING, server);
 
         var lobbyWorld = server.getWorld(lobbyRegistryKey);

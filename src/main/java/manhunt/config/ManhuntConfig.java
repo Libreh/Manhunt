@@ -17,6 +17,7 @@ public class ManhuntConfig {
     public static String databasePort = "";
     public static String databaseUser = "";
     public static String databasePassword = "";
+    public static String musicDirectory = "";
     public static boolean pregenerationEnabled = true;
     public static boolean pingingEnabled = true;
     public static int hunterFreeze = 10;
@@ -42,6 +43,7 @@ public class ManhuntConfig {
             if ((je = jo.get("databasePort")) != null) databasePort = je.getAsString();
             if ((je = jo.get("databaseUser")) != null) databaseUser = je.getAsString();
             if ((je = jo.get("databasePassword")) != null) databasePassword = je.getAsString();
+            if ((je = jo.get("musicDirectory")) != null) musicDirectory = je.getAsString();
             if ((je = jo.get("pregenerationEnabled")) != null) pregenerationEnabled = je.getAsBoolean();
             if ((je = jo.get("pingingEnabled")) != null) pingingEnabled = je.getAsBoolean();
             if ((je = jo.get("hunterFreeze")) != null) hunterFreeze = je.getAsInt();
@@ -74,6 +76,7 @@ public class ManhuntConfig {
             jo.add("databasePort", new JsonPrimitive(databasePort));
             jo.add("databaseUser", new JsonPrimitive(databaseUser));
             jo.add("databasePassword", new JsonPrimitive(databasePassword));
+            jo.add("musicDirectory", new JsonPrimitive(musicDirectory));
             jo.add("pregenerationEnabled", new JsonPrimitive(pregenerationEnabled));
             jo.add("pingingEnabled", new JsonPrimitive(pingingEnabled));
             jo.add("hunterFreeze", new JsonPrimitive(hunterFreeze));

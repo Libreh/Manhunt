@@ -1,5 +1,6 @@
 package manhunt;
 
+import manhunt.commands.JukeboxCommand;
 import manhunt.config.ManhuntConfig;
 import manhunt.game.ManhuntGame;
 import manhunt.game.ManhuntState;
@@ -9,6 +10,7 @@ import mrnavastar.sqlib.Table;
 import mrnavastar.sqlib.database.MySQLDatabase;
 import mrnavastar.sqlib.sql.SQLDataType;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.player.UseItemCallback;
@@ -16,7 +18,6 @@ import net.fabricmc.fabric.api.message.v1.ServerMessageEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.block.entity.StructureBlockBlockEntity;
 import net.minecraft.enchantment.Enchantments;
-import net.minecraft.entity.EntityType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -29,6 +30,8 @@ import net.minecraft.network.packet.s2c.play.OverlayMessageS2CPacket;
 import net.minecraft.network.packet.s2c.play.PositionFlag;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
+import net.minecraft.scoreboard.ScoreboardCriterion;
+import net.minecraft.scoreboard.ScoreboardObjective;
 import net.minecraft.scoreboard.Team;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -54,7 +57,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
@@ -69,7 +72,41 @@ public class Manhunt implements ModInitializer {
 	public static RegistryKey<World> lobbyRegistryKey = RegistryKey.of(RegistryKeys.WORLD, LOBBY_WORLD_ID);
 	public static List<ServerPlayerEntity> allPlayers;
 	public static List<ServerPlayerEntity> allRunners;
-	private int ticks = 0;
+	public static List<String> songs = new ArrayList<>();
+	public static String africa = "africa";
+	public static String bohemianRapsody = "bohemianRapsody";
+	public static String callMeMaybe = "callMeMaybe";
+	public static String countingStars = "countingStars";
+	public static String djGotUsFallinInLove = "djGotUsFallinInLove";
+	public static String dontStopMeNow = "dontStopMeNow";
+	public static String duelOfTheFates = "duelOfTheFates";
+	public static String dynamite = "dynamite";
+	public static String everythingIsAwesome = "everythingIsAwesome";
+	public static String flightOfTheBumblebee = "flightOfTheBumblebee";
+	public static String fnafSong = "fnafSong";
+	public static String hesAPirate = "hesAPirate";
+	public static String heySoulSister = "heySoulSister";
+	public static String iGotAFeeling = "iGotAFeeling";
+	public static String indianaJones = "indianaJones";
+	public static String jurassicPark = "jurassicPark";
+	public static String madWorld = "madWorld";
+	public static String neverGonnaGiveYouUp = "neverGonnaGiveYouUp";
+	public static String nyanCat = "nyanCat";
+	public static String paradise = "paradise";
+	public static String payphone = "payphone";
+	public static String rude = "rude";
+	public static String smellsLikeTeenSpirit = "smellsLikeTeenSpirit";
+	public static String somebodyThatIUsedToKnow = "somebodyThatIUsedToKnow";
+	public static String spookyScarySkeletons = "spookyScarySkeletons";
+	public static String starWars = "starWars";
+	public static String takeMeToChurch = "takeMeToChurch";
+	public static String takeOnMe = "takeOnMe";
+	public static String theSpectre = "theSpectre";
+	public static String thriller = "thriller";
+	public static String thunderstruck = "thunderstruck";
+	public static String vivaLaVida = "vivaLaVida";
+	public static String waitingForLove = "waitingForLove";
+	public ScoreboardObjective timeObjective = null;
 	private boolean beforeSound = true;
 	private boolean afterSound = true;
 	private long lastDelay = System.currentTimeMillis();
@@ -87,7 +124,9 @@ public class Manhunt implements ModInitializer {
 
 		DeleteWorld.invoke();
 
-		LOGGER.info("Manhunt is deleting select world folders");
+		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
+			JukeboxCommand.register(dispatcher);
+		});
 
 		ServerLifecycleEvents.SERVER_STARTED.register(server -> {
 			server.getPlayerManager().setWhitelistEnabled(true);
@@ -127,21 +166,64 @@ public class Manhunt implements ModInitializer {
 
 			server.setPvpEnabled(false);
 
-			server.getWorld(lobbyRegistryKey).getScoreboard().addTeam("readys");
-			server.getWorld(lobbyRegistryKey).getScoreboard().addTeam("hunters");
-			server.getWorld(lobbyRegistryKey).getScoreboard().addTeam("runners");
+			server.getScoreboard().addTeam("readys");
+			server.getScoreboard().addTeam("hunters");
+			server.getScoreboard().addTeam("runners");
+
+			for (ScoreboardObjective objective : server.getScoreboard().getObjectives()) {
+				if (objective.getName().equals("time")) {
+					server.getScoreboard().removeScoreboardObjective(objective);
+					this.timeObjective = objective;
+				}
+			}
+
+			server.getScoreboard().addScoreboardObjective(new ScoreboardObjective(server.getScoreboard(), "time", ScoreboardCriterion.DUMMY, Text.of("time"), ScoreboardCriterion.RenderType.INTEGER));
 
 			try {
 				spawnLobbyStructure(server);
 			} catch (IOException e) {
 				LOGGER.info("Manhunt failed to spawn lobby");
 			}
+
+			songs.add(africa);
+			songs.add(bohemianRapsody);
+			songs.add(callMeMaybe);
+			songs.add(countingStars);
+			songs.add(djGotUsFallinInLove);
+			songs.add(dontStopMeNow);
+			songs.add(duelOfTheFates);
+			songs.add(dynamite);
+			songs.add(everythingIsAwesome);
+			songs.add(flightOfTheBumblebee);
+			songs.add(fnafSong);
+			songs.add(hesAPirate);
+			songs.add(heySoulSister);
+			songs.add(iGotAFeeling);
+			songs.add(indianaJones);
+			songs.add(jurassicPark);
+			songs.add(madWorld);
+			songs.add(neverGonnaGiveYouUp);
+			songs.add(nyanCat);
+			songs.add(paradise);
+			songs.add(payphone);
+			songs.add(rude);
+			songs.add(smellsLikeTeenSpirit);
+			songs.add(somebodyThatIUsedToKnow);
+			songs.add(spookyScarySkeletons);
+			songs.add(starWars);
+			songs.add(takeMeToChurch);
+			songs.add(takeOnMe);
+			songs.add(theSpectre);
+			songs.add(thriller);
+			songs.add(thunderstruck);
+			songs.add(vivaLaVida);
+			songs.add(waitingForLove);
 		});
 
 		ServerTickEvents.START_SERVER_TICK.register(server -> {
-			for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
-				if (ManhuntGame.state == PREGAME) {
-					if (hasItem(Items.RED_CONCRETE, player, "NotReady") && hasItem(Items.LIME_CONCRETE, player, "Ready")) {
+			if (ManhuntGame.state == PREGAME) {
+				for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+					if (!hasItem(Items.RED_CONCRETE, player, "NotReady") && !hasItem(Items.LIME_CONCRETE, player, "Ready")) {
 						NbtCompound nbt = new NbtCompound();
 						nbt.putBoolean("Remove", true);
 						nbt.putBoolean("NotReady", true);
@@ -155,7 +237,7 @@ public class Manhunt implements ModInitializer {
 						player.getInventory().setStack(0, itemStack);
 					}
 
-					if (hasItem(Items.RECOVERY_COMPASS, player, "Hunter")) {
+					if (!hasItem(Items.RECOVERY_COMPASS, player, "Hunter")) {
 						NbtCompound nbt = new NbtCompound();
 						nbt.putBoolean("Remove", true);
 						nbt.putBoolean("Hunter", true);
@@ -169,7 +251,7 @@ public class Manhunt implements ModInitializer {
 						player.getInventory().setStack(3, itemStack);
 					}
 
-					if (hasItem(Items.CLOCK, player, "Runner")) {
+					if (!hasItem(Items.CLOCK, player, "Runner")) {
 						NbtCompound nbt = new NbtCompound();
 						nbt.putBoolean("Remove", true);
 						nbt.putBoolean("Runner", true);
@@ -183,7 +265,7 @@ public class Manhunt implements ModInitializer {
 						player.getInventory().setStack(5, itemStack);
 					}
 
-					if (hasItem(Items.COMPARATOR, player, "Settings")) {
+					if (!hasItem(Items.COMPARATOR, player, "Settings")) {
 						NbtCompound nbt = new NbtCompound();
 						nbt.putBoolean("Remove", true);
 						nbt.putBoolean("Settings", true);
@@ -197,13 +279,14 @@ public class Manhunt implements ModInitializer {
 						player.getInventory().setStack(8, itemStack);
 					}
 
-					if (player.getZ() < 0) {
+					if (player.getZ() < 0 && timeObjective != null) {
+						int ticks = player.getScoreboard().getPlayerScore(player.getName().getString(), timeObjective).getScore();
 						if (beforeSound && player.getZ() < -5) {
 							player.playSound(SoundEvents.BLOCK_NOTE_BLOCK_FLUTE.value(), SoundCategory.PLAYERS, 1f, 1f);
 							beforeSound = false;
 						}
 						if (afterSound && player.getZ() < -5) {
-							ticks = this.ticks + 1;
+							player.getScoreboard().getPlayerScore(player.getName().getString(), timeObjective).setScore(player.getScoreboard().getPlayerScore(player.getName().getString(), timeObjective).getScore() + 1);
 						}
 						int sec = (int) Math.floor(((double) (ticks % (20 * 60)) / 20));
 						String sec_string;
@@ -247,8 +330,10 @@ public class Manhunt implements ModInitializer {
 						}
 					}
 				}
+			}
 
-				if (ManhuntGame.state == PLAYING) {
+			if (ManhuntGame.state == PLAYING) {
+				for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
 					if (player.isTeamPlayer(server.getScoreboard().getTeam("hunters")) && player.isAlive()) {
 						if (!hasTracker(player)) {
 							NbtCompound nbt = new NbtCompound();
@@ -379,7 +464,7 @@ public class Manhunt implements ModInitializer {
                                 for (ServerPlayerEntity lobbyPlayer : lobbyWorld.getPlayers()) {
                                     if (getPlayerData(lobbyPlayer).getString("currentRole").equals("runner")) {
                                         lobbyPlayer.getScoreboard().addPlayerToTeam(lobbyPlayer.getName().getString(), runners);
-                                        if (lobbyWorld.getScoreboard().getTeam("runners").getPlayerList().isEmpty()) {
+                                        if (!lobbyWorld.getScoreboard().getTeam("runners").getPlayerList().isEmpty()) {
                                             ManhuntGame.start(lobbyWorld.getServer());
                                         }
                                     }
@@ -644,12 +729,14 @@ public class Manhunt implements ModInitializer {
 		} else if (player.getOffHandStack().hasNbt() && player.getOffHandStack().getNbt().getBoolean("Remove") && player.getOffHandStack().getNbt().getBoolean(nbtBoolean)) {
 			bool = true;
 		}
-		return !bool;
+		return bool;
 	}
 
 	private void resetPlayer(PlayerEntity player, ServerWorld world) {
+		if (timeObjective != null) {
+			player.getScoreboard().getPlayerScore(player.getName().getString(), timeObjective).setScore(0);
+		}
 		player.teleport(world, 0.5, 63, 0, PositionFlag.ROT, 180, 0);
-		ticks = 0;
 	}
 
 	private void showInfo(ServerPlayerEntity player, NbtCompound info) {

@@ -1,5 +1,6 @@
 package manhunt.mixin;
 
+import manhunt.config.ManhuntConfig;
 import manhunt.game.ManhuntGame;
 import manhunt.game.ManhuntState;
 import net.minecraft.entity.boss.dragon.EnderDragonEntity;
@@ -24,6 +25,7 @@ public abstract class EnderDragonEntityMixin {
 
     @Inject(at = @At(value = "INVOKE"), method = "kill")
     private void runnersWon(CallbackInfo ci) {
+        ManhuntConfig.load();
         EnderDragonEntity dragon = ((EnderDragonEntity) (Object) this);
         MinecraftServer server = dragon.getServer();
         if (!showWinnerTitle) {
