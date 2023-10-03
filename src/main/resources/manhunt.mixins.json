@@ -1,0 +1,14 @@
+{
+	"required": true,
+	"package": "manhunt.mixin",
+	"compatibilityLevel": "JAVA_17",
+	"mixins": [
+		"EnderDragonEntityMixin",
+		"PlayerEntityMixin",
+		"PlayerManagerMixin",
+		"ServerPlayerEntityMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}
