@@ -75,6 +75,7 @@ public class Manhunt implements ModInitializer {
 	public static List<String> songs = new ArrayList<>();
 	public static String africa = "africa";
 	public static String bohemianRapsody = "bohemianRapsody";
+	public static String californiaDreamin = "californiaDreamin";
 	public static String callMeMaybe = "callMeMaybe";
 	public static String countingStars = "countingStars";
 	public static String djGotUsFallinInLove = "djGotUsFallinInLove";
@@ -90,12 +91,15 @@ public class Manhunt implements ModInitializer {
 	public static String indianaJones = "indianaJones";
 	public static String jurassicPark = "jurassicPark";
 	public static String madWorld = "madWorld";
+	public static String mrBlueSky = "mrBlueSky";
 	public static String neverGonnaGiveYouUp = "neverGonnaGiveYouUp";
+	public static String neverLetMeDownAgain = "neverLetMeDownAgain";
 	public static String nyanCat = "nyanCat";
 	public static String paradise = "paradise";
 	public static String payphone = "payphone";
 	public static String rude = "rude";
 	public static String smellsLikeTeenSpirit = "smellsLikeTeenSpirit";
+	public static String soChill = "soChill";
 	public static String somebodyThatIUsedToKnow = "somebodyThatIUsedToKnow";
 	public static String spookyScarySkeletons = "spookyScarySkeletons";
 	public static String starWars = "starWars";
@@ -187,6 +191,7 @@ public class Manhunt implements ModInitializer {
 
 			songs.add(africa);
 			songs.add(bohemianRapsody);
+			songs.add(californiaDreamin);
 			songs.add(callMeMaybe);
 			songs.add(countingStars);
 			songs.add(djGotUsFallinInLove);
@@ -202,12 +207,15 @@ public class Manhunt implements ModInitializer {
 			songs.add(indianaJones);
 			songs.add(jurassicPark);
 			songs.add(madWorld);
+			songs.add(mrBlueSky);
 			songs.add(neverGonnaGiveYouUp);
+			songs.add(neverLetMeDownAgain);
 			songs.add(nyanCat);
 			songs.add(paradise);
 			songs.add(payphone);
 			songs.add(rude);
 			songs.add(smellsLikeTeenSpirit);
+			songs.add(soChill);
 			songs.add(somebodyThatIUsedToKnow);
 			songs.add(spookyScarySkeletons);
 			songs.add(starWars);
