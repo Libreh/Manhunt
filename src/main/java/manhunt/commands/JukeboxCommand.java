@@ -36,6 +36,9 @@ public final class JukeboxCommand {
                 .then(literal("mute")
                         .executes(context -> muteMusic(context.getSource()))
                 )
+                .then(literal("unmute")
+                        .executes(context -> unMuteMusic(context.getSource()))
+                )
         );
         dispatcher.register(literal("jukeboxall")
                 .requires(serverCommandSource -> serverCommandSource.hasPermissionLevel(4))
@@ -68,15 +71,11 @@ public final class JukeboxCommand {
 
         var player = source.getPlayer();
 
-        if (getPlayerData(player).getString("muteMusic") == null) {
-            getPlayerData(player).put("muteMusic", false);
-        } else if (getPlayerData(player).getString("muteMusic") != null) {
-            if (getPlayerData(player).getString("muteMusic").equals(false)) {
-                rsp.addPlayer(player);
-                rsp.setPlaying(true);
-            } else if (getPlayerData(player).getString("muteMusic").equals(true)) {
-                player.sendMessage(Text.translatable("manhunt.jukebox.muted"));
-            }
+        if (!getPlayerData(player).getBool("muteMusic")) {
+            rsp.addPlayer(player);
+            rsp.setPlaying(true);
+        } else if (getPlayerData(player).getBool("muteMusic")) {
+            player.sendMessage(Text.translatable("manhunt.jukebox.muted"));
         }
 
         source.sendFeedback(() -> Text.translatable("manhunt.jukebox.playing", songName), false);
@@ -118,15 +117,11 @@ public final class JukeboxCommand {
         RadioSongPlayer rsp = new RadioSongPlayer(song);
 
         for (ServerPlayerEntity player : source.getServer().getPlayerManager().getPlayerList()) {
-            if (getPlayerData(player).getString("muteMusic") == null) {
-                getPlayerData(player).put("muteMusic", false);
-            } else if (getPlayerData(player).getString("muteMusic") != null) {
-                if (getPlayerData(player).getString("muteMusic").equals(false)) {
-                    rsp.addPlayer(player);
-                    rsp.setPlaying(true);
-                } else if (getPlayerData(player).getString("muteMusic").equals(true)) {
-                    player.sendMessage(Text.translatable("manhunt.jukebox.muted"));
-                }
+            if (!getPlayerData(player).getBool("muteMusic")) {
+                rsp.addPlayer(player);
+                rsp.setPlaying(true);
+            } else if (getPlayerData(player).getBool("muteMusic")) {
+                player.sendMessage(Text.translatable("manhunt.jukebox.muted"));
             }
         }
 

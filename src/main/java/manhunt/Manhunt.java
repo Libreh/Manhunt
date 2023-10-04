@@ -112,7 +112,6 @@ public class Manhunt implements ModInitializer {
 	public static String thunderstruck = "thunderstruck";
 	public static String vivaLaVida = "vivaLaVida";
 	public static String waitingForLove = "waitingForLove";
-	public ScoreboardObjective timeObjective = null;
 	private boolean beforeSound = true;
 	private boolean afterSound = true;
 	private long lastDelay = System.currentTimeMillis();
@@ -177,13 +176,6 @@ public class Manhunt implements ModInitializer {
 			server.getScoreboard().addTeam("readys");
 			server.getScoreboard().addTeam("hunters");
 			server.getScoreboard().addTeam("runners");
-
-			for (ScoreboardObjective objective : server.getScoreboard().getObjectives()) {
-				if (objective.getName().equals("time")) {
-					server.getScoreboard().removeScoreboardObjective(objective);
-					this.timeObjective = objective;
-				}
-			}
 
 			server.getScoreboard().addScoreboardObjective(new ScoreboardObjective(server.getScoreboard(), "time", ScoreboardCriterion.DUMMY, Text.of("time"), ScoreboardCriterion.RenderType.INTEGER));
 
@@ -291,14 +283,19 @@ public class Manhunt implements ModInitializer {
 						player.getInventory().setStack(8, itemStack);
 					}
 
-					if (player.getZ() < 0 && timeObjective != null) {
-						int ticks = player.getScoreboard().getPlayerScore(player.getName().getString(), timeObjective).getScore();
+					if (player.getZ() < 0) {
+						int ticks = 0;
+						if (getTimeObjective(server) != null) {
+							ticks = player.getScoreboard().getPlayerScore(player.getName().getString(), getTimeObjective(server)).getScore();
+						}
 						if (beforeSound && player.getZ() < -5) {
 							player.playSound(SoundEvents.BLOCK_NOTE_BLOCK_FLUTE.value(), SoundCategory.PLAYERS, 1f, 1f);
 							beforeSound = false;
 						}
 						if (afterSound && player.getZ() < -5) {
-							player.getScoreboard().getPlayerScore(player.getName().getString(), timeObjective).setScore(player.getScoreboard().getPlayerScore(player.getName().getString(), timeObjective).getScore() + 1);
+							if (getTimeObjective(server) != null) {
+								player.getScoreboard().getPlayerScore(player.getName().getString(), getTimeObjective(server)).setScore(player.getScoreboard().getPlayerScore(player.getName().getString(), getTimeObjective(server)).getScore() + 1);
+							}
 						}
 						int sec = (int) Math.floor(((double) (ticks % (20 * 60)) / 20));
 						String sec_string;
@@ -427,15 +424,10 @@ public class Manhunt implements ModInitializer {
 							allRunners.add(player);
 						}
 						if (!player.isTeamPlayer(hunters) && !player.isTeamPlayer(runners)) {
-							if (getPlayerData(player).getString("currentRole") == null || getPlayerData(player).getString("currentRole").isEmpty()) {
-								getPlayerData(player).put("currentRole", "hunter");
+							if (getPlayerData(player).getString("currentRole").equals("hunter")) {
 								player.getScoreboard().addPlayerToTeam(player.getName().getString(), hunters);
-							} else if (getPlayerData(player).getString("currentRole") != null) {
-								if (getPlayerData(player).getString("currentRole").equals("hunter")) {
-									player.getScoreboard().addPlayerToTeam(player.getName().getString(), hunters);
-								} else if (getPlayerData(player).getString("currentRole").equals("runner")) {
-									player.getScoreboard().addPlayerToTeam(player.getName().getString(), runners);
-								}
+							} else if (getPlayerData(player).getString("currentRole").equals("runner")) {
+								player.getScoreboard().addPlayerToTeam(player.getName().getString(), runners);
 							}
 						}
 					}
@@ -603,7 +595,11 @@ public class Manhunt implements ModInitializer {
 				for (ServerPlayerEntity player : sender.getServer().getPlayerManager().getPlayerList()) {
 					var playerName = player.getName().getString();
 					if (message.getSignedContent().contains(playerName)) {
-						player.playSound(SoundEvents.BLOCK_BELL_USE, SoundCategory.PLAYERS, 1f, 1f);
+						if (getPlayerData(player).getString("pingSound") == null) {
+							player.playSound(SoundEvents.BLOCK_BELL_USE, SoundCategory.PLAYERS, 1f, 1f);
+						} else if (getPlayerData(player).getString("pingSound") != null) {
+							player.playSound(SoundEvents.BLOCK_BELL_USE, SoundCategory.PLAYERS, 1f, 1f);
+						}
 						player.sendMessage(Text.literal("You have been pinged!").formatted(Formatting.GOLD));
 					}
 				}
@@ -748,8 +744,8 @@ public class Manhunt implements ModInitializer {
 	}
 
 	private void resetPlayer(PlayerEntity player, ServerWorld world) {
-		if (timeObjective != null) {
-			player.getScoreboard().getPlayerScore(player.getName().getString(), timeObjective).setScore(0);
+		if (getTimeObjective(player.getServer()) != null) {
+			player.getScoreboard().getPlayerScore(player.getName().getString(), getTimeObjective(player.getServer())).setScore(0);
 		}
 		player.teleport(world, 0.5, 63, 0, PositionFlag.ROT, 180, 0);
 	}
@@ -799,5 +795,17 @@ public class Manhunt implements ModInitializer {
 			bool = true;
 		}
 		return bool;
+	}
+
+	public static ScoreboardObjective getTimeObjective(MinecraftServer server) {
+		ScoreboardObjective timeObjective = null;
+		for (ScoreboardObjective objective : server.getScoreboard().getObjectives()) {
+			if (objective.getName().equals("time")) {
+				timeObjective = objective;
+			} else if (!objective.getName().equals("time")) {
+				timeObjective = new ScoreboardObjective(server.getScoreboard(), "time", ScoreboardCriterion.DUMMY, Text.of("time"), ScoreboardCriterion.RenderType.INTEGER);
+			}
+		}
+		return timeObjective;
 	}
 }

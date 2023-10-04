@@ -18,21 +18,14 @@ public class DoNotDisturbCommand {
 
     private static int doNotDisturb(ServerCommandSource source) {
         boolean bool;
-        if (getPlayerData(source.getPlayer()).getString("doNotDisturb") == null) {
+        if (!getPlayerData(source.getPlayer()).getBool("doNotDisturb")) {
             getPlayerData(source.getPlayer()).put("doNotDisturb", true);
             bool = true;
-        } else if (getPlayerData(source.getPlayer()).getString("doNotDisturb") != null) {
-            if (getPlayerData(source.getPlayer()).getString("doNotDisturb").equals(false)) {
-                getPlayerData(source.getPlayer()).put("doNotDisturb", true);
-                bool = true;
-            } else if (getPlayerData(source.getPlayer()).getString("doNotDisturb").equals(true)) {
-                getPlayerData(source.getPlayer()).put("doNotDisturb", false);
-                bool = false;
-            } else {
-                bool = true;
-            }
+        } else if (getPlayerData(source.getPlayer()).getBool("doNotDisturb")) {
+            getPlayerData(source.getPlayer()).put("doNotDisturb", false);
+            bool = false;
         } else {
-            bool = true;
+            bool = false;
         }
 
         source.sendFeedback(() -> Text.translatable("manhunt.donotdisturb.set", bool), false);
