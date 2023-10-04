@@ -16,6 +16,7 @@ import nota.utils.NBSDecoder;
 
 import java.io.File;
 
+import static manhunt.Manhunt.getPlayerData;
 import static manhunt.Manhunt.songs;
 import static manhunt.config.ManhuntConfig.musicDirectory;
 import static net.minecraft.server.command.CommandManager.argument;
@@ -27,15 +28,13 @@ public final class JukeboxCommand {
         dispatcher.register(literal("jukebox")
                 .then(literal("play")
                         .then(argument("song", StringArgumentType.word()).suggests(songSuggestions())
-                        .executes(context -> {
-                            var source = context.getSource();
-                            var songName = StringArgumentType.getString(context, "song");
-
-                            return playSong(source, songName);
-                        })
+                        .executes(context -> playSong(context.getSource(), StringArgumentType.getString(context, "song")))
                 ))
                 .then(literal("stop")
                         .executes(context -> stopPlaying(context.getSource()))
+                )
+                .then(literal("mute")
+                        .executes(context -> muteMusic(context.getSource()))
                 )
         );
         dispatcher.register(literal("jukeboxall")
@@ -67,10 +66,20 @@ public final class JukeboxCommand {
 
         RadioSongPlayer rsp = new RadioSongPlayer(song);
 
-        rsp.addPlayer(source.getPlayer());
-        rsp.setPlaying(true);
+        var player = source.getPlayer();
 
-        source.sendFeedback(() -> Text.translatable("Now playing: " + songName), false);
+        if (getPlayerData(player).getString("muteMusic") == null) {
+            getPlayerData(player).put("muteMusic", false);
+        } else if (getPlayerData(player).getString("muteMusic") != null) {
+            if (getPlayerData(player).getString("muteMusic").equals(false)) {
+                rsp.addPlayer(player);
+                rsp.setPlaying(true);
+            } else if (getPlayerData(player).getString("muteMusic").equals(true)) {
+                player.sendMessage(Text.translatable("manhunt.jukebox.muted"));
+            }
+        }
+
+        source.sendFeedback(() -> Text.translatable("manhunt.jukebox.playing", songName), false);
 
         return Command.SINGLE_SUCCESS;
     }
@@ -78,7 +87,25 @@ public final class JukeboxCommand {
     private static int stopPlaying(ServerCommandSource source) {
         Nota.stopPlaying(source.getPlayer());
 
-        source.sendFeedback(() -> Text.translatable("Stopped playing"), false);
+        source.sendFeedback(() -> Text.translatable("manhunt.jukebox.stopped"), false);
+
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private static int muteMusic(ServerCommandSource source) {
+        Nota.stopPlaying(source.getPlayer());
+
+        getPlayerData(source.getPlayer()).put("muteMusic", true);
+
+        source.sendFeedback(() -> Text.translatable("manhunt.jukebox.mute"), false);
+
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private static int unMuteMusic(ServerCommandSource source) {
+        getPlayerData(source.getPlayer()).put("muteMusic", false);
+
+        source.sendFeedback(() -> Text.translatable("manhunt.jukebox.unmute"), false);
 
         return Command.SINGLE_SUCCESS;
     }
@@ -91,11 +118,19 @@ public final class JukeboxCommand {
         RadioSongPlayer rsp = new RadioSongPlayer(song);
 
         for (ServerPlayerEntity player : source.getServer().getPlayerManager().getPlayerList()) {
-            rsp.addPlayer(player);
+            if (getPlayerData(player).getString("muteMusic") == null) {
+                getPlayerData(player).put("muteMusic", false);
+            } else if (getPlayerData(player).getString("muteMusic") != null) {
+                if (getPlayerData(player).getString("muteMusic").equals(false)) {
+                    rsp.addPlayer(player);
+                    rsp.setPlaying(true);
+                } else if (getPlayerData(player).getString("muteMusic").equals(true)) {
+                    player.sendMessage(Text.translatable("manhunt.jukebox.muted"));
+                }
+            }
         }
-        rsp.setPlaying(true);
 
-        source.sendFeedback(() -> Text.translatable("Now playing: " + songName), false);
+        source.sendFeedback(() -> Text.translatable("manhunt.jukebox.playing", songName), false);
 
         return Command.SINGLE_SUCCESS;
     }
@@ -105,7 +140,7 @@ public final class JukeboxCommand {
             Nota.stopPlaying(player);
         }
 
-        source.sendFeedback(() -> Text.translatable("Stopped playing"), false);
+        source.sendFeedback(() -> Text.translatable("manhunt.jukebox.stopped"), false);
 
         return Command.SINGLE_SUCCESS;
     }

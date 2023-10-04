@@ -1,6 +1,8 @@
 package manhunt;
 
+import manhunt.commands.DoNotDisturbCommand;
 import manhunt.commands.JukeboxCommand;
+import manhunt.commands.PingSoundCommand;
 import manhunt.config.ManhuntConfig;
 import manhunt.game.ManhuntGame;
 import manhunt.game.ManhuntState;
@@ -130,6 +132,8 @@ public class Manhunt implements ModInitializer {
 
 		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
 			JukeboxCommand.register(dispatcher);
+			DoNotDisturbCommand.register(dispatcher);
+			PingSoundCommand.register(dispatcher);
 		});
 
 		ServerLifecycleEvents.SERVER_STARTED.register(server -> {
@@ -645,7 +649,10 @@ public class Manhunt implements ModInitializer {
 		MySQLDatabase data = new MySQLDatabase(MOD_ID, databaseName, databaseAddress, databasePort, databaseUser, databasePassword);
 
         return data.createTable("players")
-				.addColumn("playLobbyMusic", SQLDataType.BOOL)
+				.addColumn("muteMusic", SQLDataType.BOOL)
+				.addColumn("lobbyMusic", SQLDataType.BOOL)
+				.addColumn("doNotDisturb", SQLDataType.BOOL)
+				.addColumn("pingSound", SQLDataType.STRING)
 				.addColumn("currentRole", SQLDataType.STRING)
 				.finish();
 	}

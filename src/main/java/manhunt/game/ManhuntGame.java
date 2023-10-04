@@ -20,8 +20,6 @@ import net.minecraft.world.GameMode;
 import net.minecraft.world.GameRules;
 import net.minecraft.world.Heightmap;
 
-import java.util.Objects;
-
 import static manhunt.Manhunt.lobbyRegistryKey;
 import static manhunt.config.ManhuntConfig.hunterFreeze;
 import static manhunt.game.ManhuntState.*;

@@ -1,4 +1,13 @@
 {
+  "manhunt.jukebox.playing": "Now playing: §7%1$s",
+  "manhunt.jukebox.cancel": "Use §7jukebox stop§r to cancel",
+  "manhunt.jukebox.stopped": "Stoppled §7playing",
+  "manhunt.jukebox.permanent": "Use §7jukebox mute§r to mute music permanently",
+  "manhunt.jukebox.muted": "Your music is muted, use §7jukebox unmute",
+  "manhunt.jukebox.mute": "Music permanently §7muted",
+  "manhunt.jukebox.unmute": "Your music is no longer §7muted",
+  "manhunt.donotdisturb.set": "Do not disturb has been set to: §7%1$s",
+  "manhunt.pingsound.set": "Ping sound has been set to: §7%1$s",
   "manhunt.item.unready": "§cNot ready",
   "manhunt.item.ready": "§aReady",
   "manhunt.item.hunter": "§bHunter",
