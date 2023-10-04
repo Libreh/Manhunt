@@ -14,6 +14,7 @@ import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.world.GameMode;
+import nota.model.Playlist;
 import nota.model.Song;
 import nota.player.RadioSongPlayer;
 import nota.utils.NBSDecoder;
@@ -95,8 +96,12 @@ public abstract class PlayerManagerMixin {
     }
 
     private void playLobbyMusic(ServerPlayerEntity player) {
-        Song song = NBSDecoder.parse(new File(musicDirectory + "/" + "soChill.nbs"));
-        RadioSongPlayer rsp = new RadioSongPlayer(song);
+        Song elevatorMusic = NBSDecoder.parse(new File(musicDirectory + "/" + "elevatorMusic.nbs"));
+        Song localForecast = NBSDecoder.parse(new File(musicDirectory + "/" + "localForecast.nbs"));
+        Song soChill = NBSDecoder.parse(new File(musicDirectory + "/" + "soChill.nbs"));
+        Playlist lobbyMusic = new Playlist(elevatorMusic, localForecast, soChill);
+        lobbyMusic.shuffle();
+        RadioSongPlayer rsp = new RadioSongPlayer(lobbyMusic);
         rsp.addPlayer(player);
         rsp.setPlaying(true);
         player.sendMessage(Text.translatable("manhunt.jukebox.playing", Text.translatable("soChill.nbs")));

@@ -113,6 +113,7 @@ public final class JukeboxCommand {
 
     private static int unMuteMusic(ServerCommandSource source) {
         getPlayerData(source.getPlayer()).put("muteMusic", false);
+        playLobbyMusic(source.getPlayer());
 
         source.sendFeedback(() -> Text.translatable("manhunt.jukebox.unmute"), false);
 

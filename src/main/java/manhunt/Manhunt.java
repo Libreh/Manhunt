@@ -57,6 +57,7 @@ import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.GameRules;
 import net.minecraft.world.World;
+import nota.model.Playlist;
 import nota.model.Song;
 import nota.player.RadioSongPlayer;
 import nota.utils.NBSDecoder;
@@ -92,6 +93,7 @@ public class Manhunt implements ModInitializer {
 	public static String dontStopMeNow = "dontStopMeNow";
 	public static String duelOfTheFates = "duelOfTheFates";
 	public static String dynamite = "dynamite";
+	public static String elevatorMusic = "elevatorMusic";
 	public static String everythingIsAwesome = "everythingIsAwesome";
 	public static String flightOfTheBumblebee = "flightOfTheBumblebee";
 	public static String fnafSong = "fnafSong";
@@ -99,7 +101,9 @@ public class Manhunt implements ModInitializer {
 	public static String heySoulSister = "heySoulSister";
 	public static String iGotAFeeling = "iGotAFeeling";
 	public static String indianaJones = "indianaJones";
+	public static String inTheHallOfTheMountainKing = "inTheHallOfTheMountainKing";
 	public static String jurassicPark = "jurassicPark";
+	public static String localForecast = "localForecast";
 	public static String madWorld = "madWorld";
 	public static String mrBlueSky = "mrBlueSky";
 	public static String neverGonnaGiveYouUp = "neverGonnaGiveYouUp";
@@ -202,6 +206,7 @@ public class Manhunt implements ModInitializer {
 			songs.add(dontStopMeNow);
 			songs.add(duelOfTheFates);
 			songs.add(dynamite);
+			songs.add(elevatorMusic);
 			songs.add(everythingIsAwesome);
 			songs.add(flightOfTheBumblebee);
 			songs.add(fnafSong);
@@ -209,7 +214,9 @@ public class Manhunt implements ModInitializer {
 			songs.add(heySoulSister);
 			songs.add(iGotAFeeling);
 			songs.add(indianaJones);
+			songs.add(inTheHallOfTheMountainKing);
 			songs.add(jurassicPark);
+			songs.add(localForecast);
 			songs.add(madWorld);
 			songs.add(mrBlueSky);
 			songs.add(neverGonnaGiveYouUp);
@@ -584,24 +591,16 @@ public class Manhunt implements ModInitializer {
 					if (itemStack.getNbt().getBoolean("Settings")) {
 						SimpleGui settings = new SimpleGui(ScreenHandlerType.GENERIC_9X3, (ServerPlayerEntity) player, false);
 						settings.setTitle(Text.translatable("manhunt.title.settings"));
-						NbtCompound paperNbt = new NbtCompound();
-						paperNbt.put("display", new NbtCompound());
-						paperNbt.getCompound("display").putString("Name", "{\"translate\": \"manhunt.item.preferences\",\"italic\": false,\"color\": \"white\"}");
-						ItemStack paper = new ItemStack(Items.PAPER);
-						paper.setNbt(paperNbt);
-						settings.setSlot(11, new GuiElementBuilder(paper.getItem())
+						settings.setSlot(11, new GuiElementBuilder(Items.PAPER)
+								.setName(Text.translatable("manhunt.item.preferences"))
 								.setCallback((index, type, action) -> {
 									SimpleGui preferences = new SimpleGui(ScreenHandlerType.GENERIC_9X3, (ServerPlayerEntity) player, false);
 									preferences.setTitle(Text.translatable("manhunt.title.preferences"));
 									preferences.open();
 								})
 						);
-						NbtCompound repeaterNbt = new NbtCompound();
-						repeaterNbt.put("display", new NbtCompound());
-						repeaterNbt.getCompound("display").putString("Name", "{\"translate\": \"manhunt.item.configuration\",\"italic\": false,\"color\": \"white\"}");
-						ItemStack repeater = new ItemStack(Items.REPEATER);
-						repeater.setNbt(repeaterNbt);
-						settings.setSlot(15, new GuiElementBuilder(repeater.getItem())
+						settings.setSlot(15, new GuiElementBuilder(Items.REPEATER)
+								.setName(Text.translatable("manhunt.item.configuration"))
 								.setCallback((index, type, action) -> {
 									SimpleGui configuration = new SimpleGui(ScreenHandlerType.GENERIC_9X3, (ServerPlayerEntity) player, false);
 									configuration.setTitle(Text.translatable("manhunt.title.configuration"));
@@ -856,8 +855,12 @@ public class Manhunt implements ModInitializer {
 	}
 
 	public static void playLobbyMusic(ServerPlayerEntity player) {
-		Song song = NBSDecoder.parse(new File(musicDirectory + "/" + "soChill.nbs"));
-		RadioSongPlayer rsp = new RadioSongPlayer(song);
+		Song elevatorMusic = NBSDecoder.parse(new File(musicDirectory + "/" + "elevatorMusic.nbs"));
+		Song localForecast = NBSDecoder.parse(new File(musicDirectory + "/" + "localForecast.nbs"));
+		Song soChill = NBSDecoder.parse(new File(musicDirectory + "/" + "soChill.nbs"));
+		Playlist lobbyMusic = new Playlist(elevatorMusic, localForecast, soChill);
+		lobbyMusic.shuffle();
+		RadioSongPlayer rsp = new RadioSongPlayer(lobbyMusic);
 		rsp.addPlayer(player);
 		rsp.setPlaying(true);
 		player.sendMessage(Text.translatable("manhunt.jukebox.playing", Text.translatable("soChill.nbs")));
