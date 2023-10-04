@@ -17,15 +17,16 @@ public class PingSoundCommand {
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(literal("pingsound")
                 .then(argument("sound", IdentifierArgumentType.identifier())
-                        .suggests(SuggestionProviders.AVAILABLE_SOUNDS))
-                        .executes(context -> setPingSound(context.getSource(), IdentifierArgumentType.getIdentifier(context, "pingsound")))
+                        .suggests(SuggestionProviders.AVAILABLE_SOUNDS)
+                        .executes(context -> setPingSound(context.getSource(), IdentifierArgumentType.getIdentifier(context, "sound")))
+                )
         );
     }
 
     private static int setPingSound(ServerCommandSource source, Identifier pingSound) {
         getPlayerData(source.getPlayer()).put("pingSound", pingSound.toString());
 
-        source.sendFeedback(() -> Text.translatable("manhunt.pingsound.set", pingSound), false);
+        source.sendFeedback(() -> Text.translatable("manhunt.pingsound.set", Text.translatable(pingSound.toString())), false);
 
         return Command.SINGLE_SUCCESS;
     }

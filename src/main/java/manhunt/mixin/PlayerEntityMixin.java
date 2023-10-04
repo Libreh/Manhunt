@@ -1,9 +1,12 @@
 package manhunt.mixin;
 
 import com.mojang.serialization.DataResult;
+import manhunt.config.ManhuntConfig;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.damage.DamageSource;
+import net.minecraft.entity.damage.DeathMessageType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.*;
@@ -17,6 +20,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.Objects;
+
+import static manhunt.config.ManhuntConfig.disableBedExplosions;
 
 @Mixin(PlayerEntity.class)
 public abstract class PlayerEntityMixin extends LivingEntity {
@@ -65,5 +70,13 @@ public abstract class PlayerEntityMixin extends LivingEntity {
     @Inject(at = @At("RETURN"), method = "readCustomDataFromNbt")
     public void readAdditionalSaveData(NbtCompound nbt, CallbackInfo cbi) {
         this.positions = nbt.getList("Positions", 10);
+    }
+
+    @Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/player/PlayerEntity;setAbsorptionAmount(F)V"), method = "applyDamage", cancellable = true)
+    private void cancelDamage(DamageSource source, float amount, CallbackInfo ci) {
+        ManhuntConfig.load();
+        if (disableBedExplosions && source.getType().deathMessageType() == DeathMessageType.INTENTIONAL_GAME_DESIGN) {
+            ci.cancel();
+        }
     }
 }

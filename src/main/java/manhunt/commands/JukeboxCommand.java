@@ -16,8 +16,7 @@ import nota.utils.NBSDecoder;
 
 import java.io.File;
 
-import static manhunt.Manhunt.getPlayerData;
-import static manhunt.Manhunt.songs;
+import static manhunt.Manhunt.*;
 import static manhunt.config.ManhuntConfig.musicDirectory;
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
@@ -38,6 +37,17 @@ public final class JukeboxCommand {
                 )
                 .then(literal("unmute")
                         .executes(context -> unMuteMusic(context.getSource()))
+                )
+                .then(literal("lobbymusic")
+                        .then(literal("status")
+                                .executes(context -> lobbyMusicStatus(context.getSource()))
+                        )
+                        .then(literal("on")
+                                .executes(context -> lobbyMusicOn(context.getSource()))
+                        )
+                        .then(literal("off")
+                                .executes(context -> lobbyMusicOff(context.getSource()))
+                        )
                 )
         );
         dispatcher.register(literal("jukeboxall")
@@ -136,6 +146,36 @@ public final class JukeboxCommand {
         }
 
         source.sendFeedback(() -> Text.translatable("manhunt.jukebox.stopped"), false);
+
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private static int lobbyMusicStatus(ServerCommandSource source) {
+        boolean bool = getPlayerData(source.getPlayer()).getBool("lobbyMusic");
+
+        if (bool) {
+            source.sendFeedback(() -> Text.translatable("manhunt.lobbymusic.get", Text.translatable("on")), false);
+        } else if (!bool) {
+            source.sendFeedback(() -> Text.translatable("manhunt.lobbymusic.get", Text.translatable("off")), false);
+        }
+
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private static int lobbyMusicOn(ServerCommandSource source) {
+        getPlayerData(source.getPlayer()).put("lobbyMusic", true);
+
+        source.sendFeedback(() -> Text.translatable("manhunt.lobbymusic.set", Text.translatable("on")), false);
+        playLobbyMusic(source.getPlayer());
+
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private static int lobbyMusicOff(ServerCommandSource source) {
+        getPlayerData(source.getPlayer()).put("lobbyMusic", false);
+
+        source.sendFeedback(() -> Text.translatable("manhunt.lobbymusic.set", Text.translatable("off")), false);
+        Nota.stopPlaying(source.getPlayer());
 
         return Command.SINGLE_SUCCESS;
     }

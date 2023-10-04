@@ -5,7 +5,6 @@ import manhunt.config.ManhuntConfig;
 import manhunt.game.ManhuntGame;
 import manhunt.game.ManhuntState;
 import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.entity.damage.DeathMessageType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.packet.s2c.play.SubtitleS2CPacket;
 import net.minecraft.network.packet.s2c.play.TitleS2CPacket;
@@ -23,7 +22,6 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(ServerPlayerEntity.class)
 public abstract class ServerPlayerEntityMixin extends PlayerEntity {
@@ -60,12 +58,4 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity {
         }
     }
 
-    @Inject(at = @At("HEAD"), method = "damage")
-    public boolean onDamage(DamageSource source, float amount, CallbackInfoReturnable ci) {
-        ManhuntConfig.load();
-        if (ManhuntConfig.disableBedExplosions) {
-            return !source.getType().deathMessageType().equals(DeathMessageType.INTENTIONAL_GAME_DESIGN);
-        }
-        return true;
-    }
 }

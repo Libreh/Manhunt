@@ -19,6 +19,7 @@ import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.GameMode;
 import net.minecraft.world.GameRules;
 import net.minecraft.world.Heightmap;
+import nota.Nota;
 
 import static manhunt.Manhunt.lobbyRegistryKey;
 import static manhunt.config.ManhuntConfig.hunterFreeze;
@@ -100,7 +101,7 @@ public class ManhuntGame {
                     player.addStatusEffect(new StatusEffectInstance(StatusEffects.WEAKNESS, hunterFreeze * 20, 255, false, false));
                 }
             }
-
+            Nota.stopPlaying(player);
         }
 
         world.getServer().getCommandManager().executeWithPrefix(world.getServer().getCommandSource().withSilent(), "chunky cancel");

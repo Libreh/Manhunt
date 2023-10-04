@@ -63,19 +63,6 @@ public abstract class PlayerManagerMixin {
                     )
             );
             player.playSound(SoundEvents.ENTITY_PLAYER_LEVELUP, SoundCategory.BLOCKS, 0.5f, 0.5f);
-
-            if (getPlayerData(player).getString("currentRole") == null) {
-                getPlayerData(player).put("muteMusic", false);
-                getPlayerData(player).put("lobbyMusic", true);
-                getPlayerData(player).put("doNotDisturb", false);
-                getPlayerData(player).put("pingSound", "");
-                getPlayerData(player).put("currentRole", "hunter");
-                lobbyMusic(player);
-            } else if (getPlayerData(player).getString("currentRole") != null) {
-                if (!getPlayerData(player).getBool("muteMusic") && getPlayerData(player).getBool("lobbyMusic")) {
-                    lobbyMusic(player);
-                }
-            }
         }
 
         if (ManhuntGame.state == ManhuntState.PLAYING) {
@@ -92,15 +79,29 @@ public abstract class PlayerManagerMixin {
                 }
             }
         }
+
+        if (getPlayerData(player).getString("currentRole") == null) {
+            getPlayerData(player).put("muteMusic", false);
+            getPlayerData(player).put("lobbyMusic", true);
+            getPlayerData(player).put("doNotDisturb", false);
+            getPlayerData(player).put("pingSound", "");
+            getPlayerData(player).put("currentRole", "hunter");
+            playLobbyMusic(player);
+        } else if (getPlayerData(player).getString("currentRole") != null) {
+            if (!getPlayerData(player).getBool("muteMusic") && getPlayerData(player).getBool("lobbyMusic")) {
+                playLobbyMusic(player);
+            }
+        }
     }
 
-    private void lobbyMusic(ServerPlayerEntity player) {
+    private void playLobbyMusic(ServerPlayerEntity player) {
         Song song = NBSDecoder.parse(new File(musicDirectory + "/" + "soChill.nbs"));
         RadioSongPlayer rsp = new RadioSongPlayer(song);
         rsp.addPlayer(player);
         rsp.setPlaying(true);
-        player.sendMessage(Text.translatable("manhunt.jukebox.playing", "soChill.nbs"));
+        player.sendMessage(Text.translatable("manhunt.jukebox.playing", Text.translatable("soChill.nbs")));
         player.sendMessage(Text.translatable("manhunt.jukebox.cancel"));
         player.sendMessage(Text.translatable("manhunt.jukebox.permanent"));
+        player.sendMessage(Text.translatable("manhunt.lobbymusic.disable"));
     }
 }
