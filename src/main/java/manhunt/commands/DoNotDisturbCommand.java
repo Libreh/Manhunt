@@ -4,6 +4,7 @@ import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 
 import static manhunt.Manhunt.getPlayerData;
 import static net.minecraft.server.command.CommandManager.literal;
@@ -25,12 +26,12 @@ public class DoNotDisturbCommand {
     }
 
     private static int disturbStatus(ServerCommandSource source) {
-        boolean bool = getPlayerData(source.getPlayer()).getBool("doNotDisturb");
+        boolean doNotDisturb = getPlayerData(source.getPlayer()).getBool("doNotDisturb");
 
-        if (bool) {
-            source.sendFeedback(() -> Text.translatable("manhunt.donotdisturb.get", Text.translatable("on")), false);
-        } else if (!bool) {
-            source.sendFeedback(() -> Text.translatable("manhunt.donotdisturb.get", Text.translatable("off")), false);
+        if (doNotDisturb) {
+            source.sendFeedback(() -> Text.translatable("manhunt.get.to", Text.literal("Do not disturb"), Text.literal("on").formatted(Formatting.GRAY)), false);
+        } else if (!doNotDisturb) {
+            source.sendFeedback(() -> Text.translatable("manhunt.get.to", Text.literal("Do not disturb"), Text.literal("off").formatted(Formatting.GRAY)), false);
         }
 
         return Command.SINGLE_SUCCESS;
@@ -39,7 +40,7 @@ public class DoNotDisturbCommand {
     private static int disturbOn(ServerCommandSource source) {
         getPlayerData(source.getPlayer()).put("doNotDisturb", true);
 
-        source.sendFeedback(() -> Text.translatable("manhunt.donotdisturb.get", Text.translatable("on")), false);
+        source.sendFeedback(() -> Text.translatable("manhunt.set.to", Text.literal("Do not disturb"), Text.literal("on").formatted(Formatting.GRAY)), false);
 
         return Command.SINGLE_SUCCESS;
     }
@@ -47,7 +48,7 @@ public class DoNotDisturbCommand {
     private static int disturbOff(ServerCommandSource source) {
         getPlayerData(source.getPlayer()).put("doNotDisturb", false);
 
-        source.sendFeedback(() -> Text.translatable("manhunt.donotdisturb.set", Text.translatable("off")), false);
+        source.sendFeedback(() -> Text.translatable("manhunt.set.to", Text.literal("Do not disturb"), Text.literal("off").formatted(Formatting.GRAY)), false);
 
         return Command.SINGLE_SUCCESS;
     }

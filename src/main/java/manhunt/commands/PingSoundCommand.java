@@ -6,6 +6,7 @@ import net.minecraft.command.argument.IdentifierArgumentType;
 import net.minecraft.command.suggestion.SuggestionProviders;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 
 import static manhunt.Manhunt.getPlayerData;
@@ -26,7 +27,7 @@ public class PingSoundCommand {
     private static int setPingSound(ServerCommandSource source, Identifier pingSound) {
         getPlayerData(source.getPlayer()).put("pingSound", pingSound.toString());
 
-        source.sendFeedback(() -> Text.translatable("manhunt.pingsound.set", Text.translatable(pingSound.toString())), false);
+        source.sendFeedback(() -> Text.translatable("manhunt.set.to", Text.literal("Ping sound"), Text.literal(pingSound.toString()).formatted(Formatting.GRAY)), false);
 
         return Command.SINGLE_SUCCESS;
     }

@@ -3,6 +3,7 @@ package manhunt.mixin;
 import manhunt.config.ManhuntConfig;
 import manhunt.game.ManhuntGame;
 import manhunt.game.ManhuntState;
+import net.minecraft.block.Blocks;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.network.ClientConnection;
@@ -13,6 +14,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.GameMode;
 import nota.model.Playlist;
 import nota.model.Song;
@@ -64,6 +66,13 @@ public abstract class PlayerManagerMixin {
                     )
             );
             player.playSound(SoundEvents.ENTITY_PLAYER_LEVELUP, SoundCategory.BLOCKS, 0.5f, 0.5f);
+
+            var world = player.getWorld();
+
+            if (world.getBlockState(new BlockPos(2, 60, 24)).getBlock().equals(Blocks.AIR)) {
+                world.getServer().getCommandManager().executeWithPrefix(world.getServer().getCommandSource().withSilent(), "setblock 2 60 24 ice");
+                world.getServer().getCommandManager().executeWithPrefix(world.getServer().getCommandSource().withSilent(), "summon glow_squid 2 60 27 {NoGravity:1b,Silent:1b,Invulnerable:1b,NoAI:1b}");
+            }
         }
 
         if (ManhuntGame.state == ManhuntState.PLAYING) {
@@ -81,14 +90,14 @@ public abstract class PlayerManagerMixin {
             }
         }
 
-        if (getPlayerData(player).getString("currentRole") == null) {
+        if (getPlayerData(player).getString("pingSound") == null) {
             getPlayerData(player).put("muteMusic", false);
             getPlayerData(player).put("lobbyMusic", true);
             getPlayerData(player).put("doNotDisturb", false);
             getPlayerData(player).put("pingSound", "");
             getPlayerData(player).put("currentRole", "hunter");
             playLobbyMusic(player);
-        } else if (getPlayerData(player).getString("currentRole") != null) {
+        } else if (getPlayerData(player).getString("pingSound") != null) {
             if (!getPlayerData(player).getBool("muteMusic") && getPlayerData(player).getBool("lobbyMusic")) {
                 playLobbyMusic(player);
             }
@@ -99,14 +108,14 @@ public abstract class PlayerManagerMixin {
         Song elevatorMusic = NBSDecoder.parse(new File(musicDirectory + "/" + "elevatorMusic.nbs"));
         Song localForecast = NBSDecoder.parse(new File(musicDirectory + "/" + "localForecast.nbs"));
         Song soChill = NBSDecoder.parse(new File(musicDirectory + "/" + "soChill.nbs"));
-        Playlist lobbyMusic = new Playlist(elevatorMusic, localForecast, soChill);
-        lobbyMusic.shuffle();
+        Playlist lobbyMusic = new Playlist(soChill, localForecast, elevatorMusic);
         RadioSongPlayer rsp = new RadioSongPlayer(lobbyMusic);
         rsp.addPlayer(player);
         rsp.setPlaying(true);
-        player.sendMessage(Text.translatable("manhunt.jukebox.playing", Text.translatable("soChill.nbs")));
+        player.sendMessage(Text.translatable("manhunt.jukebox.playing", Text.translatable(rsp.getSong().getPath().getAbsoluteFile().getName())));
         player.sendMessage(Text.translatable("manhunt.jukebox.cancel"));
         player.sendMessage(Text.translatable("manhunt.jukebox.permanent"));
         player.sendMessage(Text.translatable("manhunt.lobbymusic.disable"));
+        player.sendMessage(Text.translatable("manhunt.jukebox.volume"));
     }
 }

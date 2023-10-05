@@ -155,9 +155,9 @@ public final class JukeboxCommand {
         boolean bool = getPlayerData(source.getPlayer()).getBool("lobbyMusic");
 
         if (bool) {
-            source.sendFeedback(() -> Text.translatable("manhunt.lobbymusic.get", Text.translatable("on")), false);
+            source.sendFeedback(() -> Text.translatable("manhunt.get.to", Text.literal("Lobby music"), Text.translatable("on")), false);
         } else if (!bool) {
-            source.sendFeedback(() -> Text.translatable("manhunt.lobbymusic.get", Text.translatable("off")), false);
+            source.sendFeedback(() -> Text.translatable("manhunt.get.to", Text.literal("Lobby music"), Text.translatable("off")), false);
         }
 
         return Command.SINGLE_SUCCESS;
@@ -166,7 +166,7 @@ public final class JukeboxCommand {
     private static int lobbyMusicOn(ServerCommandSource source) {
         getPlayerData(source.getPlayer()).put("lobbyMusic", true);
 
-        source.sendFeedback(() -> Text.translatable("manhunt.lobbymusic.set", Text.translatable("on")), false);
+        source.sendFeedback(() -> Text.translatable("manhunt.set.to", Text.literal("Lobby music"), Text.translatable("on")), false);
         playLobbyMusic(source.getPlayer());
 
         return Command.SINGLE_SUCCESS;
@@ -175,7 +175,7 @@ public final class JukeboxCommand {
     private static int lobbyMusicOff(ServerCommandSource source) {
         getPlayerData(source.getPlayer()).put("lobbyMusic", false);
 
-        source.sendFeedback(() -> Text.translatable("manhunt.lobbymusic.set", Text.translatable("off")), false);
+        source.sendFeedback(() -> Text.translatable("manhunt.set.to", Text.literal("Lobby music"), Text.translatable("off")), false);
         Nota.stopPlaying(source.getPlayer());
 
         return Command.SINGLE_SUCCESS;

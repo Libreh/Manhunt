@@ -46,9 +46,9 @@ public class ManhuntGame {
         world.setTimeOfDay(0);
 
         server.getGameRules().get(GameRules.ANNOUNCE_ADVANCEMENTS).set(true, server);
-        server.getGameRules().get(GameRules.DO_DAYLIGHT_CYCLE).set(true, server);
         server.getGameRules().get(GameRules.DO_FIRE_TICK).set(true, server);
         server.getGameRules().get(GameRules.DO_INSOMNIA).set(true, server);
+        server.getGameRules().get(GameRules.DO_MOB_LOOT).set(true, server);
         server.getGameRules().get(GameRules.DO_MOB_SPAWNING).set(true, server);
         server.getGameRules().get(GameRules.DO_WEATHER_CYCLE).set(true, server);
         server.getGameRules().get(GameRules.FALL_DAMAGE).set(true, server);

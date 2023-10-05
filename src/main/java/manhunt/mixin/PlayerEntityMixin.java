@@ -32,7 +32,7 @@ public abstract class PlayerEntityMixin extends LivingEntity {
         super(entityType, world);
     }
 
-    @Inject(method = "tick", at = @At("HEAD"))
+    @Inject(at = @At("HEAD"), method = "tick")
     public void tick(CallbackInfo ci) {
 
         DataResult<NbtElement> var10000 = World.CODEC.encodeStart(NbtOps.INSTANCE, getWorld().getRegistryKey());

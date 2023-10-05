@@ -173,9 +173,9 @@ public class Manhunt implements ModInitializer {
 			};
 			server.setDifficulty(difficulty, true);
 			server.getGameRules().get(GameRules.ANNOUNCE_ADVANCEMENTS).set(false, server);
-			server.getGameRules().get(GameRules.DO_DAYLIGHT_CYCLE).set(false, server);
 			server.getGameRules().get(GameRules.DO_FIRE_TICK).set(false, server);
 			server.getGameRules().get(GameRules.DO_INSOMNIA).set(false, server);
+			server.getGameRules().get(GameRules.DO_MOB_LOOT).set(false, server);
 			server.getGameRules().get(GameRules.DO_MOB_SPAWNING).set(false, server);
 			server.getGameRules().get(GameRules.DO_WEATHER_CYCLE).set(false, server);
 			server.getGameRules().get(GameRules.FALL_DAMAGE).set(false, server);
@@ -237,6 +237,8 @@ public class Manhunt implements ModInitializer {
 			songs.add(thunderstruck);
 			songs.add(vivaLaVida);
 			songs.add(waitingForLove);
+
+			server.getCommandManager().executeWithPrefix(server.getCommandSource().withSilent(), "kill @e[type=glow_squid,limit=1]");
 		});
 
 		ServerTickEvents.START_SERVER_TICK.register(server -> {
@@ -300,7 +302,7 @@ public class Manhunt implements ModInitializer {
 
 					if (player.getZ() < 0) {
 						int ticks = player.getScoreboard().getPlayerScore(player.getName().getString(), getTimeObjective(server)).getScore();
-						if (beforeSound && player.getZ() < -4) {
+						if (beforeSound && player.getZ() < -4 && !(player.getZ() < -6)) {
 							playSound(player, SoundEvents.BLOCK_NOTE_BLOCK_FLUTE.value(), SoundCategory.BLOCKS, 1f, 1f);
 							beforeSound = false;
 						}
@@ -589,25 +591,7 @@ public class Manhunt implements ModInitializer {
 
 				if (itemStack.getItem() == Items.COMPARATOR) {
 					if (itemStack.getNbt().getBoolean("Settings")) {
-						SimpleGui settings = new SimpleGui(ScreenHandlerType.GENERIC_9X3, (ServerPlayerEntity) player, false);
-						settings.setTitle(Text.translatable("manhunt.title.settings"));
-						settings.setSlot(11, new GuiElementBuilder(Items.PAPER)
-								.setName(Text.translatable("manhunt.item.preferences"))
-								.setCallback((index, type, action) -> {
-									SimpleGui preferences = new SimpleGui(ScreenHandlerType.GENERIC_9X3, (ServerPlayerEntity) player, false);
-									preferences.setTitle(Text.translatable("manhunt.title.preferences"));
-									preferences.open();
-								})
-						);
-						settings.setSlot(15, new GuiElementBuilder(Items.REPEATER)
-								.setName(Text.translatable("manhunt.item.configuration"))
-								.setCallback((index, type, action) -> {
-									SimpleGui configuration = new SimpleGui(ScreenHandlerType.GENERIC_9X3, (ServerPlayerEntity) player, false);
-									configuration.setTitle(Text.translatable("manhunt.title.configuration"));
-									configuration.open();
-								})
-						);
-						settings.open();
+						settings((ServerPlayerEntity) player);
 					}
 				}
 			}
@@ -659,8 +643,9 @@ public class Manhunt implements ModInitializer {
 
 	private void spawnLobbyStructure(MinecraftServer server) throws IOException {
 		var lobbyDir = FabricLoader.getInstance().getConfigDir().resolve("lobby");
-		if (!Files.exists(lobbyDir))
+		if (!Files.exists(lobbyDir)) {
 			lobbyDir.toFile().mkdirs();
+		}
 
 		var lobbyParkourNbt = NbtIo.readCompressed(getClass().getResourceAsStream("/manhunt/lobby/parkour.nbt"));
 		var lobbyIslandNbt = NbtIo.readCompressed(getClass().getResourceAsStream("/manhunt/lobby/island.nbt"));
@@ -673,8 +658,8 @@ public class Manhunt implements ModInitializer {
 		lobbyWorld.getChunkManager().addTicket(ChunkTicketType.START, new ChunkPos(16, 16), 16, Unit.INSTANCE);
 		lobbyWorld.getChunkManager().addTicket(ChunkTicketType.START, new ChunkPos(16, 0), 16, Unit.INSTANCE);
 		lobbyWorld.getChunkManager().addTicket(ChunkTicketType.START, new ChunkPos(0, 16), 16, Unit.INSTANCE);
-		placeStructure(lobbyWorld, new BlockPos(-21, 57, -54), lobbyParkourNbt);
-		placeStructure(lobbyWorld, new BlockPos(-21, 57, -6), lobbyIslandNbt);
+		placeStructure(lobbyWorld, new BlockPos(-21, 55, -66), lobbyParkourNbt);
+		placeStructure(lobbyWorld, new BlockPos(-21, 55, -18), lobbyIslandNbt);
 	}
 
 	private void placeStructure(ServerWorld world, BlockPos pos, NbtCompound nbt) {
@@ -699,7 +684,6 @@ public class Manhunt implements ModInitializer {
 				.addColumn("lobbyMusic", SQLDataType.BOOL)
 				.addColumn("doNotDisturb", SQLDataType.BOOL)
 				.addColumn("pingSound", SQLDataType.STRING)
-				.addColumn("soundId", SQLDataType.STRING)
 				.addColumn("currentRole", SQLDataType.STRING)
 				.finish();
 	}
@@ -858,14 +842,99 @@ public class Manhunt implements ModInitializer {
 		Song elevatorMusic = NBSDecoder.parse(new File(musicDirectory + "/" + "elevatorMusic.nbs"));
 		Song localForecast = NBSDecoder.parse(new File(musicDirectory + "/" + "localForecast.nbs"));
 		Song soChill = NBSDecoder.parse(new File(musicDirectory + "/" + "soChill.nbs"));
-		Playlist lobbyMusic = new Playlist(elevatorMusic, localForecast, soChill);
-		lobbyMusic.shuffle();
+		Playlist lobbyMusic = new Playlist(soChill, localForecast, elevatorMusic);
 		RadioSongPlayer rsp = new RadioSongPlayer(lobbyMusic);
 		rsp.addPlayer(player);
 		rsp.setPlaying(true);
-		player.sendMessage(Text.translatable("manhunt.jukebox.playing", Text.translatable("soChill.nbs")));
+		player.sendMessage(Text.translatable("manhunt.jukebox.playing", Text.translatable(rsp.getSong().getPath().getAbsoluteFile().getName())));
 		player.sendMessage(Text.translatable("manhunt.jukebox.cancel"));
 		player.sendMessage(Text.translatable("manhunt.jukebox.permanent"));
 		player.sendMessage(Text.translatable("manhunt.lobbymusic.disable"));
+		player.sendMessage(Text.translatable("manhunt.jukebox.volume"));
+	}
+
+	private static void settings(ServerPlayerEntity player) {
+		SimpleGui settings = new SimpleGui(ScreenHandlerType.GENERIC_9X3, player, false);
+		settings.setTitle(Text.translatable("manhunt.title.settings"));
+		settings.open();
+		settings.setSlot(11, new GuiElementBuilder(Items.PAPER)
+				.setName(Text.translatable("manhunt.item.preferences"))
+				.setCallback((preferencesIndex, preferencesType, preferencesAction) -> {
+					SimpleGui preferences = new SimpleGui(ScreenHandlerType.GENERIC_9X3, player, false);
+					preferences.setTitle(Text.translatable("manhunt.title.preferences"));
+					preferences.open();
+					setGoBack(player, preferences);
+					NbtCompound nbt = new NbtCompound();
+					nbt.putInt("HideFlags", 1);
+					ItemStack musicDisc = new ItemStack(Items.MUSIC_DISC_11);
+					musicDisc.setNbt(nbt);
+					changeSetting(player, preferences, "muteMusic", "manhunt.item.mutemusic", "manhunt.lore.mutemusic", musicDisc.getItem(), 10);
+					changeSetting(player, preferences, "lobbyMusic", "manhunt.item.lobbymusic", "manhunt.lore.lobbymusic", Items.JUKEBOX, 11);
+					changeSetting(player, preferences, "doNotDisturb", "manhunt.item.donotdisturb", "manhunt.lore.donotdisturb", Items.BARRIER, 12);
+				})
+		);
+		settings.setSlot(15, new GuiElementBuilder(Items.REPEATER)
+				.setName(Text.translatable("manhunt.item.configuration"))
+				.setCallback((index, type, action) -> {
+					SimpleGui configuration = new SimpleGui(ScreenHandlerType.GENERIC_9X3, (ServerPlayerEntity) player, false);
+					configuration.setTitle(Text.translatable("manhunt.title.configuration"));
+					configuration.open();
+					setGoBack(player, configuration);
+				})
+		);
+	}
+
+	private static void changeSetting(ServerPlayerEntity player, SimpleGui gui, String setting, String name, String lore, Item item, int slot) {
+		if (!player.getItemCooldownManager().isCoolingDown(item)) {
+			boolean value = getPlayerData(player).getBool(setting);
+			List<Text> loreList = new ArrayList<>();
+			if (value) {
+				loreList.add(Text.translatable(lore));
+				loreList.add(Text.literal("On").formatted(Formatting.GREEN));
+			} else if (!value) {
+				loreList.add(Text.translatable(lore));
+				loreList.add(Text.literal("Off").formatted(Formatting.RED));
+			}
+			gui.setSlot(slot, new GuiElementBuilder(item)
+					.setName(Text.translatable(name))
+					.setLore(loreList)
+					.setCallback((muteMusicIndex, muteMusicType, muteMusicAction) -> {
+						player.getItemCooldownManager().set(item, 20);
+						boolean muteMusicSecond = getPlayerData(player).getBool(setting);
+						if (muteMusicSecond) {
+							List<Text> secondLoreList = new ArrayList<>();
+							secondLoreList.add(Text.translatable(lore));
+							secondLoreList.add(Text.literal("Off").formatted(Formatting.RED));
+							gui.setSlot(slot, new GuiElementBuilder(item)
+									.setName(Text.translatable(name))
+									.setLore(secondLoreList)
+									.setCallback((index, type, action) -> {
+										changeSetting(player, gui, setting, name, lore, item, slot);
+									})
+							);
+							getPlayerData(player).put(setting, false);
+						} else if (!muteMusicSecond) {
+							List<Text> secondLoreList = new ArrayList<>();
+							secondLoreList.add(Text.translatable(lore));
+							secondLoreList.add(Text.literal("On").formatted(Formatting.GREEN));
+							gui.setSlot(slot, new GuiElementBuilder(item)
+									.setName(Text.translatable(name))
+									.setLore(secondLoreList)
+									.setCallback((index, type, action) -> {
+										changeSetting(player, gui, setting, name, lore, item, slot);
+									})
+							);
+							getPlayerData(player).put(setting, true);
+						}
+					})
+			);
+		}
+	}
+
+	private static void setGoBack(ServerPlayerEntity player, SimpleGui gui) {
+		gui.setSlot(8, new GuiElementBuilder(Items.MAGENTA_GLAZED_TERRACOTTA)
+				.setName(Text.translatable("manhunt.item.back"))
+				.setCallback((index, type, action) -> settings(player))
+		);
 	}
 }
