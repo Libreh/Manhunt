@@ -58,6 +58,7 @@ import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.GameRules;
 import net.minecraft.world.World;
+import nota.Nota;
 import nota.model.Playlist;
 import nota.model.Song;
 import nota.player.RadioSongPlayer;
@@ -132,10 +133,6 @@ public class Manhunt implements ModInitializer {
 	public void onInitialize() {
 		ManhuntConfig.load();
 
-		if (!databaseName.isEmpty() && !databaseAddress.isEmpty() && !databasePort.isEmpty() && !databaseUser.isEmpty() && !databasePassword.isEmpty()) {
-			Manhunt.table();
-		}
-
 		LOGGER.info("Manhunt initialized");
 
 		DeleteWorld.invoke();
@@ -188,6 +185,11 @@ public class Manhunt implements ModInitializer {
 			server.getScoreboard().addTeam("hunters");
 			server.getScoreboard().addTeam("runners");
 
+			server.getCommandManager().executeWithPrefix(server.getCommandSource().withSilent(), "scoreboard objectives add playerData dummy");
+			server.getCommandManager().executeWithPrefix(server.getCommandSource().withSilent(), "scoreboard objectives add muteMusic dummy");
+			server.getCommandManager().executeWithPrefix(server.getCommandSource().withSilent(), "scoreboard objectives add muteLobbyMusic dummy");
+			server.getCommandManager().executeWithPrefix(server.getCommandSource().withSilent(), "scoreboard objectives add doNotDisturb dummy");
+			server.getCommandManager().executeWithPrefix(server.getCommandSource().withSilent(), "scoreboard objectives add currentRole dummy");
 			server.getCommandManager().executeWithPrefix(server.getCommandSource().withSilent(), "scoreboard objectives add parkourTimer dummy");
 			server.getCommandManager().executeWithPrefix(server.getCommandSource().withSilent(), "scoreboard objectives add hasStarted dummy");
 			server.getCommandManager().executeWithPrefix(server.getCommandSource().withSilent(), "scoreboard objectives add isFinished dummy");
@@ -299,7 +301,7 @@ public class Manhunt implements ModInitializer {
 						player.getInventory().setStack(8, itemStack);
 					}
 
-					if (player.getZ() < 0) {
+					if (player.getZ() < 0 && !player.hasPermissionLevel(2) && !player.hasPermissionLevel(4)) {
 						int ticks = getPlayerScore(player, "parkourTimer").getScore();
 						if (getPlayerScore(player, "hasStarted").getScore() == 0 && getPlayerScore(player, "isFinished").getScore() == 0 && player.getZ() < -4 && !(player.getZ() < -6)) {
 							playSound(player, SoundEvents.BLOCK_NOTE_BLOCK_FLUTE.value(), SoundCategory.BLOCKS, 1f, 1f);
@@ -340,27 +342,25 @@ public class Manhunt implements ModInitializer {
 							resetPlayer(player, player.getServer().getWorld(lobbyRegistryKey));
 							playSound(player, SoundEvents.BLOCK_NOTE_BLOCK_FLUTE.value(), SoundCategory.BLOCKS, 1f, 0.5f);
 						}
-						if (player.getY() < 61) {
+						if (player.getY() < 61 && !player.hasPermissionLevel(2)) {
 							player.sendMessage(Text.translatable("manhunt.time.current", sec_string, ms_string).formatted(Formatting.RED), true);
 							resetPlayer(player, player.getServer().getWorld(lobbyRegistryKey));
 							playSound(player, SoundEvents.BLOCK_NOTE_BLOCK_FLUTE.value(), SoundCategory.BLOCKS, 1f, 0.5f);
 						}
-						if (player.getZ() < -27 && player.getY() < 68) {
+						if (player.getZ() < -27 && player.getY() < 68 && !player.hasPermissionLevel(2)) {
 							player.sendMessage(Text.translatable("manhunt.time.current", sec_string, ms_string).formatted(Formatting.RED), true);
 							resetPlayer(player, player.getServer().getWorld(lobbyRegistryKey));
 							playSound(player, SoundEvents.BLOCK_NOTE_BLOCK_FLUTE.value(), SoundCategory.BLOCKS, 1f, 0.5f);
 						}
 					}
 
-					if (player.getX() < -24 || player.getX() > 24) {
+					if (player.getX() < -24 || player.getX() > 24 && !player.hasPermissionLevel(2) && !player.hasPermissionLevel(4)) {
 						resetPlayer(player, player.getServer().getWorld(lobbyRegistryKey));
 					}
-
-					if (player.getY() < 54 || player.getY() > 74) {
+					if (player.getY() < 54 || player.getY() > 74 && !player.hasPermissionLevel(2) && !player.hasPermissionLevel(4)) {
 						resetPlayer(player, player.getServer().getWorld(lobbyRegistryKey));
 					}
-
-					if (player.getZ() < -64 || player.getZ() > 32) {
+					if (player.getZ() < -64 || player.getZ() > 32 && !player.hasPermissionLevel(2) && !player.hasPermissionLevel(4)) {
 						resetPlayer(player, player.getServer().getWorld(lobbyRegistryKey));
 					}
 				}
@@ -385,7 +385,7 @@ public class Manhunt implements ModInitializer {
 							stack.addEnchantment(Enchantments.VANISHING_CURSE, 1);
 
 							player.giveItemStack(stack);
-						} else if (ManhuntConfig.compassUpdate.equals("Automatic") && System.currentTimeMillis() - lastDelay > ((long) 1000)) {
+						} else if (compassUpdate.equals("Automatic") && System.currentTimeMillis() - lastDelay > ((long) 1000)) {
 							for (ItemStack itemStack : player.getInventory().main) {
 								if (itemStack.getItem().equals(Items.COMPASS) && itemStack.getNbt() != null && itemStack.getNbt().getBoolean("Tracker")) {
 									ServerPlayerEntity trackedPlayer = server.getPlayerManager().getPlayer(itemStack.getNbt().getCompound("Info").getString("Name"));
@@ -449,9 +449,9 @@ public class Manhunt implements ModInitializer {
 							allRunners.add(player);
 						}
 						if (!player.isTeamPlayer(hunters) && !player.isTeamPlayer(runners)) {
-							if (getPlayerData(player).getString("currentRole").equals("hunter")) {
+							if (getPlayerScore(player, "currentRole").getScore() == 0) {
 								player.getScoreboard().addPlayerToTeam(player.getName().getString(), hunters);
-							} else if (getPlayerData(player).getString("currentRole").equals("runner")) {
+							} else {
 								player.getScoreboard().addPlayerToTeam(player.getName().getString(), runners);
 							}
 						}
@@ -491,7 +491,7 @@ public class Manhunt implements ModInitializer {
 
 							if (lobbyWorld.getScoreboard().getTeam("readys").getPlayerList().size() == lobbyWorld.getPlayers().size()) {
 								for (ServerPlayerEntity lobbyPlayer : lobbyWorld.getPlayers()) {
-									if (getPlayerData(lobbyPlayer).getString("currentRole").equals("runner")) {
+									if (getPlayerScore((ServerPlayerEntity) player, "currentRole").getScore() == 1) {
 										lobbyPlayer.getScoreboard().addPlayerToTeam(lobbyPlayer.getName().getString(), runners);
 										if (!lobbyWorld.getScoreboard().getTeam("runners").getPlayerList().isEmpty()) {
 											ManhuntGame.start(lobbyWorld.getServer());
@@ -555,7 +555,7 @@ public class Manhunt implements ModInitializer {
 
 							player.playSound(SoundEvents.ITEM_LODESTONE_COMPASS_LOCK, SoundCategory.PLAYERS, 0.5f, 1f);
 
-							getPlayerData((ServerPlayerEntity) player).put("currentRole", "hunter");
+							getPlayerScore((ServerPlayerEntity) player, "currentRole").setScore(0);
 
 							player.getServer().getPlayerManager().broadcast(Text.translatable("manhunt.chat.hunter", player.getName().getString()), false);
 						}
@@ -583,7 +583,7 @@ public class Manhunt implements ModInitializer {
 
 							player.playSound(SoundEvents.ENTITY_ENDER_EYE_LAUNCH, SoundCategory.PLAYERS, 0.5f, 1f);
 
-							getPlayerData((ServerPlayerEntity) player).put("currentRole", "runner");
+							getPlayerScore((ServerPlayerEntity) player, "currentRole").setScore(1);
 
 							player.getServer().getPlayerManager().broadcast(Text.translatable("manhunt.chat.runner", player.getName().getString()), false);
 						}
@@ -598,7 +598,7 @@ public class Manhunt implements ModInitializer {
 			}
 
 			if (ManhuntGame.state == PLAYING) {
-				if (itemStack.getNbt() != null && itemStack.getNbt().getBoolean("Tracker") && !player.isSpectator() && player.isTeamPlayer(world.getScoreboard().getTeam("hunters"))) {
+				if (itemStack.getNbt() != null && itemStack.getNbt().getBoolean("Tracker") && !player.isSpectator() && player.isTeamPlayer(world.getScoreboard().getTeam("hunters")) && !player.getItemCooldownManager().isCoolingDown(itemStack.getItem())) {
 					player.getItemCooldownManager().set(itemStack.getItem(), 20);
 					if (!itemStack.getOrCreateNbt().contains("Info")) {
 						itemStack.getOrCreateNbt().put("Info", new NbtCompound());
@@ -625,7 +625,7 @@ public class Manhunt implements ModInitializer {
 			if (pingingEnabled) {
 				for (ServerPlayerEntity player : sender.getServer().getPlayerManager().getPlayerList()) {
 					var playerName = player.getName().getString();
-					if (!getPlayerData(player).getBool("doNotDisturb")) {
+					if (getPlayerScore(player, "doNotDisturb").getScore() == 0) {
 						if (message.getSignedContent().contains(playerName)) {
 							String pingSound = getPlayerData(player).getString("pingSound");
 							if (pingSound.isEmpty()) {
@@ -659,8 +659,8 @@ public class Manhunt implements ModInitializer {
 		lobbyWorld.getChunkManager().addTicket(ChunkTicketType.START, new ChunkPos(16, 16), 16, Unit.INSTANCE);
 		lobbyWorld.getChunkManager().addTicket(ChunkTicketType.START, new ChunkPos(16, 0), 16, Unit.INSTANCE);
 		lobbyWorld.getChunkManager().addTicket(ChunkTicketType.START, new ChunkPos(0, 16), 16, Unit.INSTANCE);
-		placeStructure(lobbyWorld, new BlockPos(-21, 57, -54), lobbyParkourNbt);
-		placeStructure(lobbyWorld, new BlockPos(-21, 57, -6), lobbyIslandNbt);
+		placeStructure(lobbyWorld, new BlockPos(-21, 54, -54), lobbyParkourNbt);
+		placeStructure(lobbyWorld, new BlockPos(-21, 54, -6), lobbyIslandNbt);
 	}
 
 	private void placeStructure(ServerWorld world, BlockPos pos, NbtCompound nbt) {
@@ -677,27 +677,21 @@ public class Manhunt implements ModInitializer {
 
 	}
 
-	public static Table table() {
-		MySQLDatabase data = new MySQLDatabase(MOD_ID, databaseName, databaseAddress, databasePort, databaseUser, databasePassword);
-
-		return data.createTable("players")
+	public static DataContainer getPlayerData(ServerPlayerEntity player) {
+		MySQLDatabase database = new MySQLDatabase(MOD_ID, databaseName, databaseAddress, databasePort, databaseUser, databasePassword);
+		Table table = database.createTable("players")
 				.addColumn("muteMusic", SQLDataType.BOOL)
-				.addColumn("lobbyMusic", SQLDataType.BOOL)
+				.addColumn("muteLobbyMusic", SQLDataType.BOOL)
 				.addColumn("doNotDisturb", SQLDataType.BOOL)
 				.addColumn("pingSound", SQLDataType.STRING)
-				.addColumn("currentRole", SQLDataType.STRING)
 				.addColumn("lobbyRole", SQLDataType.STRING)
 				.finish();
-	}
-
-	public static DataContainer getPlayerData(ServerPlayerEntity player) {
-		DataContainer playerData = null;
-		if (table().get(player.getUuidAsString()) == null) {
-			playerData = table().createDataContainer(player.getUuidAsString());
-		} else if (table().get(player.getUuidAsString()) != null) {
-			playerData = table().get(player.getUuidAsString());
+		DataContainer playerData = table.get(player.getUuidAsString());
+		if (!(getPlayerScore(player, "playerData").getScore() == 0) && !(getPlayerScore(player, "playerData").getScore() == 1)) {
+			if (table.get(player.getUuidAsString()) == null) {
+				playerData = table.createDataContainer(player.getUuidAsString());
+			}
 		}
-
 		return playerData;
 	}
 
@@ -853,7 +847,7 @@ public class Manhunt implements ModInitializer {
 		player.sendMessage(Text.translatable("manhunt.jukebox.playing", Text.translatable(rsp.getSong().getPath().getAbsoluteFile().getName())));
 		player.sendMessage(Text.translatable("manhunt.jukebox.cancel"));
 		player.sendMessage(Text.translatable("manhunt.jukebox.permanent"));
-		player.sendMessage(Text.translatable("manhunt.lobbymusic.disable"));
+		player.sendMessage(Text.translatable("manhunt.mutelobbymusic.disable"));
 		player.sendMessage(Text.translatable("manhunt.jukebox.volume"));
 	}
 
@@ -882,31 +876,35 @@ public class Manhunt implements ModInitializer {
 		personalsettings.setTitle(Text.translatable("manhunt.item.personal"));
 		setGoBack(player, personalsettings);
 		changePersonalSetting(player, personalsettings, "muteMusic", "manhunt.item.mutemusic", "manhunt.lore.mutemusic", Items.MUSIC_DISC_11, 10);
-		changePersonalSetting(player, personalsettings, "lobbyMusic", "manhunt.item.lobbymusic", "manhunt.lore.lobbymusic", Items.JUKEBOX, 11);
+		changePersonalSetting(player, personalsettings, "muteLobbyMusic", "manhunt.item.mutelobbymusic", "manhunt.lore.mutelobbymusic", Items.JUKEBOX, 11);
 		changePersonalSetting(player, personalsettings, "doNotDisturb", "manhunt.item.donotdisturb", "manhunt.lore.donotdisturb", Items.BARRIER, 12);
 		personalsettings.open();
 	}
 
 	private static void gameSettings(ServerPlayerEntity player) {
-		SimpleGui gamesettings = new SimpleGui(ScreenHandlerType.GENERIC_9X4, player, false);
-		gamesettings.setTitle(Text.translatable("manhunt.item.game"));
-		if (getPlayerData(player).getString("lobbyRole").equals("leader")) {
-			setGoBack(player, gamesettings);
-			changeGameSetting(player, gamesettings, "hunterFreeze", "manhunt.item.hunterfreeze", "manhunt.lore.hunterfreeze", Items.ICE, 10);
-			changeGameSetting(player, gamesettings, "timeLimit", "manhunt.item.timelimit", "manhunt.lore.timelimit", Items.CLOCK, 11);
-			changeGameSetting(player, gamesettings, "compassUpdate", "manhunt.item.compassupdate", "manhunt.lore.compassupdate", Items.COMPASS, 12);
-			gamesettings.open();
-		} else if (!getPlayerData(player).getString("lobbyRole").equals("leader")) {
+		if (player.hasPermissionLevel(2) || player.hasPermissionLevel(4)) {
+			SimpleGui gamesettings = new SimpleGui(ScreenHandlerType.GENERIC_9X4, player, false);
+			gamesettings.setTitle(Text.translatable("manhunt.item.game"));
+			if (getPlayerData(player).getString("lobbyRole").equals("leader")) {
+				setGoBack(player, gamesettings);
+				changeGameSetting(player, gamesettings, "hunterFreeze", "manhunt.item.hunterfreeze", "manhunt.lore.hunterfreeze", Items.ICE, 10);
+				changeGameSetting(player, gamesettings, "timeLimit", "manhunt.item.timelimit", "manhunt.lore.timelimit", Items.CLOCK, 11);
+				changeGameSetting(player, gamesettings, "compassUpdate", "manhunt.item.compassupdate", "manhunt.lore.compassupdate", Items.COMPASS, 12);
+				gamesettings.open();
+			} else if (!getPlayerData(player).getString("lobbyRole").equals("leader")) {
+				player.sendMessage(Text.translatable("manhunt.chat.player"));
+			}
+		} else {
 			player.sendMessage(Text.translatable("manhunt.chat.player"));
 		}
 	}
 
 	private static void changePersonalSetting(ServerPlayerEntity player, SimpleGui gui, String setting, String name, String lore, Item item, int slot) {
 		if (!player.getItemCooldownManager().isCoolingDown(item)) {
-			boolean value = getPlayerData(player).getBool(setting);
+			int value = getPlayerScore(player, setting).getScore();
 			List<Text> loreList = new ArrayList<>();
             loreList.add(Text.translatable(lore));
-			if (value) {
+			if (value == 1) {
 				loreList.add(Text.literal("On").formatted(Formatting.GREEN));
 			} else {
 				loreList.add(Text.literal("Off").formatted(Formatting.RED));
@@ -916,7 +914,25 @@ public class Manhunt implements ModInitializer {
 					.setName(Text.translatable(name))
 					.setLore(loreList)
 					.setCallback(() -> {
-						getPlayerData(player).put(setting, !value);
+						if (value == 1) {
+							getPlayerScore(player, setting).setScore(0);
+						} else {
+							getPlayerScore(player, setting).setScore(1);
+						}
+						if (setting.equals("muteMusic") || setting.equals("muteLobbyMusic")) {
+							if (value == 1 && getPlayerScore(player, "muteMusic").getScore() == 0 && getPlayerScore(player, "muteLobbyMusic").getScore() == 0) {
+								playLobbyMusic(player);
+							} else {
+								Nota.stopPlaying(player);
+							}
+						}
+						if (setting.equals("doNotDisturb")) {
+							if (value == 1) {
+								getPlayerScore(player, setting).setScore(0);
+							} else {
+								getPlayerScore(player, setting).setScore(1);
+							}
+						}
 						changePersonalSetting(player, gui, setting, name, lore, item, slot);
 						player.getItemCooldownManager().set(item, 20);
 					})

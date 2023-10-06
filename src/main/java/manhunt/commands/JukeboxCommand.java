@@ -36,18 +36,13 @@ public final class JukeboxCommand {
                         .executes(context -> muteMusic(context.getSource()))
                 )
                 .then(literal("unmute")
-                        .executes(context -> unMuteMusic(context.getSource()))
+                        .executes(context -> unmuteMusic(context.getSource()))
                 )
-                .then(literal("lobbymusic")
-                        .then(literal("status")
-                                .executes(context -> lobbyMusicStatus(context.getSource()))
-                        )
-                        .then(literal("on")
-                                .executes(context -> lobbyMusicOn(context.getSource()))
-                        )
-                        .then(literal("off")
-                                .executes(context -> lobbyMusicOff(context.getSource()))
-                        )
+                .then(literal("mutelobbymusic")
+                        .executes(context -> muteLobbyMusic(context.getSource()))
+                )
+                .then(literal("unmutelobbymusic")
+                        .executes(context -> unmuteLobbyMusic(context.getSource()))
                 )
         );
         dispatcher.register(literal("jukeboxall")
@@ -81,10 +76,10 @@ public final class JukeboxCommand {
 
         var player = source.getPlayer();
 
-        if (!getPlayerData(player).getBool("muteMusic")) {
+        if (getPlayerScore(player, "muteMusic").getScore() == 0) {
             rsp.addPlayer(player);
             rsp.setPlaying(true);
-        } else if (getPlayerData(player).getBool("muteMusic")) {
+        } else {
             player.sendMessage(Text.translatable("manhunt.jukebox.muted"));
         }
 
@@ -104,15 +99,15 @@ public final class JukeboxCommand {
     private static int muteMusic(ServerCommandSource source) {
         Nota.stopPlaying(source.getPlayer());
 
-        getPlayerData(source.getPlayer()).put("muteMusic", true);
+        getPlayerScore(source.getPlayer(), "muteMusic").setScore(1);
 
         source.sendFeedback(() -> Text.translatable("manhunt.jukebox.mute"), false);
 
         return Command.SINGLE_SUCCESS;
     }
 
-    private static int unMuteMusic(ServerCommandSource source) {
-        getPlayerData(source.getPlayer()).put("muteMusic", false);
+    private static int unmuteMusic(ServerCommandSource source) {
+        getPlayerScore(source.getPlayer(), "muteMusic").setScore(0);
         playLobbyMusic(source.getPlayer());
 
         source.sendFeedback(() -> Text.translatable("manhunt.jukebox.unmute"), false);
@@ -128,15 +123,15 @@ public final class JukeboxCommand {
         RadioSongPlayer rsp = new RadioSongPlayer(song);
 
         for (ServerPlayerEntity player : source.getServer().getPlayerManager().getPlayerList()) {
-            if (!getPlayerData(player).getBool("muteMusic")) {
+            if (getPlayerScore(player, "muteMusic").getScore() == 0) {
                 rsp.addPlayer(player);
                 rsp.setPlaying(true);
-            } else if (getPlayerData(player).getBool("muteMusic")) {
+            } else {
                 player.sendMessage(Text.translatable("manhunt.jukebox.muted"));
             }
         }
 
-        source.sendFeedback(() -> Text.translatable("manhunt.jukebox.playing", songName), false);
+        source.sendFeedback(() -> Text.translatable("manhunt.jukebox.playing", Text.literal(songName + ".nbs")), false);
 
         return Command.SINGLE_SUCCESS;
     }
@@ -151,32 +146,20 @@ public final class JukeboxCommand {
         return Command.SINGLE_SUCCESS;
     }
 
-    private static int lobbyMusicStatus(ServerCommandSource source) {
-        boolean bool = getPlayerData(source.getPlayer()).getBool("lobbyMusic");
+    private static int muteLobbyMusic(ServerCommandSource source) {
+        getPlayerScore(source.getPlayer(), "muteLobbyMusic").setScore(1);
 
-        if (bool) {
-            source.sendFeedback(() -> Text.translatable("manhunt.get.to", Text.literal("Lobby music"), Text.translatable("on")), false);
-        } else if (!bool) {
-            source.sendFeedback(() -> Text.translatable("manhunt.get.to", Text.literal("Lobby music"), Text.translatable("off")), false);
-        }
-
-        return Command.SINGLE_SUCCESS;
-    }
-
-    private static int lobbyMusicOn(ServerCommandSource source) {
-        getPlayerData(source.getPlayer()).put("lobbyMusic", true);
-
-        source.sendFeedback(() -> Text.translatable("manhunt.set.to", Text.literal("Lobby music"), Text.translatable("on")), false);
-        playLobbyMusic(source.getPlayer());
-
-        return Command.SINGLE_SUCCESS;
-    }
-
-    private static int lobbyMusicOff(ServerCommandSource source) {
-        getPlayerData(source.getPlayer()).put("lobbyMusic", false);
-
-        source.sendFeedback(() -> Text.translatable("manhunt.set.to", Text.literal("Lobby music"), Text.translatable("off")), false);
+        source.sendFeedback(() -> Text.translatable("manhunt.jukebox.mutelobbymusic"), false);
         Nota.stopPlaying(source.getPlayer());
+
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private static int unmuteLobbyMusic(ServerCommandSource source) {
+        getPlayerScore(source.getPlayer(), "muteLobbyMusic").setScore(0);
+
+        source.sendFeedback(() -> Text.translatable("manhunt.jukebox.unmutelobbymusic"), false);
+        playLobbyMusic(source.getPlayer());
 
         return Command.SINGLE_SUCCESS;
     }
