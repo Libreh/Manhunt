@@ -23,6 +23,7 @@ import nota.Nota;
 
 import static manhunt.Manhunt.lobbyRegistryKey;
 import static manhunt.config.ManhuntConfig.hunterFreeze;
+import static manhunt.config.ManhuntConfig.revealWinner;
 import static manhunt.game.ManhuntState.*;
 
 public class ManhuntGame {
@@ -78,8 +79,10 @@ public class ManhuntGame {
 
             updateGameMode(player);
 
-            player.networkHandler.sendPacket(new TitleS2CPacket(Text.translatable("manhunt.title.game")));
-            player.networkHandler.sendPacket(new SubtitleS2CPacket(Text.translatable("manhunt.title.start")));
+            if (revealWinner) {
+                player.networkHandler.sendPacket(new TitleS2CPacket(Text.translatable("manhunt.title.gamemode")));
+                player.networkHandler.sendPacket(new SubtitleS2CPacket(Text.translatable("manhunt.title.start")));
+            }
             player.networkHandler.sendPacket(
                     new PlaySoundS2CPacket(
                         SoundEvents.BLOCK_NOTE_BLOCK_PLING,

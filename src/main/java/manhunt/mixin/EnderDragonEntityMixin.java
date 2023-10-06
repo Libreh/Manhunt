@@ -16,7 +16,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import static manhunt.config.ManhuntConfig.showWinnerTitle;
+import static manhunt.config.ManhuntConfig.revealWinner;
 
 @Mixin(EnderDragonEntity.class)
 public abstract class EnderDragonEntityMixin {
@@ -26,7 +26,7 @@ public abstract class EnderDragonEntityMixin {
         ManhuntConfig.load();
         EnderDragonEntity dragon = ((EnderDragonEntity) (Object) this);
         MinecraftServer server = dragon.getServer();
-        if (!showWinnerTitle) {
+        if (!revealWinner) {
             if (server.getScoreboard().getPlayerTeam("runners").getPlayerList().isEmpty() && dragon.deathTime == 1) {
                 ManhuntGame.state = ManhuntState.POSTGAME;
                 for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {

@@ -1,6 +1,7 @@
 package manhunt;
 
 import eu.pb4.sgui.api.elements.GuiElementBuilder;
+import eu.pb4.sgui.api.gui.AnvilInputGui;
 import eu.pb4.sgui.api.gui.SimpleGui;
 import manhunt.commands.DoNotDisturbCommand;
 import manhunt.commands.JukeboxCommand;
@@ -334,6 +335,11 @@ public class Manhunt implements ModInitializer {
 								}
 							}
 						}
+						if (getPlayerScore(player, "hasStarted").getScore() == 1 && player.getZ() > -4) {
+							player.sendMessage(Text.translatable("manhunt.time.current", sec_string, ms_string).formatted(Formatting.RED), true);
+							resetPlayer(player, player.getServer().getWorld(lobbyRegistryKey));
+							playSound(player, SoundEvents.BLOCK_NOTE_BLOCK_FLUTE.value(), SoundCategory.BLOCKS, 1f, 0.5f);
+						}
 						if (player.getY() < 61) {
 							player.sendMessage(Text.translatable("manhunt.time.current", sec_string, ms_string).formatted(Formatting.RED), true);
 							resetPlayer(player, player.getServer().getWorld(lobbyRegistryKey));
@@ -379,7 +385,7 @@ public class Manhunt implements ModInitializer {
 							stack.addEnchantment(Enchantments.VANISHING_CURSE, 1);
 
 							player.giveItemStack(stack);
-						} else if (ManhuntConfig.automaticCompassUpdate && System.currentTimeMillis() - lastDelay > ((long) 1000)) {
+						} else if (ManhuntConfig.compassUpdate.equals("Automatic") && System.currentTimeMillis() - lastDelay > ((long) 1000)) {
 							for (ItemStack itemStack : player.getInventory().main) {
 								if (itemStack.getItem().equals(Items.COMPASS) && itemStack.getNbt() != null && itemStack.getNbt().getBoolean("Tracker")) {
 									ServerPlayerEntity trackedPlayer = server.getPlayerManager().getPlayer(itemStack.getNbt().getCompound("Info").getString("Name"));
@@ -853,84 +859,160 @@ public class Manhunt implements ModInitializer {
 
 	private static void settings(ServerPlayerEntity player) {
 		SimpleGui settings = new SimpleGui(ScreenHandlerType.GENERIC_9X3, player, false);
-		settings.setTitle(Text.translatable("manhunt.title.settings"));
+		settings.setTitle(Text.translatable("manhunt.item.settings"));
 		settings.open();
 		List<Text> personalLore = new ArrayList<>();
 		personalLore.add(Text.translatable("manhunt.lore.personal"));
 		settings.setSlot(11, new GuiElementBuilder(Items.PAPER)
 				.setName(Text.translatable("manhunt.item.personal"))
 				.setLore(personalLore)
-				.setCallback((preferencesIndex, preferencesType, preferencesAction) -> {
-					SimpleGui personalsettings = new SimpleGui(ScreenHandlerType.GENERIC_9X3, player, false);
-					personalsettings.setTitle(Text.translatable("manhunt.title.personal"));
-					personalsettings.open();
-					setGoBack(player, personalsettings);
-					changeSetting(player, personalsettings, "muteMusic", "manhunt.item.mutemusic", "manhunt.lore.mutemusic", Items.MUSIC_DISC_11, 10, false);
-					changeSetting(player, personalsettings, "lobbyMusic", "manhunt.item.lobbymusic", "manhunt.lore.lobbymusic", Items.JUKEBOX, 11, false);
-					changeSetting(player, personalsettings, "doNotDisturb", "manhunt.item.donotdisturb", "manhunt.lore.donotdisturb", Items.BARRIER, 12, false);
-				})
+				.setCallback(() -> personalSettings(player))
 		);
 		List<Text> gameLore = new ArrayList<>();
 		gameLore.add(Text.translatable("manhunt.lore.game"));
 		settings.setSlot(15, new GuiElementBuilder(Items.REPEATER)
 				.setName(Text.translatable("manhunt.item.game"))
 				.setLore(gameLore)
-				.setCallback((index, type, action) -> {
-					SimpleGui gamesettings = new SimpleGui(ScreenHandlerType.GENERIC_9X3, player, false);
-					gamesettings.setTitle(Text.translatable("manhunt.title.game"));
-					if (getPlayerData(player).getString("lobbyRole").equals("leader")) {
-						gamesettings.open();
-						setGoBack(player, gamesettings);
-						changeSetting(player, gamesettings, "hunterFreeze", "manhunt.item.hunterfreeze", "manhunt.lore.hunterfreeze", Items.ICE, 0, true);
-					} else if (!getPlayerData(player).getString("lobbyRole").equals("leader")) {
-						player.sendMessage(Text.translatable("manhunt.chat.player"));
-					}
-				})
+				.setCallback(() -> gameSettings(player))
 		);
 	}
 
-	private static void changeSetting(ServerPlayerEntity player, SimpleGui gui, String setting, String name, String lore, Item item, int slot, boolean game) {
+	private static void personalSettings(ServerPlayerEntity player) {
+		SimpleGui personalsettings = new SimpleGui(ScreenHandlerType.GENERIC_9X4, player, false);
+		personalsettings.setTitle(Text.translatable("manhunt.item.personal"));
+		setGoBack(player, personalsettings);
+		changePersonalSetting(player, personalsettings, "muteMusic", "manhunt.item.mutemusic", "manhunt.lore.mutemusic", Items.MUSIC_DISC_11, 10);
+		changePersonalSetting(player, personalsettings, "lobbyMusic", "manhunt.item.lobbymusic", "manhunt.lore.lobbymusic", Items.JUKEBOX, 11);
+		changePersonalSetting(player, personalsettings, "doNotDisturb", "manhunt.item.donotdisturb", "manhunt.lore.donotdisturb", Items.BARRIER, 12);
+		personalsettings.open();
+	}
+
+	private static void gameSettings(ServerPlayerEntity player) {
+		SimpleGui gamesettings = new SimpleGui(ScreenHandlerType.GENERIC_9X4, player, false);
+		gamesettings.setTitle(Text.translatable("manhunt.item.game"));
+		if (getPlayerData(player).getString("lobbyRole").equals("leader")) {
+			setGoBack(player, gamesettings);
+			changeGameSetting(player, gamesettings, "hunterFreeze", "manhunt.item.hunterfreeze", "manhunt.lore.hunterfreeze", Items.ICE, 10);
+			changeGameSetting(player, gamesettings, "timeLimit", "manhunt.item.timelimit", "manhunt.lore.timelimit", Items.CLOCK, 11);
+			changeGameSetting(player, gamesettings, "compassUpdate", "manhunt.item.compassupdate", "manhunt.lore.compassupdate", Items.COMPASS, 12);
+			gamesettings.open();
+		} else if (!getPlayerData(player).getString("lobbyRole").equals("leader")) {
+			player.sendMessage(Text.translatable("manhunt.chat.player"));
+		}
+	}
+
+	private static void changePersonalSetting(ServerPlayerEntity player, SimpleGui gui, String setting, String name, String lore, Item item, int slot) {
 		if (!player.getItemCooldownManager().isCoolingDown(item)) {
 			boolean value = getPlayerData(player).getBool(setting);
 			List<Text> loreList = new ArrayList<>();
-			if (!value) {
-				loreList.add(Text.translatable(lore));
+            loreList.add(Text.translatable(lore));
+			if (value) {
 				loreList.add(Text.literal("On").formatted(Formatting.GREEN));
-				getPlayerData(player).put(setting, true);
 			} else {
-				loreList.add(Text.translatable(lore));
 				loreList.add(Text.literal("Off").formatted(Formatting.RED));
-				getPlayerData(player).put(setting, false);
 			}
 			gui.setSlot(slot, new GuiElementBuilder(item)
 					.hideFlags()
 					.setName(Text.translatable(name))
 					.setLore(loreList)
-					.setCallback((muteMusicIndex, muteMusicType, muteMusicAction) -> {
+					.setCallback(() -> {
+						getPlayerData(player).put(setting, !value);
+						changePersonalSetting(player, gui, setting, name, lore, item, slot);
 						player.getItemCooldownManager().set(item, 20);
-						boolean loreListSecond = getPlayerData(player).getBool(setting);
-                        List<Text> secondLoreList = new ArrayList<>();
-                        secondLoreList.add(Text.translatable(lore));
-                        if (loreListSecond) {
-                            secondLoreList.add(Text.literal("Off").formatted(Formatting.RED));
-							gui.setSlot(slot, new GuiElementBuilder(item)
-									.hideFlags()
-									.setName(Text.translatable(name))
-									.setLore(secondLoreList)
-									.setCallback((index, type, action) -> changeSetting(player, gui, setting, name, lore, item, slot, game))
-							);
-                        } else {
-                            secondLoreList.add(Text.literal("On").formatted(Formatting.GREEN));
-							gui.setSlot(slot, new GuiElementBuilder(item)
-									.hideFlags()
-									.setName(Text.translatable(name))
-									.setLore(secondLoreList)
-									.setCallback((index, type, action) -> changeSetting(player, gui, setting, name, lore, item, slot, game))
-							);
-                        }
-						getPlayerData(player).put(setting, false);
-                    })
+					})
 			);
+		}
+	}
+
+	private static void changeGameSetting(ServerPlayerEntity player, SimpleGui gui, String setting, String name, String lore, Item item, int slot) {
+		if (!player.getItemCooldownManager().isCoolingDown(item)) {
+			List<Text> loreList = new ArrayList<>();
+			loreList.add(Text.translatable(lore));
+			if (setting.equals("hunterFreeze")) {
+				if (hunterFreeze == 0) {
+					loreList.add(Text.literal(hunterFreeze + " seconds (disabled)").formatted(Formatting.RED));
+				} else {
+					loreList.add(Text.literal(hunterFreeze + " seconds").formatted(Formatting.GREEN));
+				}
+			}
+			if (setting.equals("timeLimit")) {
+				if (timeLimit == 0) {
+					loreList.add(Text.literal(timeLimit + " minutes (disabled)").formatted(Formatting.RED));
+				} else {
+					loreList.add(Text.literal(timeLimit + " minutes").formatted(Formatting.GREEN));
+				}
+			}
+			if (setting.equals("hunterFreeze") || setting.equals("timeLimit")) {
+				gui.setSlot(slot, new GuiElementBuilder(item)
+						.hideFlags()
+						.setName(Text.translatable(name))
+						.setLore(loreList)
+						.setCallback(() -> {
+							AnvilInputGui inputGui = new AnvilInputGui(player, false) {
+								@Override
+								public void onInput(String input) {
+									this.setSlot(2, new GuiElementBuilder(Items.PAPER)
+											.setName(Text.literal(input).formatted(Formatting.ITALIC))
+											.setCallback(() -> {
+												try {
+													int value = Integer.parseInt(input);
+													if (setting.equals("hunterFreeze")) {
+														hunterFreeze = value;
+														if (hunterFreeze == 0) {
+															player.getServer().getPlayerManager().broadcast(Text.translatable("manhunt.chat.game", "hunterFreeze", Text.literal(value + " seconds (disabled)").formatted(Formatting.RED)), false);
+														} else {
+															player.getServer().getPlayerManager().broadcast(Text.translatable("manhunt.chat.game", "hunterFreeze", Text.literal(value + " seconds").formatted(Formatting.GREEN)), false);
+														}
+													}
+													if (setting.equals("timeLimit")) {
+														timeLimit = value;
+														if (timeLimit == 0) {
+															player.getServer().getPlayerManager().broadcast(Text.translatable("manhunt.chat.game", "timeLimit", Text.literal(value + " minutes (disabled)").formatted(Formatting.RED)), false);
+														} else {
+															player.getServer().getPlayerManager().broadcast(Text.translatable("manhunt.chat.game", "timeLimit", Text.literal(value + " minutes").formatted(Formatting.GREEN)), false);
+														}
+													}
+													ManhuntConfig.save();
+												} catch (NumberFormatException e) {
+													player.sendMessage(Text.translatable("manhunt.chat.invalid"));
+												}
+												gameSettings(player);
+												player.getItemCooldownManager().set(item, 20);
+											})
+									);
+								}
+							};
+							inputGui.setTitle(Text.translatable("manhunt.lore.value"));
+							inputGui.setSlot(0, new GuiElementBuilder(Items.PAPER));
+							inputGui.setDefaultInputValue("");
+							inputGui.open();
+						})
+				);
+			}
+			if (setting.equals("compassUpdate")) {
+				List<Text> loreListSecond = new ArrayList<>();
+				loreListSecond.add(Text.translatable(lore));
+				if (compassUpdate.equals("Automatic")) {
+					loreListSecond.add(Text.literal("Automatic").formatted(Formatting.GREEN));
+				} else {
+					loreListSecond.add(Text.literal("Manual").formatted(Formatting.RED));
+				}
+				gui.setSlot(slot, new GuiElementBuilder(item)
+						.hideFlags()
+						.setName(Text.translatable(name))
+						.setLore(loreListSecond)
+						.setCallback(() -> {
+							if (compassUpdate.equals("Automatic")) {
+								compassUpdate = "Manual";
+							} else {
+								compassUpdate = "Automatic";
+							}
+							ManhuntConfig.save();
+							changeGameSetting(player, gui, setting, name, lore, item, slot);
+							player.getItemCooldownManager().set(item, 20);
+						})
+				);
+			}
 		}
 	}
 

@@ -23,6 +23,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import static manhunt.config.ManhuntConfig.revealWinner;
+
 @Mixin(ServerPlayerEntity.class)
 public abstract class ServerPlayerEntityMixin extends PlayerEntity {
 
@@ -45,7 +47,7 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity {
 
                 scoreboard.clearPlayerTeam(this.getName().getString());
 
-                if (ManhuntConfig.showWinnerTitle && server.getScoreboard().getTeam("runners").getPlayerList().isEmpty()) {
+                if (revealWinner && server.getScoreboard().getTeam("runners").getPlayerList().isEmpty()) {
                     ManhuntGame.state = ManhuntState.POSTGAME;
                     for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
                         ManhuntGame.updateGameMode(player);
