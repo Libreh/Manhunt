@@ -35,7 +35,7 @@ import net.minecraft.network.packet.s2c.play.PositionFlag;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
-import net.minecraft.scoreboard.ScoreboardObjective;
+import net.minecraft.scoreboard.ScoreboardPlayerScore;
 import net.minecraft.scoreboard.Team;
 import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.server.MinecraftServer;
@@ -124,8 +124,6 @@ public class Manhunt implements ModInitializer {
 	public static String thunderstruck = "thunderstruck";
 	public static String vivaLaVida = "vivaLaVida";
 	public static String waitingForLove = "waitingForLove";
-	private boolean beforeSound = true;
-	private boolean afterSound = true;
 	private long lastDelay = System.currentTimeMillis();
 	private boolean holding;
 
@@ -189,7 +187,9 @@ public class Manhunt implements ModInitializer {
 			server.getScoreboard().addTeam("hunters");
 			server.getScoreboard().addTeam("runners");
 
-			server.getCommandManager().executeWithPrefix(server.getCommandSource().withSilent(), "scoreboard objectives add time dummy");
+			server.getCommandManager().executeWithPrefix(server.getCommandSource().withSilent(), "scoreboard objectives add parkourTimer dummy");
+			server.getCommandManager().executeWithPrefix(server.getCommandSource().withSilent(), "scoreboard objectives add hasStarted dummy");
+			server.getCommandManager().executeWithPrefix(server.getCommandSource().withSilent(), "scoreboard objectives add isFinished dummy");
 
 			try {
 				spawnLobbyStructure(server);
@@ -237,8 +237,6 @@ public class Manhunt implements ModInitializer {
 			songs.add(thunderstruck);
 			songs.add(vivaLaVida);
 			songs.add(waitingForLove);
-
-			server.getCommandManager().executeWithPrefix(server.getCommandSource().withSilent(), "kill @e[type=glow_squid,limit=1]");
 		});
 
 		ServerTickEvents.START_SERVER_TICK.register(server -> {
@@ -301,13 +299,13 @@ public class Manhunt implements ModInitializer {
 					}
 
 					if (player.getZ() < 0) {
-						int ticks = player.getScoreboard().getPlayerScore(player.getName().getString(), getTimeObjective(server)).getScore();
-						if (beforeSound && player.getZ() < -4 && !(player.getZ() < -6)) {
+						int ticks = getPlayerScore(player, "parkourTimer").getScore();
+						if (getPlayerScore(player, "hasStarted").getScore() == 0 && getPlayerScore(player, "isFinished").getScore() == 0 && player.getZ() < -4 && !(player.getZ() < -6)) {
 							playSound(player, SoundEvents.BLOCK_NOTE_BLOCK_FLUTE.value(), SoundCategory.BLOCKS, 1f, 1f);
-							beforeSound = false;
+							getPlayerScore(player, "hasStarted").setScore(1);
 						}
-						if (afterSound && player.getZ() < -4) {
-							player.getScoreboard().getPlayerScore(player.getName().getString(), getTimeObjective(server)).setScore(player.getScoreboard().getPlayerScore(player.getName().getString(), getTimeObjective(server)).getScore() + 1);
+						if (getPlayerScore(player, "hasStarted").getScore() == 1 && player.getZ() < -4) {
+							getPlayerScore(player, "parkourTimer").setScore(getPlayerScore(player, "parkourTimer").getScore() + 1);
 						}
 						int sec = (int) Math.floor(((double) (ticks % (20 * 60)) / 20));
 						String sec_string;
@@ -325,29 +323,26 @@ public class Manhunt implements ModInitializer {
 						} else {
 							ms_string = String.valueOf(ms);
 						}
-						if (player.getZ() < -4)
-							player.sendMessage(Text.literal("Current time: " + sec_string + ":" + ms_string), true);
+						if (player.getZ() < -4 && getPlayerScore(player, "isFinished").getScore() == 0)
+							player.sendMessage(Text.translatable("manhunt.time.current", sec_string, ms_string), true);
 						if (player.getZ() < -24 && player.getZ() > -27) {
 							if (player.getX() < -6) {
-								if (player.getY() >= 70 && player.getY() < 72 && !beforeSound) {
-									player.sendMessage(Text.literal("Current time: " + sec_string + ":" + ms_string).formatted(Formatting.GREEN), true);
+								if (player.getY() >= 70 && player.getY() < 72 && getPlayerScore(player, "hasStarted").getScore() == 1 && getPlayerScore(player, "isFinished").getScore() == 0) {
+									player.sendMessage(Text.translatable("manhunt.time.current", sec_string, ms_string).formatted(Formatting.GREEN), true);
 									playSound(player, SoundEvents.BLOCK_NOTE_BLOCK_FLUTE.value(), SoundCategory.BLOCKS, 1f, 2f);
+									getPlayerScore(player, "isFinished").setScore(1);
 								}
 							}
 						}
 						if (player.getY() < 61) {
-							player.sendMessage(Text.literal("Current time: " + sec_string + ":" + ms_string).formatted(Formatting.RED), true);
+							player.sendMessage(Text.translatable("manhunt.time.current", sec_string, ms_string).formatted(Formatting.RED), true);
 							resetPlayer(player, player.getServer().getWorld(lobbyRegistryKey));
 							playSound(player, SoundEvents.BLOCK_NOTE_BLOCK_FLUTE.value(), SoundCategory.BLOCKS, 1f, 0.5f);
-							beforeSound = true;
-							afterSound = true;
 						}
 						if (player.getZ() < -27 && player.getY() < 68) {
-							player.sendMessage(Text.literal("Current time: " + sec_string + ":" + ms_string).formatted(Formatting.RED), true);
+							player.sendMessage(Text.translatable("manhunt.time.current", sec_string, ms_string).formatted(Formatting.RED), true);
 							resetPlayer(player, player.getServer().getWorld(lobbyRegistryKey));
 							playSound(player, SoundEvents.BLOCK_NOTE_BLOCK_FLUTE.value(), SoundCategory.BLOCKS, 1f, 0.5f);
-							beforeSound = true;
-							afterSound = true;
 						}
 					}
 
@@ -658,8 +653,8 @@ public class Manhunt implements ModInitializer {
 		lobbyWorld.getChunkManager().addTicket(ChunkTicketType.START, new ChunkPos(16, 16), 16, Unit.INSTANCE);
 		lobbyWorld.getChunkManager().addTicket(ChunkTicketType.START, new ChunkPos(16, 0), 16, Unit.INSTANCE);
 		lobbyWorld.getChunkManager().addTicket(ChunkTicketType.START, new ChunkPos(0, 16), 16, Unit.INSTANCE);
-		placeStructure(lobbyWorld, new BlockPos(-21, 55, -66), lobbyParkourNbt);
-		placeStructure(lobbyWorld, new BlockPos(-21, 55, -18), lobbyIslandNbt);
+		placeStructure(lobbyWorld, new BlockPos(-21, 57, -54), lobbyParkourNbt);
+		placeStructure(lobbyWorld, new BlockPos(-21, 57, -6), lobbyIslandNbt);
 	}
 
 	private void placeStructure(ServerWorld world, BlockPos pos, NbtCompound nbt) {
@@ -685,6 +680,7 @@ public class Manhunt implements ModInitializer {
 				.addColumn("doNotDisturb", SQLDataType.BOOL)
 				.addColumn("pingSound", SQLDataType.STRING)
 				.addColumn("currentRole", SQLDataType.STRING)
+				.addColumn("lobbyRole", SQLDataType.STRING)
 				.finish();
 	}
 
@@ -779,7 +775,9 @@ public class Manhunt implements ModInitializer {
 	}
 
 	private void resetPlayer(PlayerEntity player, ServerWorld world) {
-		player.getScoreboard().getPlayerScore(player.getName().getString(), getTimeObjective(player.getServer())).setScore(0);
+		getPlayerScore((ServerPlayerEntity) player, "parkourTimer").setScore(0);
+		getPlayerScore((ServerPlayerEntity) player, "hasStarted").setScore(0);
+		getPlayerScore((ServerPlayerEntity) player, "isFinished").setScore(0);
 		player.teleport(world, 0.5, 63, 0, PositionFlag.ROT, 180, 0);
 	}
 
@@ -830,8 +828,8 @@ public class Manhunt implements ModInitializer {
 		return bool;
 	}
 
-	public static ScoreboardObjective getTimeObjective(MinecraftServer server) {
-		return server.getScoreboard().getNullableObjective("time");
+	public static ScoreboardPlayerScore getPlayerScore(ServerPlayerEntity player, String name) {
+		return player.getScoreboard().getPlayerScore(player.getName().getString(), player.getScoreboard().getNullableObjective(name));
 	}
 
 	private static void playSound(ServerPlayerEntity player, SoundEvent sound, SoundCategory category, float volume, float pitch) {
@@ -857,76 +855,81 @@ public class Manhunt implements ModInitializer {
 		SimpleGui settings = new SimpleGui(ScreenHandlerType.GENERIC_9X3, player, false);
 		settings.setTitle(Text.translatable("manhunt.title.settings"));
 		settings.open();
+		List<Text> personalLore = new ArrayList<>();
+		personalLore.add(Text.translatable("manhunt.lore.personal"));
 		settings.setSlot(11, new GuiElementBuilder(Items.PAPER)
-				.setName(Text.translatable("manhunt.item.preferences"))
+				.setName(Text.translatable("manhunt.item.personal"))
+				.setLore(personalLore)
 				.setCallback((preferencesIndex, preferencesType, preferencesAction) -> {
-					SimpleGui preferences = new SimpleGui(ScreenHandlerType.GENERIC_9X3, player, false);
-					preferences.setTitle(Text.translatable("manhunt.title.preferences"));
-					preferences.open();
-					setGoBack(player, preferences);
-					NbtCompound nbt = new NbtCompound();
-					nbt.putInt("HideFlags", 1);
-					ItemStack musicDisc = new ItemStack(Items.MUSIC_DISC_11);
-					musicDisc.setNbt(nbt);
-					changeSetting(player, preferences, "muteMusic", "manhunt.item.mutemusic", "manhunt.lore.mutemusic", musicDisc.getItem(), 10);
-					changeSetting(player, preferences, "lobbyMusic", "manhunt.item.lobbymusic", "manhunt.lore.lobbymusic", Items.JUKEBOX, 11);
-					changeSetting(player, preferences, "doNotDisturb", "manhunt.item.donotdisturb", "manhunt.lore.donotdisturb", Items.BARRIER, 12);
+					SimpleGui personalsettings = new SimpleGui(ScreenHandlerType.GENERIC_9X3, player, false);
+					personalsettings.setTitle(Text.translatable("manhunt.title.personal"));
+					personalsettings.open();
+					setGoBack(player, personalsettings);
+					changeSetting(player, personalsettings, "muteMusic", "manhunt.item.mutemusic", "manhunt.lore.mutemusic", Items.MUSIC_DISC_11, 10, false);
+					changeSetting(player, personalsettings, "lobbyMusic", "manhunt.item.lobbymusic", "manhunt.lore.lobbymusic", Items.JUKEBOX, 11, false);
+					changeSetting(player, personalsettings, "doNotDisturb", "manhunt.item.donotdisturb", "manhunt.lore.donotdisturb", Items.BARRIER, 12, false);
 				})
 		);
+		List<Text> gameLore = new ArrayList<>();
+		gameLore.add(Text.translatable("manhunt.lore.game"));
 		settings.setSlot(15, new GuiElementBuilder(Items.REPEATER)
-				.setName(Text.translatable("manhunt.item.configuration"))
+				.setName(Text.translatable("manhunt.item.game"))
+				.setLore(gameLore)
 				.setCallback((index, type, action) -> {
-					SimpleGui configuration = new SimpleGui(ScreenHandlerType.GENERIC_9X3, (ServerPlayerEntity) player, false);
-					configuration.setTitle(Text.translatable("manhunt.title.configuration"));
-					configuration.open();
-					setGoBack(player, configuration);
+					SimpleGui gamesettings = new SimpleGui(ScreenHandlerType.GENERIC_9X3, player, false);
+					gamesettings.setTitle(Text.translatable("manhunt.title.game"));
+					if (getPlayerData(player).getString("lobbyRole").equals("leader")) {
+						gamesettings.open();
+						setGoBack(player, gamesettings);
+						changeSetting(player, gamesettings, "hunterFreeze", "manhunt.item.hunterfreeze", "manhunt.lore.hunterfreeze", Items.ICE, 0, true);
+					} else if (!getPlayerData(player).getString("lobbyRole").equals("leader")) {
+						player.sendMessage(Text.translatable("manhunt.chat.player"));
+					}
 				})
 		);
 	}
 
-	private static void changeSetting(ServerPlayerEntity player, SimpleGui gui, String setting, String name, String lore, Item item, int slot) {
+	private static void changeSetting(ServerPlayerEntity player, SimpleGui gui, String setting, String name, String lore, Item item, int slot, boolean game) {
 		if (!player.getItemCooldownManager().isCoolingDown(item)) {
 			boolean value = getPlayerData(player).getBool(setting);
 			List<Text> loreList = new ArrayList<>();
-			if (value) {
+			if (!value) {
 				loreList.add(Text.translatable(lore));
 				loreList.add(Text.literal("On").formatted(Formatting.GREEN));
-			} else if (!value) {
+				getPlayerData(player).put(setting, true);
+			} else {
 				loreList.add(Text.translatable(lore));
 				loreList.add(Text.literal("Off").formatted(Formatting.RED));
+				getPlayerData(player).put(setting, false);
 			}
 			gui.setSlot(slot, new GuiElementBuilder(item)
+					.hideFlags()
 					.setName(Text.translatable(name))
 					.setLore(loreList)
 					.setCallback((muteMusicIndex, muteMusicType, muteMusicAction) -> {
 						player.getItemCooldownManager().set(item, 20);
-						boolean muteMusicSecond = getPlayerData(player).getBool(setting);
-						if (muteMusicSecond) {
-							List<Text> secondLoreList = new ArrayList<>();
-							secondLoreList.add(Text.translatable(lore));
-							secondLoreList.add(Text.literal("Off").formatted(Formatting.RED));
+						boolean loreListSecond = getPlayerData(player).getBool(setting);
+                        List<Text> secondLoreList = new ArrayList<>();
+                        secondLoreList.add(Text.translatable(lore));
+                        if (loreListSecond) {
+                            secondLoreList.add(Text.literal("Off").formatted(Formatting.RED));
 							gui.setSlot(slot, new GuiElementBuilder(item)
+									.hideFlags()
 									.setName(Text.translatable(name))
 									.setLore(secondLoreList)
-									.setCallback((index, type, action) -> {
-										changeSetting(player, gui, setting, name, lore, item, slot);
-									})
+									.setCallback((index, type, action) -> changeSetting(player, gui, setting, name, lore, item, slot, game))
 							);
-							getPlayerData(player).put(setting, false);
-						} else if (!muteMusicSecond) {
-							List<Text> secondLoreList = new ArrayList<>();
-							secondLoreList.add(Text.translatable(lore));
-							secondLoreList.add(Text.literal("On").formatted(Formatting.GREEN));
+                        } else {
+                            secondLoreList.add(Text.literal("On").formatted(Formatting.GREEN));
 							gui.setSlot(slot, new GuiElementBuilder(item)
+									.hideFlags()
 									.setName(Text.translatable(name))
 									.setLore(secondLoreList)
-									.setCallback((index, type, action) -> {
-										changeSetting(player, gui, setting, name, lore, item, slot);
-									})
+									.setCallback((index, type, action) -> changeSetting(player, gui, setting, name, lore, item, slot, game))
 							);
-							getPlayerData(player).put(setting, true);
-						}
-					})
+                        }
+						getPlayerData(player).put(setting, false);
+                    })
 			);
 		}
 	}

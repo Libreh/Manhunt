@@ -40,7 +40,9 @@ public abstract class PlayerManagerMixin {
         if (ManhuntGame.state == PREGAME) {
             ManhuntConfig.load();
 
-            player.getScoreboard().getPlayerScore(player.getName().getString(), getTimeObjective(player.getServer())).setScore(0);
+            getPlayerScore(player, "parkourTimer").setScore(0);
+            getPlayerScore(player, "hasStarted").setScore(0);
+            getPlayerScore(player, "isFinished").setScore(0);
             player.teleport(player.getServer().getWorld(lobbyRegistryKey), 0.5, 63, 0, 0, 0);
             player.getInventory().clear();
 
@@ -73,6 +75,8 @@ public abstract class PlayerManagerMixin {
                 world.getServer().getCommandManager().executeWithPrefix(world.getServer().getCommandSource().withSilent(), "setblock 2 60 24 ice");
                 world.getServer().getCommandManager().executeWithPrefix(world.getServer().getCommandSource().withSilent(), "summon glow_squid 2 60 27 {NoGravity:1b,Silent:1b,Invulnerable:1b,NoAI:1b}");
             }
+
+            getPlayerData(player).put("currentRole", "hunter");
         }
 
         if (ManhuntGame.state == ManhuntState.PLAYING) {
@@ -95,12 +99,18 @@ public abstract class PlayerManagerMixin {
             getPlayerData(player).put("lobbyMusic", true);
             getPlayerData(player).put("doNotDisturb", false);
             getPlayerData(player).put("pingSound", "");
-            getPlayerData(player).put("currentRole", "hunter");
+            getPlayerData(player).put("lobbyRole", "player");
             playLobbyMusic(player);
         } else if (getPlayerData(player).getString("pingSound") != null) {
             if (!getPlayerData(player).getBool("muteMusic") && getPlayerData(player).getBool("lobbyMusic")) {
                 playLobbyMusic(player);
             }
+        }
+
+        if (player.hasPermissionLevel(4)) {
+            getPlayerData(player).put("lobbyRole", "leader");
+        } else if (!player.hasPermissionLevel(4)) {
+            getPlayerData(player).put("lobbyRole", "player");
         }
     }
 
