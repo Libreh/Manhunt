@@ -4,8 +4,8 @@ import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
-import manhunt.config.ManhuntConfig;
 import net.minecraft.command.CommandSource;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
@@ -68,15 +68,13 @@ public final class JukeboxCommand {
     }
 
     private static int playSong(ServerCommandSource source, String songName) {
-        ManhuntConfig.load();
-
         Song song = NBSDecoder.parse(new File(musicDirectory + "/" + songName));
 
         RadioSongPlayer rsp = new RadioSongPlayer(song);
 
         var player = source.getPlayer();
 
-        if (getPlayerScore(player, "muteMusic").getScore() == 0) {
+        if (!muteMusic.get(player.getUuid())) {
             rsp.addPlayer(player);
             rsp.setPlaying(true);
         } else {
@@ -99,7 +97,7 @@ public final class JukeboxCommand {
     private static int muteMusic(ServerCommandSource source) {
         Nota.stopPlaying(source.getPlayer());
 
-        getPlayerScore(source.getPlayer(), "muteMusic").setScore(1);
+        muteMusic.put(source.getPlayer().getUuid(), true);
 
         source.sendFeedback(() -> Text.translatable("manhunt.jukebox.mute"), false);
 
@@ -107,11 +105,11 @@ public final class JukeboxCommand {
     }
 
     private static int unmuteMusic(ServerCommandSource source) {
-        getPlayerScore(source.getPlayer(), "muteMusic").setScore(0);
+        muteMusic.put(source.getPlayer().getUuid(), false);
 
         source.sendFeedback(() -> Text.translatable("manhunt.jukebox.unmute"), false);
 
-        if (getPlayerScore(source.getPlayer(), "muteMusic").getScore() == 0 && getPlayerScore(source.getPlayer(), "muteLobbyMusic").getScore() == 0) {
+        if (!muteMusic.get(source.getPlayer().getUuid()) && !muteLobbyMusic.get(source.getPlayer().getUuid())) {
             playLobbyMusic(source.getPlayer());
         }
 
@@ -119,14 +117,12 @@ public final class JukeboxCommand {
     }
 
     private static int playAllSong(ServerCommandSource source, String songName) {
-        ManhuntConfig.load();
-
         Song song = NBSDecoder.parse(new File(musicDirectory + "/" + songName + ".nbs"));
 
         RadioSongPlayer rsp = new RadioSongPlayer(song);
 
         for (ServerPlayerEntity player : source.getServer().getPlayerManager().getPlayerList()) {
-            if (getPlayerScore(player, "muteMusic").getScore() == 0) {
+            if (!muteMusic.put(source.getPlayer().getUuid(), true)) {
                 rsp.addPlayer(player);
                 rsp.setPlaying(true);
             } else {
@@ -150,7 +146,7 @@ public final class JukeboxCommand {
     }
 
     private static int muteLobbyMusic(ServerCommandSource source) {
-        getPlayerScore(source.getPlayer(), "muteLobbyMusic").setScore(1);
+        muteLobbyMusic.put(source.getPlayer().getUuid(), true);
 
         source.sendFeedback(() -> Text.translatable("manhunt.jukebox.mutelobbymusic"), false);
 
@@ -160,11 +156,11 @@ public final class JukeboxCommand {
     }
 
     private static int unmuteLobbyMusic(ServerCommandSource source) {
-        getPlayerScore(source.getPlayer(), "muteLobbyMusic").setScore(0);
+        muteLobbyMusic.put(source.getPlayer().getUuid(), false);
 
         source.sendFeedback(() -> Text.translatable("manhunt.jukebox.unmutelobbymusic"), false);
 
-        if (getPlayerScore(source.getPlayer(), "muteMusic").getScore() == 0 && getPlayerScore(source.getPlayer(), "muteLobbyMusic").getScore() == 0) {
+        if (!muteMusic.get(source.getPlayer().getUuid()) && !muteLobbyMusic.get(source.getPlayer().getUuid())) {
             playLobbyMusic(source.getPlayer());
         }
 

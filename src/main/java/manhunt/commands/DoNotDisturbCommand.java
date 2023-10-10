@@ -6,7 +6,7 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 
-import static manhunt.Manhunt.getPlayerScore;
+import static manhunt.Manhunt.doNotDisturb;
 import static net.minecraft.server.command.CommandManager.literal;
 
 public class DoNotDisturbCommand {
@@ -26,9 +26,9 @@ public class DoNotDisturbCommand {
     }
 
     private static int disturbStatus(ServerCommandSource source) {
-        int value = getPlayerScore(source.getPlayer(), "doNotDisturb").getScore();
+        boolean value = doNotDisturb.get(source.getPlayer().getUuid());
 
-        if (value == 1) {
+        if (value) {
             source.sendFeedback(() -> Text.translatable("manhunt.get.to", Text.literal("Do not disturb"), Text.literal("on").formatted(Formatting.GRAY)), false);
         } else {
             source.sendFeedback(() -> Text.translatable("manhunt.get.to", Text.literal("Do not disturb"), Text.literal("off").formatted(Formatting.GRAY)), false);
@@ -38,7 +38,7 @@ public class DoNotDisturbCommand {
     }
 
     private static int disturbOn(ServerCommandSource source) {
-        getPlayerScore(source.getPlayer(), "doNotDisturb").setScore(1);
+        doNotDisturb.put(source.getPlayer().getUuid(), true);
 
         source.sendFeedback(() -> Text.translatable("manhunt.set.to", Text.literal("Do not disturb"), Text.literal("on").formatted(Formatting.GRAY)), false);
 
@@ -46,7 +46,7 @@ public class DoNotDisturbCommand {
     }
 
     private static int disturbOff(ServerCommandSource source) {
-        getPlayerScore(source.getPlayer(), "doNotDisturb").setScore(0);
+        doNotDisturb.put(source.getPlayer().getUuid(), false);
 
         source.sendFeedback(() -> Text.translatable("manhunt.set.to", Text.literal("Do not disturb"), Text.literal("off").formatted(Formatting.GRAY)), false);
 

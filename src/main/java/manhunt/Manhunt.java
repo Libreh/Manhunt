@@ -1,88 +1,88 @@
-package manhunt;
+ package manhunt;
 
-import eu.pb4.sgui.api.elements.GuiElementBuilder;
-import eu.pb4.sgui.api.gui.AnvilInputGui;
-import eu.pb4.sgui.api.gui.SimpleGui;
-import manhunt.commands.DoNotDisturbCommand;
-import manhunt.commands.JukeboxCommand;
-import manhunt.commands.PingSoundCommand;
-import manhunt.config.ManhuntConfig;
-import manhunt.game.ManhuntGame;
-import manhunt.util.DeleteWorld;
-import mrnavastar.sqlib.DataContainer;
-import mrnavastar.sqlib.Table;
-import mrnavastar.sqlib.database.MySQLDatabase;
-import mrnavastar.sqlib.sql.SQLDataType;
-import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
-import net.fabricmc.fabric.api.event.player.UseItemCallback;
-import net.fabricmc.fabric.api.message.v1.ServerMessageEvents;
-import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.block.entity.StructureBlockBlockEntity;
-import net.minecraft.enchantment.Enchantments;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.decoration.DisplayEntity;
-import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.entity.effect.StatusEffects;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.nbt.NbtIo;
-import net.minecraft.nbt.NbtList;
-import net.minecraft.network.packet.s2c.play.*;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.scoreboard.AbstractTeam;
-import net.minecraft.scoreboard.ScoreboardPlayerScore;
-import net.minecraft.scoreboard.Team;
-import net.minecraft.screen.ScreenHandlerType;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ChunkTicketType;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvent;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.structure.StructurePlacementData;
-import net.minecraft.structure.StructureTemplate;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.TypedActionResult;
-import net.minecraft.util.Unit;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.world.Difficulty;
-import net.minecraft.world.GameRules;
-import net.minecraft.world.World;
-import nota.Nota;
-import nota.model.Playlist;
-import nota.model.Song;
-import nota.player.RadioSongPlayer;
-import nota.utils.NBSDecoder;
-import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+ import eu.pb4.sgui.api.elements.GuiElementBuilder;
+ import eu.pb4.sgui.api.gui.AnvilInputGui;
+ import eu.pb4.sgui.api.gui.SimpleGui;
+ import manhunt.commands.DoNotDisturbCommand;
+ import manhunt.commands.JukeboxCommand;
+ import manhunt.commands.PingSoundCommand;
+ import manhunt.config.ManhuntConfig;
+ import manhunt.game.ManhuntGame;
+ import manhunt.util.DeleteWorld;
+ import mrnavastar.sqlib.DataContainer;
+ import mrnavastar.sqlib.Table;
+ import mrnavastar.sqlib.database.MySQLDatabase;
+ import mrnavastar.sqlib.sql.SQLDataType;
+ import net.fabricmc.api.ModInitializer;
+ import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+ import net.fabricmc.fabric.api.event.player.UseItemCallback;
+ import net.fabricmc.fabric.api.message.v1.ServerMessageEvents;
+ import net.fabricmc.loader.api.FabricLoader;
+ import net.minecraft.block.entity.StructureBlockBlockEntity;
+ import net.minecraft.enchantment.Enchantments;
+ import net.minecraft.entity.EntityType;
+ import net.minecraft.entity.decoration.DisplayEntity;
+ import net.minecraft.entity.effect.StatusEffectInstance;
+ import net.minecraft.entity.effect.StatusEffects;
+ import net.minecraft.entity.player.PlayerEntity;
+ import net.minecraft.item.Item;
+ import net.minecraft.item.ItemStack;
+ import net.minecraft.item.Items;
+ import net.minecraft.nbt.NbtCompound;
+ import net.minecraft.nbt.NbtElement;
+ import net.minecraft.nbt.NbtIo;
+ import net.minecraft.nbt.NbtList;
+ import net.minecraft.network.packet.s2c.play.*;
+ import net.minecraft.registry.Registries;
+ import net.minecraft.registry.RegistryKey;
+ import net.minecraft.registry.RegistryKeys;
+ import net.minecraft.scoreboard.AbstractTeam;
+ import net.minecraft.scoreboard.Team;
+ import net.minecraft.screen.ScreenHandlerType;
+ import net.minecraft.server.MinecraftServer;
+ import net.minecraft.server.network.ServerPlayerEntity;
+ import net.minecraft.server.world.ChunkTicketType;
+ import net.minecraft.server.world.ServerWorld;
+ import net.minecraft.sound.SoundCategory;
+ import net.minecraft.sound.SoundEvent;
+ import net.minecraft.sound.SoundEvents;
+ import net.minecraft.structure.StructurePlacementData;
+ import net.minecraft.structure.StructureTemplate;
+ import net.minecraft.text.Text;
+ import net.minecraft.util.Formatting;
+ import net.minecraft.util.Identifier;
+ import net.minecraft.util.TypedActionResult;
+ import net.minecraft.util.Unit;
+ import net.minecraft.util.math.BlockPos;
+ import net.minecraft.util.math.ChunkPos;
+ import net.minecraft.util.math.Vec3d;
+ import net.minecraft.world.Difficulty;
+ import net.minecraft.world.GameRules;
+ import net.minecraft.world.World;
+ import nota.Nota;
+ import nota.model.Playlist;
+ import nota.model.Song;
+ import nota.player.RadioSongPlayer;
+ import nota.utils.NBSDecoder;
+ import org.jetbrains.annotations.Nullable;
+ import org.slf4j.Logger;
+ import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Stream;
+ import java.io.File;
+ import java.io.IOException;
+ import java.nio.file.Files;
+ import java.nio.file.Path;
+ import java.nio.file.Paths;
+ import java.util.*;
+ import java.util.concurrent.Executors;
+ import java.util.concurrent.ScheduledExecutorService;
+ import java.util.concurrent.TimeUnit;
+ import java.util.stream.Stream;
 
-import static manhunt.config.ManhuntConfig.*;
-import static manhunt.game.ManhuntState.*;
+ import static manhunt.config.ManhuntConfig.*;
+ import static manhunt.game.ManhuntState.*;
 
 public class Manhunt implements ModInitializer {
 	public static final String MOD_ID = "manhunt";
@@ -92,6 +92,14 @@ public class Manhunt implements ModInitializer {
 	public static List<ServerPlayerEntity> allPlayers;
 	public static List<ServerPlayerEntity> allRunners;
 	public static List<String> songs = new ArrayList<>();
+	public static HashMap<UUID, Boolean> playerData = new HashMap<>();
+	public static HashMap<UUID, Boolean> muteMusic = new HashMap<>();
+	public static HashMap<UUID, Boolean> muteLobbyMusic = new HashMap<>();
+	public static HashMap<UUID, Boolean> doNotDisturb = new HashMap<>();
+	public static HashMap<UUID, String> currentRole = new HashMap<>();
+	public static HashMap<UUID, Integer> parkourTimer = new HashMap<>();
+	public static HashMap<UUID, Boolean> startedParkour = new HashMap<>();
+	public static HashMap<UUID, Boolean> finishedParkour = new HashMap<>();
 	private long lastDelay = System.currentTimeMillis();
 	private boolean holding;
 
@@ -141,16 +149,6 @@ public class Manhunt implements ModInitializer {
 			server.getScoreboard().addTeam("runners");
 
 			server.getScoreboard().getTeam("players").setCollisionRule(AbstractTeam.CollisionRule.NEVER);
-
-			server.getCommandManager().executeWithPrefix(server.getCommandSource().withSilent(), "scoreboard objectives add cameraTimer dummy");
-			server.getCommandManager().executeWithPrefix(server.getCommandSource().withSilent(), "scoreboard objectives add playerData dummy");
-			server.getCommandManager().executeWithPrefix(server.getCommandSource().withSilent(), "scoreboard objectives add muteMusic dummy");
-			server.getCommandManager().executeWithPrefix(server.getCommandSource().withSilent(), "scoreboard objectives add muteLobbyMusic dummy");
-			server.getCommandManager().executeWithPrefix(server.getCommandSource().withSilent(), "scoreboard objectives add doNotDisturb dummy");
-			server.getCommandManager().executeWithPrefix(server.getCommandSource().withSilent(), "scoreboard objectives add currentRole dummy");
-			server.getCommandManager().executeWithPrefix(server.getCommandSource().withSilent(), "scoreboard objectives add parkourTimer dummy");
-			server.getCommandManager().executeWithPrefix(server.getCommandSource().withSilent(), "scoreboard objectives add hasStarted dummy");
-			server.getCommandManager().executeWithPrefix(server.getCommandSource().withSilent(), "scoreboard objectives add isFinished dummy");
 
 			try {
 				spawnLobbyStructure(server);
@@ -227,13 +225,13 @@ public class Manhunt implements ModInitializer {
 					}
 
 					if (player.getZ() < 0 && !player.hasPermissionLevel(2) && !player.hasPermissionLevel(4)) {
-						int ticks = getPlayerScore(player, "parkourTimer").getScore();
-						if (getPlayerScore(player, "hasStarted").getScore() == 0 && getPlayerScore(player, "isFinished").getScore() == 0 && player.getZ() < -4 && !(player.getZ() < -6)) {
-							playSound(player, SoundEvents.BLOCK_NOTE_BLOCK_FLUTE.value(), SoundCategory.BLOCKS, 1f, 1f);
-							getPlayerScore(player, "hasStarted").setScore(1);
+						int ticks = parkourTimer.get(player.getUuid());
+						if (!startedParkour.get(player.getUuid()) && !finishedParkour.get(player.getUuid()) && player.getZ() < -4 && !(player.getZ() < -6)) {
+							playSound(player, SoundEvents.BLOCK_NOTE_BLOCK_FLUTE.value(), 1f);
+							startedParkour.put(player.getUuid(), true);
 						}
-						if (getPlayerScore(player, "hasStarted").getScore() == 1 && player.getZ() < -4) {
-							getPlayerScore(player, "parkourTimer").setScore(getPlayerScore(player, "parkourTimer").getScore() + 1);
+						if (startedParkour.get(player.getUuid()) && player.getZ() < -4) {
+							parkourTimer.put(player.getUuid(), parkourTimer.get(player.getUuid()) + 1);
 							player.addStatusEffect(new StatusEffectInstance(StatusEffects.INVISIBILITY, StatusEffectInstance.INFINITE, 255, false, false, false));
 						}
 						int sec = (int) Math.floor(((double) (ticks % (20 * 60)) / 20));
@@ -252,31 +250,31 @@ public class Manhunt implements ModInitializer {
 						} else {
 							ms_string = String.valueOf(ms);
 						}
-						if (player.getZ() < -4 && getPlayerScore(player, "isFinished").getScore() == 0)
+						if (player.getZ() < -4 && !finishedParkour.get(player.getUuid()))
 							player.sendMessage(Text.translatable("manhunt.time.current", sec_string, ms_string), true);
 						if (player.getZ() < -24 && player.getZ() > -27) {
 							if (player.getX() < -6) {
-								if (player.getY() >= 70 && player.getY() < 72 && getPlayerScore(player, "hasStarted").getScore() == 1 && getPlayerScore(player, "isFinished").getScore() == 0) {
+								if (player.getY() >= 70 && player.getY() < 72 && startedParkour.get(player.getUuid()) && !finishedParkour.get(player.getUuid())) {
 									player.sendMessage(Text.translatable("manhunt.time.current", sec_string, ms_string).formatted(Formatting.GREEN), true);
-									playSound(player, SoundEvents.BLOCK_NOTE_BLOCK_FLUTE.value(), SoundCategory.BLOCKS, 1f, 2f);
-									getPlayerScore(player, "isFinished").setScore(1);
+									playSound(player, SoundEvents.BLOCK_NOTE_BLOCK_FLUTE.value(), 2f);
+									finishedParkour.put(player.getUuid(), true);
 								}
 							}
 						}
-						if (getPlayerScore(player, "hasStarted").getScore() == 1 && player.getZ() > -4) {
+						if (startedParkour.get(player.getUuid()) && player.getZ() > -4) {
 							player.sendMessage(Text.translatable("manhunt.time.current", sec_string, ms_string).formatted(Formatting.RED), true);
 							resetPlayer(player, player.getServer().getWorld(lobbyRegistryKey));
-							playSound(player, SoundEvents.BLOCK_NOTE_BLOCK_FLUTE.value(), SoundCategory.BLOCKS, 1f, 0.5f);
+							playSound(player, SoundEvents.BLOCK_NOTE_BLOCK_FLUTE.value(), 0.5f);
 						}
 						if (player.getY() < 61) {
 							player.sendMessage(Text.translatable("manhunt.time.current", sec_string, ms_string).formatted(Formatting.RED), true);
 							resetPlayer(player, player.getServer().getWorld(lobbyRegistryKey));
-							playSound(player, SoundEvents.BLOCK_NOTE_BLOCK_FLUTE.value(), SoundCategory.BLOCKS, 1f, 0.5f);
+							playSound(player, SoundEvents.BLOCK_NOTE_BLOCK_FLUTE.value(), 0.5f);
 						}
 						if (player.getZ() < -27 && player.getY() < 68) {
 							player.sendMessage(Text.translatable("manhunt.time.current", sec_string, ms_string).formatted(Formatting.RED), true);
 							resetPlayer(player, player.getServer().getWorld(lobbyRegistryKey));
-							playSound(player, SoundEvents.BLOCK_NOTE_BLOCK_FLUTE.value(), SoundCategory.BLOCKS, 1f, 0.5f);
+							playSound(player, SoundEvents.BLOCK_NOTE_BLOCK_FLUTE.value(), 0.5f);
 						}
 					}
 
@@ -292,39 +290,8 @@ public class Manhunt implements ModInitializer {
 					if (!player.isTeamPlayer(player.getScoreboard().getTeam("players"))) {
 						player.getScoreboard().addPlayerToTeam(player.getName().getString(), player.getScoreboard().getTeam("players"));
 					}
-				}
-			}
-
-			if (ManhuntGame.state == PREPARING) {
-				for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
-					if (getPlayerScore(player, "cameraTimer").getScore() < 600) {
-						DisplayEntity.BlockDisplayEntity camera = new DisplayEntity.BlockDisplayEntity(EntityType.BLOCK_DISPLAY, server.getWorld(lobbyRegistryKey));
-						if (getPlayerScore(player, "cameraTimer").getScore() == 0) {
-							server.getPlayerManager().setWhitelistEnabled(true);
-							camera.setPos(0.5, 65, -56);
-							camera.setYaw(0f);
-							camera.setPitch(0f);
-							camera.setTeleportDuration(600);
-							player.networkHandler.sendPacket(new EntitySpawnS2CPacket(camera));
-							if (camera.getDataTracker().isDirty()) {
-								player.networkHandler.sendPacket(new EntityTrackerUpdateS2CPacket(camera.getId(), camera.getDataTracker().getDirtyEntries()));
-							}
-							server.setFlightEnabled(true);
-							player.networkHandler.sendPacket(new SetCameraEntityS2CPacket(camera));
-							camera.setPos(0.5, 65, 16);
-							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
-							for (ServerPlayerEntity cameraPlayerStart : server.getPlayerManager().getPlayerList()) {
-								ManhuntGame.updateGameMode(cameraPlayerStart);
-							}
-							server.getCommandManager().executeWithPrefix(server.getCommandSource().withSilent(), "chunky cancel");
-							server.getCommandManager().executeWithPrefix(server.getCommandSource().withSilent(), "chunky confirm");
-							server.getCommandManager().executeWithPrefix(server.getCommandSource().withSilent(), "chunky start overworld square 0 0 384 384");
-							server.getCommandManager().executeWithPrefix(server.getCommandSource().withSilent(), "chunky start the_nether square 0 0 192 192");
-							server.getCommandManager().executeWithPrefix(server.getCommandSource().withSilent(), "chunky start the_end square 0 0 96 96");
-						}
-						getPlayerScore(player, "cameraTimer").setScore(getPlayerScore(player, "cameraTimer").getScore() + 1);
-					} else if (getPlayerScore(player, "cameraTimer").getScore() == 600) {
-						ManhuntGame.start(server);
+					if (player.getWorld() != server.getWorld(lobbyRegistryKey)) {
+						player.teleport(server.getWorld(lobbyRegistryKey), 0.5, 63, 0, 0, 0);
 					}
 				}
 			}
@@ -403,7 +370,7 @@ public class Manhunt implements ModInitializer {
 							allRunners.add(player);
 						}
 						if (!player.isTeamPlayer(hunters) && !player.isTeamPlayer(runners)) {
-							if (getPlayerScore(player, "currentRole").getScore() == 0) {
+							if (currentRole.get(player.getUuid()).equals("hunter")) {
 								player.getScoreboard().addPlayerToTeam(player.getName().getString(), hunters);
 							} else {
 								player.getScoreboard().addPlayerToTeam(player.getName().getString(), runners);
@@ -445,12 +412,12 @@ public class Manhunt implements ModInitializer {
 
 							if (lobbyWorld.getScoreboard().getTeam("readys").getPlayerList().size() == lobbyWorld.getPlayers().size()) {
 								for (ServerPlayerEntity lobbyPlayer : lobbyWorld.getPlayers()) {
-									if (getPlayerScore(lobbyPlayer, "currentRole").getScore() == 1) {
+									if (currentRole.get(player.getUuid()).equals("runner")) {
 										lobbyPlayer.getScoreboard().addPlayerToTeam(lobbyPlayer.getName().getString(), runners);
 										if (!lobbyWorld.getScoreboard().getTeam("runners").getPlayerList().isEmpty()) {
-											ManhuntConfig.load();
 											if (worldPregeneration) {
 												ManhuntGame.state(PREPARING, player.getServer());
+												cameraAction(player.getServer());
 											} else {
 												ManhuntGame.start(player.getServer());
 											}
@@ -514,7 +481,7 @@ public class Manhunt implements ModInitializer {
 
 							player.playSound(SoundEvents.ITEM_LODESTONE_COMPASS_LOCK, SoundCategory.PLAYERS, 0.5f, 1f);
 
-							getPlayerScore((ServerPlayerEntity) player, "currentRole").setScore(0);
+							currentRole.put(player.getUuid(), "hunter");
 
 							player.getServer().getPlayerManager().broadcast(Text.translatable("manhunt.chat.hunter", player.getName().getString()), false);
 						}
@@ -542,7 +509,7 @@ public class Manhunt implements ModInitializer {
 
 							player.playSound(SoundEvents.ENTITY_ENDER_EYE_LAUNCH, SoundCategory.PLAYERS, 0.5f, 1f);
 
-							getPlayerScore((ServerPlayerEntity) player, "currentRole").setScore(1);
+							currentRole.put(player.getUuid(), "runner");
 
 							player.getServer().getPlayerManager().broadcast(Text.translatable("manhunt.chat.runner", player.getName().getString()), false);
 						}
@@ -584,7 +551,7 @@ public class Manhunt implements ModInitializer {
 			if (pingingEnabled) {
 				for (ServerPlayerEntity player : sender.getServer().getPlayerManager().getPlayerList()) {
 					var playerName = player.getName().getString();
-					if (getPlayerScore(player, "doNotDisturb").getScore() == 0) {
+					if (doNotDisturb.get(player.getUuid())) {
 						if (message.getSignedContent().contains(playerName)) {
 							String pingSound = getPlayerData(player).getString("pingSound");
 							if (pingSound.isEmpty()) {
@@ -646,10 +613,8 @@ public class Manhunt implements ModInitializer {
 				.addColumn("lobbyRole", SQLDataType.STRING)
 				.finish();
 		DataContainer playerData = table.get(player.getUuidAsString());
-		if (!(getPlayerScore(player, "playerData").getScore() == 0) && !(getPlayerScore(player, "playerData").getScore() == 1)) {
-			if (table.get(player.getUuidAsString()) == null) {
-				playerData = table.createDataContainer(player.getUuidAsString());
-			}
+		if (table.get(player.getUuidAsString()) == null) {
+			playerData = table.createDataContainer(player.getUuidAsString());
 		}
 		return playerData;
 	}
@@ -734,9 +699,9 @@ public class Manhunt implements ModInitializer {
 	}
 
 	private void resetPlayer(PlayerEntity player, ServerWorld world) {
-		getPlayerScore((ServerPlayerEntity) player, "parkourTimer").setScore(0);
-		getPlayerScore((ServerPlayerEntity) player, "hasStarted").setScore(0);
-		getPlayerScore((ServerPlayerEntity) player, "isFinished").setScore(0);
+		parkourTimer.put(player.getUuid(), 0);
+		startedParkour.put(player.getUuid(), false);
+		startedParkour.put(player.getUuid(), false);
 		player.teleport(world, 0.5, 63, 0, PositionFlag.ROT, 180, 0);
 		player.clearStatusEffects();
 		player.addStatusEffect(new StatusEffectInstance(StatusEffects.SATURATION, StatusEffectInstance.INFINITE, 255, false, false, false));
@@ -790,12 +755,8 @@ public class Manhunt implements ModInitializer {
 		return bool;
 	}
 
-	public static ScoreboardPlayerScore getPlayerScore(ServerPlayerEntity player, String name) {
-		return player.getScoreboard().getPlayerScore(player.getName().getString(), player.getScoreboard().getNullableObjective(name));
-	}
-
-	private static void playSound(ServerPlayerEntity player, SoundEvent sound, SoundCategory category, float volume, float pitch) {
-		player.playSound(sound, category, volume, pitch);
+	private static void playSound(ServerPlayerEntity player, SoundEvent sound, float pitch) {
+		player.playSound(sound, SoundCategory.BLOCKS, (float) 1.0, pitch);
 	}
 
 	public static void playLobbyMusic(ServerPlayerEntity player) {
@@ -844,9 +805,9 @@ public class Manhunt implements ModInitializer {
 		SimpleGui personalsettings = new SimpleGui(ScreenHandlerType.GENERIC_9X4, player, false);
 		personalsettings.setTitle(Text.translatable("manhunt.item.personal"));
 		setGoBack(player, personalsettings);
-		changePersonalSetting(player, personalsettings, "muteMusic", "manhunt.item.mutemusic", "manhunt.lore.mutemusic", Items.MUSIC_DISC_11, 10, SoundEvents.ENTITY_ENDERMAN_TELEPORT);
-		changePersonalSetting(player, personalsettings, "muteLobbyMusic", "manhunt.item.mutelobbymusic", "manhunt.lore.mutelobbymusic", Items.JUKEBOX, 11, SoundEvents.ENTITY_ITEM_PICKUP);
-		changePersonalSetting(player, personalsettings, "doNotDisturb", "manhunt.item.donotdisturb", "manhunt.lore.donotdisturb", Items.BARRIER, 12, SoundEvents.BLOCK_IRON_DOOR_CLOSE);
+		changePersonalSetting(player, personalsettings, muteMusic, "manhunt.item.mutemusic", "manhunt.lore.mutemusic", Items.MUSIC_DISC_11, 10, SoundEvents.ENTITY_ENDERMAN_TELEPORT);
+		changePersonalSetting(player, personalsettings, muteLobbyMusic, "manhunt.item.mutelobbymusic", "manhunt.lore.mutelobbymusic", Items.JUKEBOX, 11, SoundEvents.ENTITY_ITEM_PICKUP);
+		changePersonalSetting(player, personalsettings, doNotDisturb, "manhunt.item.donotdisturb", "manhunt.lore.donotdisturb", Items.BARRIER, 12, SoundEvents.BLOCK_IRON_DOOR_CLOSE);
 		personalsettings.open();
 	}
 
@@ -865,7 +826,7 @@ public class Manhunt implements ModInitializer {
 				changeGameSetting(player, gamesettings, "teamColor", "manhunt.item.teamcolor", "manhunt.lore.teamcolor", Items.LEATHER_CHESTPLATE, 16, SoundEvents.ITEM_ARMOR_EQUIP_LEATHER);
 				changeGameSetting(player, gamesettings, "bedExplosions", "manhunt.item.bedexplosions", "manhunt.lore.bedexplosions", Items.RED_BED, 19, SoundEvents.ENTITY_GENERIC_EXPLODE);
 				changeGameSetting(player, gamesettings, "worldDifficulty", "manhunt.item.worlddifficulty", "manhunt.lore.worlddifficulty", Items.CREEPER_HEAD, 20, SoundEvents.ENTITY_CREEPER_HURT);
-				changeGameSetting(player, gamesettings, "borderSize", "manhunt.item.bordersize", "manhunt.lore.bordersize", Items.STRUCTURE_VOID, 21, SoundEvents.BLOCK_STONE_BREAK);
+				changeGameSetting(player, gamesettings, "borderSize", "manhunt.item.bordersize", "manhunt.lore.bordersize", Items.STRUCTURE_VOID, 21, SoundEvents.BLOCK_DEEPSLATE_BREAK);
 				changeGameSetting(player, gamesettings, "gameTitles", "manhunt.item.gametitles", "manhunt.lore.gametitles", Items.OAK_SIGN, 22, SoundEvents.BLOCK_WOOD_BREAK);
 				gamesettings.open();
 			} else if (!getPlayerData(player).getString("lobbyRole").equals("leader")) {
@@ -876,12 +837,12 @@ public class Manhunt implements ModInitializer {
 		}
 	}
 
-	private static void changePersonalSetting(ServerPlayerEntity player, SimpleGui gui, String setting, String name, String lore, Item item, int slot, SoundEvent sound) {
+	private static void changePersonalSetting(ServerPlayerEntity player, SimpleGui gui, HashMap setting, String name, String lore, Item item, int slot, SoundEvent sound) {
 		if (!player.getItemCooldownManager().isCoolingDown(item)) {
-			int value = getPlayerScore(player, setting).getScore();
+			boolean value = (boolean) setting.get(player.getUuid());
 			List<Text> loreList = new ArrayList<>();
             loreList.add(Text.translatable(lore));
-			if (value == 1) {
+			if (value) {
 				loreList.add(Text.literal("On").formatted(Formatting.GREEN));
 			} else {
 				loreList.add(Text.literal("Off").formatted(Formatting.RED));
@@ -891,25 +852,18 @@ public class Manhunt implements ModInitializer {
 					.setName(Text.translatable(name))
 					.setLore(loreList)
 					.setCallback(() -> {
-						if (value == 1) {
-							getPlayerScore(player, setting).setScore(0);
+						if (value) {
+							setting.put(player.getUuid(), false);
 							player.playSound(sound, SoundCategory.MASTER, 1f, 0.5f);
 						} else {
-							getPlayerScore(player, setting).setScore(1);
+							setting.put(player.getUuid(), true);
 							player.playSound(sound, SoundCategory.MASTER, 1f, 1f);
 						}
 						if (setting.equals("muteMusic") || setting.equals("muteLobbyMusic")) {
-							if (value == 1 && getPlayerScore(player, "muteMusic").getScore() == 0 && getPlayerScore(player, "muteLobbyMusic").getScore() == 0) {
+							if (value && !muteMusic.get(player.getUuid()) && !muteLobbyMusic.get(player.getUuid())) {
 								playLobbyMusic(player);
 							} else {
 								Nota.stopPlaying(player);
-							}
-						}
-						if (setting.equals("doNotDisturb")) {
-							if (value == 1) {
-								getPlayerScore(player, setting).setScore(0);
-							} else {
-								getPlayerScore(player, setting).setScore(1);
 							}
 						}
 						changePersonalSetting(player, gui, setting, name, lore, item, slot, sound);
@@ -1161,11 +1115,11 @@ public class Manhunt implements ModInitializer {
 							if (bedExplosions) {
 								bedExplosions = false;
 								player.getServer().getPlayerManager().broadcast(Text.translatable("manhunt.chat.game", "Bed Explosions", Text.literal("Disable").formatted(Formatting.RED)), false);
-								player.playSound(sound, SoundCategory.MASTER, 1f, 0.5f);
+								player.playSound(sound, SoundCategory.MASTER, 0.5f, 0.5f);
 							} else {
 								bedExplosions = true;
 								player.getServer().getPlayerManager().broadcast(Text.translatable("manhunt.chat.game", "Bed Explosions", Text.literal("Enable").formatted(Formatting.GREEN)), false);
-								player.playSound(sound, SoundCategory.MASTER, 1f, 1f);
+								player.playSound(sound, SoundCategory.MASTER, 0.5f, 1f);
 							}
 							save();
 							changeGameSetting(player, gui, setting, name, lore, item, slot, sound);
@@ -1241,7 +1195,469 @@ public class Manhunt implements ModInitializer {
 	private static void setGoBack(ServerPlayerEntity player, SimpleGui gui) {
 		gui.setSlot(8, new GuiElementBuilder(Items.MAGENTA_GLAZED_TERRACOTTA)
 				.setName(Text.translatable("manhunt.item.back"))
-				.setCallback((index, type, action) -> settings(player))
+				.setCallback((index, type, action) -> {
+					player.playSound(SoundEvents.BLOCK_STONE_BREAK, SoundCategory.MASTER, 1f, 1f);
+					settings(player);
+				})
 		);
+	}
+
+	private static void cameraAction(MinecraftServer server) {
+		for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+			server.getPlayerManager().setWhitelistEnabled(true);
+			server.setFlightEnabled(true);
+			DisplayEntity.BlockDisplayEntity camera = new DisplayEntity.BlockDisplayEntity(EntityType.BLOCK_DISPLAY, server.getWorld(lobbyRegistryKey));
+			player.networkHandler.sendPacket(new EntitySpawnS2CPacket(camera));
+			ManhuntGame.updateGameMode(player);
+			ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
+			scheduledExecutorService.schedule(() -> cameraPosition(camera, player, new Vec3d(0.5, 65, -16), 0f, 0f, new Vec3d(0.5, 78, -6), 60f, 0f), 1, TimeUnit.SECONDS);
+			scheduledExecutorService.schedule(() -> cameraPosition(camera, player, new Vec3d(0.5, 78, -6), 60f, 0f, new Vec3d(0.5, 82, 6), 90f, 0f), 2, TimeUnit.SECONDS);
+			scheduledExecutorService.schedule(() -> cameraPosition(camera, player, new Vec3d(0.5, 82, 6), 90f, 0f, new Vec3d(0.5, 78, 18), 60f,  180f), 3, TimeUnit.SECONDS);
+			scheduledExecutorService.schedule(() -> cameraPosition(camera, player, new Vec3d(0.5, 78, 18), 60f, 180f, new Vec3d(0.5, 65, 28), 0f,  180f), 4, TimeUnit.SECONDS);
+			scheduledExecutorService.schedule(() -> ManhuntGame.start(server), 30, TimeUnit.SECONDS);
+//							camera.setPos(0.5, 82, 6);
+//							camera.setYaw(0f);
+//							camera.setPitch(90f);
+//							camera.setTeleportDuration(20);
+//							if (camera.getDataTracker().isDirty()) {
+//								player.networkHandler.sendPacket(new EntityTrackerUpdateS2CPacket(camera.getId(), camera.getDataTracker().getDirtyEntries()));
+//							}
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							player.networkHandler.sendPacket(new SetCameraEntityS2CPacket(camera));
+//							camera.setPos(0.5, 78, 18);
+//							camera.setYaw(0f);
+//							camera.setPitch(60f);
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							player.networkHandler.sendPacket(new SetCameraEntityS2CPacket(camera));
+//							camera.setPos(0.5, 78, 18);
+//							camera.setYaw(0f);
+//							camera.setPitch(60f);
+//							camera.setTeleportDuration(20);
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							if (camera.getDataTracker().isDirty()) {
+//								player.networkHandler.sendPacket(new EntityTrackerUpdateS2CPacket(camera.getId(), camera.getDataTracker().getDirtyEntries()));
+//							}
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							player.networkHandler.sendPacket(new SetCameraEntityS2CPacket(camera));
+//							camera.setPos(0.5, 65, 28);
+//							camera.setYaw(0f);
+//							camera.setPitch(0f);
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							player.networkHandler.sendPacket(new SetCameraEntityS2CPacket(camera));
+//							camera.setPos(0.5, 65, 28);
+//							camera.setYaw(0f);
+//							camera.setPitch(0f);
+//							camera.setTeleportDuration(20);
+//							if (camera.getDataTracker().isDirty()) {
+//								player.networkHandler.sendPacket(new EntityTrackerUpdateS2CPacket(camera.getId(), camera.getDataTracker().getDirtyEntries()));
+//							}
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							player.networkHandler.sendPacket(new SetCameraEntityS2CPacket(camera));
+//							camera.setPos(0.5, 52, 18);
+//							camera.setYaw(0f);
+//							camera.setPitch(-60f);
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							player.networkHandler.sendPacket(new SetCameraEntityS2CPacket(camera));
+//							camera.setPos(0.5, 52, 18);
+//							camera.setYaw(0f);
+//							camera.setPitch(-60f);
+//							camera.setTeleportDuration(20);
+//							if (camera.getDataTracker().isDirty()) {
+//								player.networkHandler.sendPacket(new EntityTrackerUpdateS2CPacket(camera.getId(), camera.getDataTracker().getDirtyEntries()));
+//							}
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							player.networkHandler.sendPacket(new SetCameraEntityS2CPacket(camera));
+//							camera.setPos(0.5, 48, 6);
+//							camera.setYaw(0f);
+//							camera.setPitch(-90f);
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							player.networkHandler.sendPacket(new SetCameraEntityS2CPacket(camera));
+//							camera.setPos(0.5, 48, 6);
+//							camera.setYaw(0f);
+//							camera.setPitch(-90f);
+//							camera.setTeleportDuration(20);
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							if (camera.getDataTracker().isDirty()) {
+//								player.networkHandler.sendPacket(new EntityTrackerUpdateS2CPacket(camera.getId(), camera.getDataTracker().getDirtyEntries()));
+//							}
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							player.networkHandler.sendPacket(new SetCameraEntityS2CPacket(camera));
+//							camera.setPos(0.5, 52, -6);
+//							camera.setYaw(0f);
+//							camera.setPitch(-60f);
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							player.networkHandler.sendPacket(new SetCameraEntityS2CPacket(camera));
+//							camera.setPos(0.5, 48, 6);
+//							camera.setYaw(0f);
+//							camera.setPitch(-90f);
+//							camera.setTeleportDuration(20);
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							if (camera.getDataTracker().isDirty()) {
+//								player.networkHandler.sendPacket(new EntityTrackerUpdateS2CPacket(camera.getId(), camera.getDataTracker().getDirtyEntries()));
+//							}
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							player.networkHandler.sendPacket(new SetCameraEntityS2CPacket(camera));
+//							camera.setPos(0.5, 65, -16);
+//							camera.setYaw(0f);
+//							camera.setPitch(0f);
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							player.networkHandler.sendPacket(new SetCameraEntityS2CPacket(camera));
+//							camera.setPos(0.5, 82, 6);
+//							camera.setYaw(0f);
+//							camera.setPitch(90f);
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							player.networkHandler.sendPacket(new SetCameraEntityS2CPacket(camera));
+//							camera.setPos(0.5, 82, 6);
+//							camera.setYaw(0f);
+//							camera.setPitch(90f);
+//							camera.setTeleportDuration(20);
+//							if (camera.getDataTracker().isDirty()) {
+//								player.networkHandler.sendPacket(new EntityTrackerUpdateS2CPacket(camera.getId(), camera.getDataTracker().getDirtyEntries()));
+//							}
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							player.networkHandler.sendPacket(new SetCameraEntityS2CPacket(camera));
+//							camera.setPos(0.5, 78, 18);
+//							camera.setYaw(0f);
+//							camera.setPitch(60f);
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							player.networkHandler.sendPacket(new SetCameraEntityS2CPacket(camera));
+//							camera.setPos(0.5, 78, 18);
+//							camera.setYaw(0f);
+//							camera.setPitch(60f);
+//							camera.setTeleportDuration(20);
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							if (camera.getDataTracker().isDirty()) {
+//								player.networkHandler.sendPacket(new EntityTrackerUpdateS2CPacket(camera.getId(), camera.getDataTracker().getDirtyEntries()));
+//							}
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							player.networkHandler.sendPacket(new SetCameraEntityS2CPacket(camera));
+//							camera.setPos(0.5, 65, 28);
+//							camera.setYaw(0f);
+//							camera.setPitch(0f);
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							player.networkHandler.sendPacket(new SetCameraEntityS2CPacket(camera));
+//							camera.setPos(0.5, 65, 28);
+//							camera.setYaw(0f);
+//							camera.setPitch(0f);
+//							camera.setTeleportDuration(20);
+//							if (camera.getDataTracker().isDirty()) {
+//								player.networkHandler.sendPacket(new EntityTrackerUpdateS2CPacket(camera.getId(), camera.getDataTracker().getDirtyEntries()));
+//							}
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							player.networkHandler.sendPacket(new SetCameraEntityS2CPacket(camera));
+//							camera.setPos(0.5, 52, 18);
+//							camera.setYaw(0f);
+//							camera.setPitch(-60f);
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							player.networkHandler.sendPacket(new SetCameraEntityS2CPacket(camera));
+//							camera.setPos(0.5, 52, 18);
+//							camera.setYaw(0f);
+//							camera.setPitch(-60f);
+//							camera.setTeleportDuration(20);
+//							if (camera.getDataTracker().isDirty()) {
+//								player.networkHandler.sendPacket(new EntityTrackerUpdateS2CPacket(camera.getId(), camera.getDataTracker().getDirtyEntries()));
+//							}
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							player.networkHandler.sendPacket(new SetCameraEntityS2CPacket(camera));
+//							camera.setPos(0.5, 48, 6);
+//							camera.setYaw(0f);
+//							camera.setPitch(-90f);
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							player.networkHandler.sendPacket(new SetCameraEntityS2CPacket(camera));
+//							camera.setPos(0.5, 48, 6);
+//							camera.setYaw(0f);
+//							camera.setPitch(-90f);
+//							camera.setTeleportDuration(20);
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							if (camera.getDataTracker().isDirty()) {
+//								player.networkHandler.sendPacket(new EntityTrackerUpdateS2CPacket(camera.getId(), camera.getDataTracker().getDirtyEntries()));
+//							}
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							player.networkHandler.sendPacket(new SetCameraEntityS2CPacket(camera));
+//							camera.setPos(0.5, 52, -6);
+//							camera.setYaw(0f);
+//							camera.setPitch(-60f);
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							player.networkHandler.sendPacket(new SetCameraEntityS2CPacket(camera));
+//							camera.setPos(0.5, 48, 6);
+//							camera.setYaw(0f);
+//							camera.setPitch(-90f);
+//							camera.setTeleportDuration(20);
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							if (camera.getDataTracker().isDirty()) {
+//								player.networkHandler.sendPacket(new EntityTrackerUpdateS2CPacket(camera.getId(), camera.getDataTracker().getDirtyEntries()));
+//							}
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							player.networkHandler.sendPacket(new SetCameraEntityS2CPacket(camera));
+//							camera.setPos(0.5, 65, -16);
+//							camera.setYaw(0f);
+//							camera.setPitch(0f);
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							player.networkHandler.sendPacket(new SetCameraEntityS2CPacket(camera));
+//							camera.setPos(0.5, 82, 6);
+//							camera.setYaw(0f);
+//							camera.setPitch(90f);
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							player.networkHandler.sendPacket(new SetCameraEntityS2CPacket(camera));
+//							camera.setPos(0.5, 82, 6);
+//							camera.setYaw(0f);
+//							camera.setPitch(90f);
+//							camera.setTeleportDuration(20);
+//							if (camera.getDataTracker().isDirty()) {
+//								player.networkHandler.sendPacket(new EntityTrackerUpdateS2CPacket(camera.getId(), camera.getDataTracker().getDirtyEntries()));
+//							}
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							player.networkHandler.sendPacket(new SetCameraEntityS2CPacket(camera));
+//							camera.setPos(0.5, 78, 18);
+//							camera.setYaw(0f);
+//							camera.setPitch(60f);
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							player.networkHandler.sendPacket(new SetCameraEntityS2CPacket(camera));
+//							camera.setPos(0.5, 78, 18);
+//							camera.setYaw(0f);
+//							camera.setPitch(60f);
+//							camera.setTeleportDuration(20);
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							if (camera.getDataTracker().isDirty()) {
+//								player.networkHandler.sendPacket(new EntityTrackerUpdateS2CPacket(camera.getId(), camera.getDataTracker().getDirtyEntries()));
+//							}
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							player.networkHandler.sendPacket(new SetCameraEntityS2CPacket(camera));
+//							camera.setPos(0.5, 65, 28);
+//							camera.setYaw(0f);
+//							camera.setPitch(0f);
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							player.networkHandler.sendPacket(new SetCameraEntityS2CPacket(camera));
+//							camera.setPos(0.5, 65, 28);
+//							camera.setYaw(0f);
+//							camera.setPitch(0f);
+//							camera.setTeleportDuration(20);
+//							if (camera.getDataTracker().isDirty()) {
+//								player.networkHandler.sendPacket(new EntityTrackerUpdateS2CPacket(camera.getId(), camera.getDataTracker().getDirtyEntries()));
+//							}
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							player.networkHandler.sendPacket(new SetCameraEntityS2CPacket(camera));
+//							camera.setPos(0.5, 52, 18);
+//							camera.setYaw(0f);
+//							camera.setPitch(-60f);
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							player.networkHandler.sendPacket(new SetCameraEntityS2CPacket(camera));
+//							camera.setPos(0.5, 52, 18);
+//							camera.setYaw(0f);
+//							camera.setPitch(-60f);
+//							camera.setTeleportDuration(20);
+//							if (camera.getDataTracker().isDirty()) {
+//								player.networkHandler.sendPacket(new EntityTrackerUpdateS2CPacket(camera.getId(), camera.getDataTracker().getDirtyEntries()));
+//							}
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							player.networkHandler.sendPacket(new SetCameraEntityS2CPacket(camera));
+//							camera.setPos(0.5, 48, 6);
+//							camera.setYaw(0f);
+//							camera.setPitch(-90f);
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							player.networkHandler.sendPacket(new SetCameraEntityS2CPacket(camera));
+//							camera.setPos(0.5, 48, 6);
+//							camera.setYaw(0f);
+//							camera.setPitch(-90f);
+//							camera.setTeleportDuration(20);
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							if (camera.getDataTracker().isDirty()) {
+//								player.networkHandler.sendPacket(new EntityTrackerUpdateS2CPacket(camera.getId(), camera.getDataTracker().getDirtyEntries()));
+//							}
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							player.networkHandler.sendPacket(new SetCameraEntityS2CPacket(camera));
+//							camera.setPos(0.5, 52, -6);
+//							camera.setYaw(0f);
+//							camera.setPitch(-60f);
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							player.networkHandler.sendPacket(new SetCameraEntityS2CPacket(camera));
+//							camera.setPos(0.5, 48, 6);
+//							camera.setYaw(0f);
+//							camera.setPitch(-90f);
+//							camera.setTeleportDuration(20);
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							if (camera.getDataTracker().isDirty()) {
+//								player.networkHandler.sendPacket(new EntityTrackerUpdateS2CPacket(camera.getId(), camera.getDataTracker().getDirtyEntries()));
+//							}
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							player.networkHandler.sendPacket(new SetCameraEntityS2CPacket(camera));
+//							camera.setPos(0.5, 65, -16);
+//							camera.setYaw(0f);
+//							camera.setPitch(0f);
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							player.networkHandler.sendPacket(new SetCameraEntityS2CPacket(camera));
+//							camera.setPos(0.5, 82, 6);
+//							camera.setYaw(0f);
+//							camera.setPitch(90f);
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							player.networkHandler.sendPacket(new SetCameraEntityS2CPacket(camera));
+//							camera.setPos(0.5, 82, 6);
+//							camera.setYaw(0f);
+//							camera.setPitch(90f);
+//							camera.setTeleportDuration(20);
+//							if (camera.getDataTracker().isDirty()) {
+//								player.networkHandler.sendPacket(new EntityTrackerUpdateS2CPacket(camera.getId(), camera.getDataTracker().getDirtyEntries()));
+//							}
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							player.networkHandler.sendPacket(new SetCameraEntityS2CPacket(camera));
+//							camera.setPos(0.5, 78, 18);
+//							camera.setYaw(0f);
+//							camera.setPitch(60f);
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							player.networkHandler.sendPacket(new SetCameraEntityS2CPacket(camera));
+//							camera.setPos(0.5, 78, 18);
+//							camera.setYaw(0f);
+//							camera.setPitch(60f);
+//							camera.setTeleportDuration(20);
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							if (camera.getDataTracker().isDirty()) {
+//								player.networkHandler.sendPacket(new EntityTrackerUpdateS2CPacket(camera.getId(), camera.getDataTracker().getDirtyEntries()));
+//							}
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							player.networkHandler.sendPacket(new SetCameraEntityS2CPacket(camera));
+//							camera.setPos(0.5, 65, 28);
+//							camera.setYaw(0f);
+//							camera.setPitch(0f);
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							player.networkHandler.sendPacket(new SetCameraEntityS2CPacket(camera));
+//							camera.setPos(0.5, 65, 28);
+//							camera.setYaw(0f);
+//							camera.setPitch(0f);
+//							camera.setTeleportDuration(20);
+//							if (camera.getDataTracker().isDirty()) {
+//								player.networkHandler.sendPacket(new EntityTrackerUpdateS2CPacket(camera.getId(), camera.getDataTracker().getDirtyEntries()));
+//							}
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							player.networkHandler.sendPacket(new SetCameraEntityS2CPacket(camera));
+//							camera.setPos(0.5, 52, 18);
+//							camera.setYaw(0f);
+//							camera.setPitch(-60f);
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							player.networkHandler.sendPacket(new SetCameraEntityS2CPacket(camera));
+//							camera.setPos(0.5, 52, 18);
+//							camera.setYaw(0f);
+//							camera.setPitch(-60f);
+//							camera.setTeleportDuration(20);
+//							if (camera.getDataTracker().isDirty()) {
+//								player.networkHandler.sendPacket(new EntityTrackerUpdateS2CPacket(camera.getId(), camera.getDataTracker().getDirtyEntries()));
+//							}
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							player.networkHandler.sendPacket(new SetCameraEntityS2CPacket(camera));
+//							camera.setPos(0.5, 48, 6);
+//							camera.setYaw(0f);
+//							camera.setPitch(-90f);
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							player.networkHandler.sendPacket(new SetCameraEntityS2CPacket(camera));
+//							camera.setPos(0.5, 48, 6);
+//							camera.setYaw(0f);
+//							camera.setPitch(-90f);
+//							camera.setTeleportDuration(20);
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							if (camera.getDataTracker().isDirty()) {
+//								player.networkHandler.sendPacket(new EntityTrackerUpdateS2CPacket(camera.getId(), camera.getDataTracker().getDirtyEntries()));
+//							}
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							player.networkHandler.sendPacket(new SetCameraEntityS2CPacket(camera));
+//							camera.setPos(0.5, 52, -6);
+//							camera.setYaw(0f);
+//							camera.setPitch(-60f);
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							player.networkHandler.sendPacket(new SetCameraEntityS2CPacket(camera));
+//							camera.setPos(0.5, 48, 6);
+//							camera.setYaw(0f);
+//							camera.setPitch(-90f);
+//							camera.setTeleportDuration(20);
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							if (camera.getDataTracker().isDirty()) {
+//								player.networkHandler.sendPacket(new EntityTrackerUpdateS2CPacket(camera.getId(), camera.getDataTracker().getDirtyEntries()));
+//							}
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							player.networkHandler.sendPacket(new SetCameraEntityS2CPacket(camera));
+//							camera.setPos(0.5, 65, -16);
+//							camera.setYaw(0f);
+//							camera.setPitch(0f);
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							player.networkHandler.sendPacket(new SetCameraEntityS2CPacket(camera));
+//							camera.setPos(0.5, 82, 6);
+//							camera.setYaw(0f);
+//							camera.setPitch(90f);
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							player.networkHandler.sendPacket(new SetCameraEntityS2CPacket(camera));
+//							camera.setPos(0.5, 82, 6);
+//							camera.setYaw(0f);
+//							camera.setPitch(90f);
+//							camera.setTeleportDuration(20);
+//							if (camera.getDataTracker().isDirty()) {
+//								player.networkHandler.sendPacket(new EntityTrackerUpdateS2CPacket(camera.getId(), camera.getDataTracker().getDirtyEntries()));
+//							}
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							player.networkHandler.sendPacket(new SetCameraEntityS2CPacket(camera));
+//							camera.setPos(0.5, 78, 18);
+//							camera.setYaw(0f);
+//							camera.setPitch(60f);
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							player.networkHandler.sendPacket(new SetCameraEntityS2CPacket(camera));
+//							camera.setPos(0.5, 78, 18);
+//							camera.setYaw(0f);
+//							camera.setPitch(60f);
+//							camera.setTeleportDuration(20);
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							if (camera.getDataTracker().isDirty()) {
+//								player.networkHandler.sendPacket(new EntityTrackerUpdateS2CPacket(camera.getId(), camera.getDataTracker().getDirtyEntries()));
+//							}
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							player.networkHandler.sendPacket(new SetCameraEntityS2CPacket(camera));
+//							camera.setPos(0.5, 65, 28);
+//							camera.setYaw(0f);
+//							camera.setPitch(0f);
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							player.networkHandler.sendPacket(new SetCameraEntityS2CPacket(camera));
+//							camera.setPos(0.5, 65, 28);
+//							camera.setYaw(0f);
+//							camera.setPitch(0f);
+//							camera.setTeleportDuration(20);
+//							if (camera.getDataTracker().isDirty()) {
+//								player.networkHandler.sendPacket(new EntityTrackerUpdateS2CPacket(camera.getId(), camera.getDataTracker().getDirtyEntries()));
+//							}
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							player.networkHandler.sendPacket(new SetCameraEntityS2CPacket(camera));
+//							camera.setPos(0.5, 52, 18);
+//							camera.setYaw(0f);
+//							camera.setPitch(-60f);
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							player.networkHandler.sendPacket(new SetCameraEntityS2CPacket(camera));
+//							camera.setPos(0.5, 52, 18);
+//							camera.setYaw(0f);
+//							camera.setPitch(-60f);
+//							camera.setTeleportDuration(20);
+//							if (camera.getDataTracker().isDirty()) {
+//								player.networkHandler.sendPacket(new EntityTrackerUpdateS2CPacket(camera.getId(), camera.getDataTracker().getDirtyEntries()));
+//							}
+//							player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+//							player.networkHandler.sendPacket(new SetCameraEntityS2CPacket(camera));
+			for (ServerPlayerEntity cameraPlayerStart : server.getPlayerManager().getPlayerList()) {
+				ManhuntGame.updateGameMode(cameraPlayerStart);
+			}
+			server.getCommandManager().executeWithPrefix(server.getCommandSource().withSilent(), "chunky cancel");
+			server.getCommandManager().executeWithPrefix(server.getCommandSource().withSilent(), "chunky confirm");
+			server.getCommandManager().executeWithPrefix(server.getCommandSource().withSilent(), "chunky start overworld square 0 0 384 384");
+			server.getCommandManager().executeWithPrefix(server.getCommandSource().withSilent(), "chunky start the_nether square 0 0 192 192");
+			server.getCommandManager().executeWithPrefix(server.getCommandSource().withSilent(), "chunky start the_end square 0 0 96 96");
+		}
+	}
+
+	private static void cameraPosition(DisplayEntity.BlockDisplayEntity camera, ServerPlayerEntity player, Vec3d firstPos, float firstPitch, float firstYaw, Vec3d secondPos, float secondPitch, float secondYaw) {
+		camera.setPosition(firstPos);
+		camera.setPitch(firstPitch);
+		camera.setYaw(firstYaw);
+		camera.setTeleportDuration(20);
+		if (camera.getDataTracker().isDirty()) {
+			player.networkHandler.sendPacket(new EntityTrackerUpdateS2CPacket(camera.getId(), camera.getDataTracker().getDirtyEntries()));
+		}
+		camera.setPosition(secondPos);
+		camera.setPitch(secondPitch);
+		camera.setYaw(secondYaw);
+		player.networkHandler.sendPacket(new EntityPositionS2CPacket(camera));
+		player.networkHandler.sendPacket(new SetCameraEntityS2CPacket(camera));
 	}
 }

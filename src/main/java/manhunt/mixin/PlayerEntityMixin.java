@@ -1,7 +1,10 @@
 package manhunt.mixin;
 
 import com.mojang.serialization.DataResult;
-import manhunt.config.ManhuntConfig;
+import mrnavastar.sqlib.DataContainer;
+import mrnavastar.sqlib.Table;
+import mrnavastar.sqlib.database.MySQLDatabase;
+import mrnavastar.sqlib.sql.SQLDataType;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.LivingEntity;
@@ -21,7 +24,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.Objects;
 
-import static manhunt.config.ManhuntConfig.bedExplosions;
+import static manhunt.Manhunt.MOD_ID;
+import static manhunt.config.ManhuntConfig.*;
 
 @Mixin(PlayerEntity.class)
 public abstract class PlayerEntityMixin extends LivingEntity {
@@ -74,9 +78,26 @@ public abstract class PlayerEntityMixin extends LivingEntity {
 
     @Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/player/PlayerEntity;setAbsorptionAmount(F)V"), method = "applyDamage", cancellable = true)
     private void cancelDamage(DamageSource source, float amount, CallbackInfo ci) {
-        ManhuntConfig.load();
         if (bedExplosions && source.getType().deathMessageType() == DeathMessageType.INTENTIONAL_GAME_DESIGN) {
             ci.cancel();
         }
+    }
+
+    public DataContainer getPlayerData(NbtCompound nbt) {
+        final MySQLDatabase database = new MySQLDatabase(MOD_ID, databaseName, databaseAddress, databasePort, databaseUser, databasePassword);
+        Table table = database.createTable("players")
+                .addColumn("muteMusic", SQLDataType.BOOL)
+                .addColumn("muteLobbyMusic", SQLDataType.BOOL)
+                .addColumn("doNotDisturb", SQLDataType.BOOL)
+                .addColumn("pingSound", SQLDataType.STRING)
+                .addColumn("lobbyRole", SQLDataType.STRING)
+                .finish();
+        DataContainer playerData = table.get(this.getUuidAsString());
+        if (nbt.getBoolean("playerData")) {
+            if (table.get(this.getUuidAsString()) == null) {
+                playerData = table.createDataContainer(this.getUuidAsString());
+            }
+        }
+        return playerData;
     }
 }

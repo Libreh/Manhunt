@@ -62,6 +62,7 @@
   "manhunt.chat.hunter": "%1$s §bhas selected the hunter role!",
   "manhunt.chat.runner": "%1$s §6has selected the runner role!",
   "manhunt.chat.minimum": "§cA minimum of 1 runner is required to start the game",
+  "manhunt.chat.setting": "%1$s: %2$s",
   "manhunt.title.gamemode": "MANHUNT",
   "manhunt.title.start": "§7Game has started!",
   "manhunt.title.hunters": "§cHUNTERS WON",

@@ -1,7 +1,6 @@
 package manhunt.mixin;
 
 import com.mojang.authlib.GameProfile;
-import manhunt.config.ManhuntConfig;
 import manhunt.game.ManhuntGame;
 import manhunt.game.ManhuntState;
 import net.minecraft.entity.damage.DamageSource;
@@ -38,8 +37,6 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity {
 
     @Inject(at = @At("HEAD"), method = "onDeath")
     public void onDeath(DamageSource source, CallbackInfo ci) {
-        ManhuntConfig.load();
-
         Scoreboard scoreboard = server.getScoreboard();
 
         if (this.getScoreboardTeam() != null) {
