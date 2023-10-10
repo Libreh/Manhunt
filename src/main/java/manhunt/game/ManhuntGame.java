@@ -14,6 +14,7 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.GameMode;
@@ -22,9 +23,9 @@ import net.minecraft.world.Heightmap;
 import nota.Nota;
 
 import static manhunt.Manhunt.lobbyRegistryKey;
-import static manhunt.config.ManhuntConfig.hunterFreeze;
-import static manhunt.config.ManhuntConfig.revealWinner;
-import static manhunt.game.ManhuntState.*;
+import static manhunt.config.ManhuntConfig.*;
+import static manhunt.game.ManhuntState.PLAYING;
+import static manhunt.game.ManhuntState.PREGAME;
 
 public class ManhuntGame {
 
@@ -36,6 +37,13 @@ public class ManhuntGame {
     }
 
     public static void start(MinecraftServer server) {
+        server.getCommandManager().executeWithPrefix(server.getCommandSource().withSilent(), "team remove players");
+        server.getCommandManager().executeWithPrefix(server.getCommandSource().withSilent(), "chunky cancel");
+        server.getCommandManager().executeWithPrefix(server.getCommandSource().withSilent(), "chunky confirm");
+
+        server.setFlightEnabled(false);
+        server.getPlayerManager().setWhitelistEnabled(false);
+
         ManhuntConfig.load();
 
         ManhuntGame.state(PLAYING, server);
@@ -79,7 +87,7 @@ public class ManhuntGame {
 
             updateGameMode(player);
 
-            if (revealWinner) {
+            if (gameTitles) {
                 player.networkHandler.sendPacket(new TitleS2CPacket(Text.translatable("manhunt.title.gamemode")));
                 player.networkHandler.sendPacket(new SubtitleS2CPacket(Text.translatable("manhunt.title.start")));
             }
@@ -105,6 +113,64 @@ public class ManhuntGame {
                 }
             }
             Nota.stopPlaying(player);
+
+            if (worldPregeneration) {
+                player.sendMessage(Text.translatable("manhunt.item.worldpregeneration", Text.literal(": "), Text.literal("Enabled").formatted(Formatting.GREEN)), false);
+            } else {
+                player.sendMessage(Text.translatable("manhunt.item.worldpregeneration", Text.literal(": "), Text.literal("Disabled").formatted(Formatting.RED)), false);
+            }
+            if (hunterFreeze == 0) {
+                player.sendMessage(Text.translatable("manhunt.item.hunterfreeze", Text.literal(": "), Text.literal(hunterFreeze + " seconds (disabled)").formatted(Formatting.RED)), false);
+            } else {
+                player.sendMessage(Text.translatable("manhunt.item.hunterfreeze", Text.literal(": "), Text.literal(hunterFreeze + " seconds").formatted(Formatting.GREEN)), false);
+            }
+            if (timeLimit == 0) {
+                player.sendMessage(Text.translatable("manhunt.item.timelimit", Text.literal(": "), Text.literal(timeLimit + " minutes (disabled)").formatted(Formatting.RED)), false);
+            } else {
+                player.sendMessage(Text.translatable("manhunt.item.timelimit", Text.literal(": "), Text.literal(timeLimit + " minutes").formatted(Formatting.GREEN)), false);
+            }
+            if (compassUpdate.equals("Automatic")) {
+                player.sendMessage(Text.translatable("manhunt.item.compassupdate", Text.literal(": "), Text.literal("Automatic").formatted(Formatting.GREEN)), false);
+            } else {
+                player.sendMessage(Text.translatable("manhunt.item.compassupdate", Text.literal(": "), Text.literal("Manual").formatted(Formatting.RED)), false);
+            }
+            if (dimensionInfo) {
+                player.sendMessage(Text.translatable("manhunt.item.dimensioninfo", Text.literal(": "), Text.literal("Show").formatted(Formatting.GREEN)), false);
+            } else {
+                player.sendMessage(Text.translatable("manhunt.item.dimensioninfo", Text.literal(": "), Text.literal("Hide").formatted(Formatting.RED)), false);
+            }
+            if (latePlayers) {
+                player.sendMessage(Text.translatable("manhunt.item.lateplayers", Text.literal(": "), Text.literal("Join Hunters").formatted(Formatting.GREEN)), false);
+            } else {
+                player.sendMessage(Text.translatable("manhunt.item.lateplayers", Text.literal(": "), Text.literal("Join Spectators").formatted(Formatting.RED)), false);
+            }
+            if (teamColor) {
+                player.sendMessage(Text.translatable("manhunt.item.teamcolor", Text.literal(": "), Text.literal("Show").formatted(Formatting.GREEN)), false);
+            } else {
+                player.sendMessage(Text.translatable("manhunt.item.teamcolor", Text.literal(": "), Text.literal("Hide").formatted(Formatting.RED)), false);
+            }
+            if (bedExplosions) {
+                player.sendMessage(Text.translatable("manhunt.item.bedexplosions", Text.literal(": "), Text.literal("Enabled").formatted(Formatting.GREEN)), false);
+            } else {
+                player.sendMessage(Text.translatable("manhunt.item.bedexplosions", Text.literal(": "), Text.literal("Disabled").formatted(Formatting.RED)), false);
+            }
+            if (worldDifficulty.equals("easy")) {
+                player.sendMessage(Text.translatable("manhunt.item.worlddifficulty", Text.literal(": "), Text.literal("Easy").formatted(Formatting.GREEN)), false);
+            } else if (worldDifficulty.equals("normal")) {
+                player.sendMessage(Text.translatable("manhunt.item.worlddifficulty", Text.literal(": "), Text.literal("Normal").formatted(Formatting.GOLD)), false);
+            } else {
+                player.sendMessage(Text.translatable("manhunt.item.worlddifficulty", Text.literal(": "), Text.literal("Hard").formatted(Formatting.RED)), false);
+            }
+            if (borderSize == 0) {
+                player.sendMessage(Text.translatable("manhunt.item.bordersize", Text.literal(": "), Text.literal(borderSize + " blocks (disabled)").formatted(Formatting.RED)), false);
+            } else {
+                player.sendMessage(Text.translatable("manhunt.item.bordersize", Text.literal(": "), Text.literal(borderSize + " blocks").formatted(Formatting.GREEN)), false);
+            }
+            if (gameTitles) {
+                player.sendMessage(Text.translatable("manhunt.item.gametitles", Text.literal(": "), Text.literal("Enabled").formatted(Formatting.GREEN)), false);
+            } else {
+                player.sendMessage(Text.translatable("manhunt.item.gametitles", Text.literal(": "), Text.literal("Disabled").formatted(Formatting.RED)), false);
+            }
         }
 
         world.getServer().getCommandManager().executeWithPrefix(world.getServer().getCommandSource().withSilent(), "chunky cancel");
@@ -114,10 +180,8 @@ public class ManhuntGame {
     public static void updateGameMode(ServerPlayerEntity player) {
         if(ManhuntGame.state == PREGAME) {
             player.changeGameMode(GameMode.ADVENTURE);
-        } else if(ManhuntGame.state == PLAYING) {
+        }else if(ManhuntGame.state == PLAYING) {
             player.changeGameMode(GameMode.SURVIVAL);
-        } else if(ManhuntGame.state == POSTGAME) {
-            player.changeGameMode(GameMode.SPECTATOR);
         } else {
             player.changeGameMode(GameMode.SPECTATOR);
         }

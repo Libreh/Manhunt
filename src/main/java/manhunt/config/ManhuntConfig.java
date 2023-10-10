@@ -18,19 +18,19 @@ public class ManhuntConfig {
     public static String databaseUser = "";
     public static String databasePassword = "";
     public static String musicDirectory = "";
-    public static boolean pregenerationEnabled = true;
+    public static boolean worldPregeneration = true;
     public static boolean pingingEnabled = true;
     public static int hunterFreeze = 10;
     public static int timeLimit = 180;
     public static String compassUpdate = "Automatic";
-    public static boolean showRunnerDimension = true;
-    public static boolean latePlayersJoinHunters = true;
-    public static boolean showTeamColor = true;
-    public static boolean disableBedExplosions = true;
+    public static boolean dimensionInfo = true;
+    public static boolean latePlayers = true;
+    public static boolean teamColor = true;
+    public static boolean bedExplosions = true;
     public static String worldDifficulty = "easy";
     public static int borderSize = 59999968;
-    public static boolean revealWinner = true;
-    public static boolean automaticRoleSelection = true;
+    public static boolean gameTitles = true;
+    public static boolean roleSelection = true;
 
     public static void load() {
         if(!confFile.exists() || confFile.length() == 0) save();
@@ -44,19 +44,19 @@ public class ManhuntConfig {
             if ((je = jo.get("databaseUser")) != null) databaseUser = je.getAsString();
             if ((je = jo.get("databasePassword")) != null) databasePassword = je.getAsString();
             if ((je = jo.get("musicDirectory")) != null) musicDirectory = je.getAsString();
-            if ((je = jo.get("pregenerationEnabled")) != null) pregenerationEnabled = je.getAsBoolean();
+            if ((je = jo.get("worldPregenration")) != null) worldPregeneration = je.getAsBoolean();
             if ((je = jo.get("pingingEnabled")) != null) pingingEnabled = je.getAsBoolean();
             if ((je = jo.get("hunterFreeze")) != null) hunterFreeze = je.getAsInt();
             if ((je = jo.get("timeLimit")) != null) timeLimit = je.getAsInt();
             if ((je = jo.get("compassUpdate")) != null) compassUpdate = je.getAsString();
-            if ((je = jo.get("showRunnerDimension")) != null) showRunnerDimension = je.getAsBoolean();
-            if ((je = jo.get("latePlayersJoinHunters")) != null) latePlayersJoinHunters = je.getAsBoolean();
-            if ((je = jo.get("showTeamColor")) != null) showTeamColor = je.getAsBoolean();
-            if ((je = jo.get("disableBedExplosions")) != null) disableBedExplosions = je.getAsBoolean();
+            if ((je = jo.get("dimensionInfo")) != null) dimensionInfo = je.getAsBoolean();
+            if ((je = jo.get("latePlayers")) != null) latePlayers = je.getAsBoolean();
+            if ((je = jo.get("teamColor")) != null) teamColor = je.getAsBoolean();
+            if ((je = jo.get("bedExplosions")) != null) bedExplosions = je.getAsBoolean();
             if ((je = jo.get("worldDifficulty")) != null) worldDifficulty = je.getAsString();
             if ((je = jo.get("borderSize")) != null) borderSize = je.getAsInt();
-            if ((je = jo.get("revealWinner")) != null) revealWinner = je.getAsBoolean();
-            if ((je = jo.get("automaticRoleSelection")) != null) automaticRoleSelection = je.getAsBoolean();
+            if ((je = jo.get("gameTitles")) != null) gameTitles = je.getAsBoolean();
+            if ((je = jo.get("roleSelection")) != null) roleSelection = je.getAsBoolean();
         } catch (FileNotFoundException ex) {
             Manhunt.LOGGER.trace("Couldn't load configuration file", ex);
         }
@@ -77,19 +77,19 @@ public class ManhuntConfig {
             jo.add("databaseUser", new JsonPrimitive(databaseUser));
             jo.add("databasePassword", new JsonPrimitive(databasePassword));
             jo.add("musicDirectory", new JsonPrimitive(musicDirectory));
-            jo.add("pregenerationEnabled", new JsonPrimitive(pregenerationEnabled));
+            jo.add("worldPregenration", new JsonPrimitive(worldPregeneration));
             jo.add("pingingEnabled", new JsonPrimitive(pingingEnabled));
             jo.add("hunterFreeze", new JsonPrimitive(hunterFreeze));
             jo.add("timeLimit", new JsonPrimitive(timeLimit));
             jo.add("compassUpdate", new JsonPrimitive(compassUpdate));
-            jo.add("showRunnerDimension", new JsonPrimitive(showRunnerDimension));
-            jo.add("latePlayersJoinHunters", new JsonPrimitive(latePlayersJoinHunters));
-            jo.add("showTeamColor", new JsonPrimitive(showTeamColor));
-            jo.add("disableBedExplosions", new JsonPrimitive(disableBedExplosions));
+            jo.add("dimensionInfo", new JsonPrimitive(dimensionInfo));
+            jo.add("latePlayers", new JsonPrimitive(latePlayers));
+            jo.add("teamColor", new JsonPrimitive(teamColor));
+            jo.add("bedExplosions", new JsonPrimitive(bedExplosions));
             jo.add("worldDifficulty", new JsonPrimitive(worldDifficulty));
             jo.add("borderSize", new JsonPrimitive(borderSize));
-            jo.add("revealWinner", new JsonPrimitive(revealWinner));
-            jo.add("automaticRoleSelection", new JsonPrimitive(automaticRoleSelection));
+            jo.add("gameTitles", new JsonPrimitive(gameTitles));
+            jo.add("roleSelection", new JsonPrimitive(roleSelection));
 
             PrintWriter printWriter = new PrintWriter(new FileWriter(confFile));
             printWriter.print(gson.toJson(jo));

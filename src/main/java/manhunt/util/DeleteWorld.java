@@ -10,7 +10,7 @@ import java.util.stream.Stream;
 
 public class DeleteWorld {
 
-    public static void invoke() {
+    public static void invoke() throws IOException {
         var gameDir = FabricLoader.getInstance().getGameDir();
 
         try (Stream<Path> dirStream = Files.walk(gameDir.resolve("world/data"))) {

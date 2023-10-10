@@ -1,10 +1,10 @@
 package manhunt.game;
 
 public enum ManhuntState {
-    PREPARING("§2", "PREPARING"),
     PREGAME("§a", "PRE-GAME"),
-    PLAYING("§e", "IN-GAME"),
-    POSTGAME("§6", "POST-GAME");
+    PREPARING("§2", "PREPARING"),
+    PLAYING("§6", "IN-GAME"),
+    POSTGAME("§e", "POST-GAME");
 
     private final String color;
     private final String motd;

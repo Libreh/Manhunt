@@ -70,7 +70,7 @@ public final class JukeboxCommand {
     private static int playSong(ServerCommandSource source, String songName) {
         ManhuntConfig.load();
 
-        Song song = NBSDecoder.parse(new File(musicDirectory + "/" + songName + ".nbs"));
+        Song song = NBSDecoder.parse(new File(musicDirectory + "/" + songName));
 
         RadioSongPlayer rsp = new RadioSongPlayer(song);
 
@@ -108,9 +108,12 @@ public final class JukeboxCommand {
 
     private static int unmuteMusic(ServerCommandSource source) {
         getPlayerScore(source.getPlayer(), "muteMusic").setScore(0);
-        playLobbyMusic(source.getPlayer());
 
         source.sendFeedback(() -> Text.translatable("manhunt.jukebox.unmute"), false);
+
+        if (getPlayerScore(source.getPlayer(), "muteMusic").getScore() == 0 && getPlayerScore(source.getPlayer(), "muteLobbyMusic").getScore() == 0) {
+            playLobbyMusic(source.getPlayer());
+        }
 
         return Command.SINGLE_SUCCESS;
     }
@@ -131,7 +134,7 @@ public final class JukeboxCommand {
             }
         }
 
-        source.sendFeedback(() -> Text.translatable("manhunt.jukebox.playing", Text.literal(songName + ".nbs")), false);
+        source.sendFeedback(() -> Text.translatable("manhunt.jukebox.playing", Text.literal(songName)), false);
 
         return Command.SINGLE_SUCCESS;
     }
@@ -150,6 +153,7 @@ public final class JukeboxCommand {
         getPlayerScore(source.getPlayer(), "muteLobbyMusic").setScore(1);
 
         source.sendFeedback(() -> Text.translatable("manhunt.jukebox.mutelobbymusic"), false);
+
         Nota.stopPlaying(source.getPlayer());
 
         return Command.SINGLE_SUCCESS;
@@ -159,7 +163,10 @@ public final class JukeboxCommand {
         getPlayerScore(source.getPlayer(), "muteLobbyMusic").setScore(0);
 
         source.sendFeedback(() -> Text.translatable("manhunt.jukebox.unmutelobbymusic"), false);
-        playLobbyMusic(source.getPlayer());
+
+        if (getPlayerScore(source.getPlayer(), "muteMusic").getScore() == 0 && getPlayerScore(source.getPlayer(), "muteLobbyMusic").getScore() == 0) {
+            playLobbyMusic(source.getPlayer());
+        }
 
         return Command.SINGLE_SUCCESS;
     }
