@@ -33,6 +33,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import java.io.File;
 
 import static manhunt.Manhunt.*;
+import static manhunt.game.ManhuntState.PLAYING;
+import static manhunt.game.ManhuntState.PREGAME;
 
 @Mixin(PlayerManager.class)
 public abstract class PlayerManagerMixin {
@@ -70,6 +72,8 @@ public abstract class PlayerManagerMixin {
         if (!getPlayerData(player).getBool("muteMusic") && !getPlayerData(player).getBool("muteLobbyMusic")) {
             playLobbyMusic(player);
         }
+
+        updateGameMode(player);
 
         parkourTimer.put(player.getUuid(), 0);
         startedParkour.put(player.getUuid(), false);
@@ -174,5 +178,15 @@ public abstract class PlayerManagerMixin {
         player.sendMessage(Text.translatable("manhunt.jukebox.permanent"));
         player.sendMessage(Text.translatable("manhunt.mutelobbymusic.disable"));
         player.sendMessage(Text.translatable("manhunt.jukebox.volume"));
+    }
+
+    private void updateGameMode(ServerPlayerEntity player) {
+        if(ManhuntGame.state == PREGAME) {
+            player.changeGameMode(GameMode.ADVENTURE);
+        }else if(ManhuntGame.state == PLAYING) {
+            player.changeGameMode(GameMode.SURVIVAL);
+        } else {
+            player.changeGameMode(GameMode.SPECTATOR);
+        }
     }
 }
