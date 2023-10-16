@@ -3,7 +3,6 @@ package manhunt.mixin;
 import manhunt.config.ManhuntConfig;
 import manhunt.game.ManhuntGame;
 import manhunt.game.ManhuntState;
-import net.minecraft.block.Blocks;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.nbt.NbtCompound;
@@ -18,7 +17,6 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.GameMode;
 import nota.model.Playlist;
 import nota.model.Song;
@@ -79,7 +77,7 @@ public abstract class PlayerManagerMixin {
         startedParkour.put(player.getUuid(), false);
         finishedParkour.put(player.getUuid(), false);
 
-        if (ManhuntGame.state == ManhuntState.PREPARING) {
+        if (ManhuntGame.state == PREGAME) {
 
             player.getInventory().clear();
 
@@ -89,13 +87,6 @@ public abstract class PlayerManagerMixin {
             player.addStatusEffect(new StatusEffectInstance(StatusEffects.SATURATION, StatusEffectInstance.INFINITE, 255, false, false, false));
             player.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE, StatusEffectInstance.INFINITE, 255, false, false, false));
             player.playSound(SoundEvents.ENTITY_PLAYER_LEVELUP, SoundCategory.BLOCKS, 0.5f, 0.5f);
-
-            var world = player.getWorld();
-
-            if (world.getBlockState(new BlockPos(2, 60, 24)).getBlock().equals(Blocks.AIR)) {
-                world.getServer().getCommandManager().executeWithPrefix(world.getServer().getCommandSource().withSilent(), "setblock 2 60 24 ice");
-                world.getServer().getCommandManager().executeWithPrefix(world.getServer().getCommandSource().withSilent(), "summon glow_squid 2 60 27 {NoGravity:1b,Silent:1b,Invulnerable:1b,NoAI:1b}");
-            }
         }
 
         if (ManhuntGame.state == ManhuntState.PLAYING) {
@@ -127,7 +118,7 @@ public abstract class PlayerManagerMixin {
 
     @Inject(at = @At(value = "RETURN"), method = "loadPlayerData", cancellable = true)
     private void loadPlayerData(ServerPlayerEntity player, CallbackInfoReturnable<NbtCompound> ci) {
-        if (ci.getReturnValue() == null && ManhuntGame.state == ManhuntState.PREGAME) {
+        if (ManhuntGame.state == PREGAME) {
             NbtCompound nbt = new NbtCompound();
             nbt.putString("Dimension", "manhunt:lobby");
 
@@ -144,14 +135,14 @@ public abstract class PlayerManagerMixin {
 
             player.readNbt(nbt);
             ci.setReturnValue(nbt);
-        } else if (ci.getReturnValue() == null && ManhuntGame.state == ManhuntState.PLAYING) {
+        } else if (ci.getReturnValue() == null && ManhuntGame.state == PLAYING) {
             NbtCompound nbt = new NbtCompound();
             nbt.putString("Dimension", "overworld");
 
             NbtList position = new NbtList();
-            position.add(NbtDouble.of(ManhuntGame.findSpawnPos(player.getServer().getOverworld()).getX()));
-            position.add(NbtDouble.of(ManhuntGame.findSpawnPos(player.getServer().getOverworld()).getY()));
-            position.add(NbtDouble.of(ManhuntGame.findSpawnPos(player.getServer().getOverworld()).getZ()));
+            position.add(NbtDouble.of(player.getServer().getOverworld().getSpawnPos().getX()));
+            position.add(NbtDouble.of(player.getServer().getOverworld().getSpawnPos().getY()));
+            position.add(NbtDouble.of(player.getServer().getOverworld().getSpawnPos().getZ()));
             nbt.put("Pos", position);
 
             NbtList rotation = new NbtList();

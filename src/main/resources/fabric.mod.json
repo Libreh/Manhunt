@@ -7,11 +7,7 @@
 	"authors": [
 		"Libreh"
 	],
-	"contact": {
-		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
-	},
-		"license": "LGPLv3",
+	"license": "LGPLv3",
 	"environment": "*",
 	"entrypoints": {
 		"main": [
