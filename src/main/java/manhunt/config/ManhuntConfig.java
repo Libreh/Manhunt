@@ -19,6 +19,7 @@ public class ManhuntConfig {
     public static String databasePassword = "";
     public static String musicDirectory = "";
     public static boolean pingingEnabled = true;
+    public static String presetMode = "Free Select";
     public static int hunterFreeze = 10;
     public static int timeLimit = 180;
     public static String compassUpdate = "Automatic";
@@ -44,6 +45,7 @@ public class ManhuntConfig {
             if ((je = jo.get("databasePassword")) != null) databasePassword = je.getAsString();
             if ((je = jo.get("musicDirectory")) != null) musicDirectory = je.getAsString();
             if ((je = jo.get("pingingEnabled")) != null) pingingEnabled = je.getAsBoolean();
+            if ((je = jo.get("presetMode")) != null) presetMode = je.getAsString();
             if ((je = jo.get("hunterFreeze")) != null) hunterFreeze = je.getAsInt();
             if ((je = jo.get("timeLimit")) != null) timeLimit = je.getAsInt();
             if ((je = jo.get("compassUpdate")) != null) compassUpdate = je.getAsString();
@@ -76,6 +78,7 @@ public class ManhuntConfig {
             jo.add("databasePassword", new JsonPrimitive(databasePassword));
             jo.add("musicDirectory", new JsonPrimitive(musicDirectory));
             jo.add("pingingEnabled", new JsonPrimitive(pingingEnabled));
+            jo.add("presetMode", new JsonPrimitive(presetMode));
             jo.add("hunterFreeze", new JsonPrimitive(hunterFreeze));
             jo.add("timeLimit", new JsonPrimitive(timeLimit));
             jo.add("compassUpdate", new JsonPrimitive(compassUpdate));
