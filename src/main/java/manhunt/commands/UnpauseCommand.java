@@ -44,11 +44,11 @@ public class UnpauseCommand {
                         gamePlayer.removeStatusEffect(StatusEffects.RESISTANCE);
                         gamePlayer.removeStatusEffect(StatusEffects.WEAKNESS);
                         gamePlayer.networkHandler.sendPacket(new TitleS2CPacket(Text.translatable("manhunt.title.unpaused")));
-                        gamePlayer.networkHandler.sendPacket(new SubtitleS2CPacket(Text.translatable("manhunt.title.gogogo")));
+                        gamePlayer.networkHandler.sendPacket(new SubtitleS2CPacket(Text.translatable("manhunt.title.go")));
                     }
                     player.getServer().getPlayerManager().broadcast(Text.translatable("manhunt.chat.unpaused"), false);
                     ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
-                    scheduledExecutorService.schedule(() -> Manhunt.setPaused(false), 250, TimeUnit.MILLISECONDS);
+                    scheduledExecutorService.schedule(() -> Manhunt.setPaused(false), 1, TimeUnit.SECONDS);
                 }
             } else {
                 source.sendFeedback(() -> Text.translatable("manhunt.lore.game"), false);
