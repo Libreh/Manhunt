@@ -24,7 +24,6 @@
 		"java": ">=17",
 		"fabric-api": "*",
 		"sgui": "*",
-		"server_translations_api": "*",
-		"chunky": "*"
+		"server_translations_api": "*"
 	}
 }

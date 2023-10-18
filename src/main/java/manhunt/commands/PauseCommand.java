@@ -49,7 +49,7 @@ public class PauseCommand {
                     }
                     player.getServer().getPlayerManager().broadcast(Text.translatable("manhunt.chat.paused"), false);
                     ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
-                    scheduledExecutorService.schedule(() -> Manhunt.setPaused(true), 250, TimeUnit.MILLISECONDS);
+                    scheduledExecutorService.schedule(() -> Manhunt.setPaused(true), 1, TimeUnit.SECONDS);
                 }
             } else {
                 source.sendFeedback(() -> Text.translatable("manhunt.lore.game"), false);
