@@ -5,6 +5,8 @@ import manhunt.game.ManhuntGame;
 import manhunt.game.ManhuntState;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtDouble;
 import net.minecraft.nbt.NbtFloat;
@@ -31,6 +33,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import java.io.File;
 
 import static manhunt.Manhunt.*;
+import static manhunt.config.ManhuntConfig.presetMode;
 import static manhunt.game.ManhuntState.PLAYING;
 import static manhunt.game.ManhuntState.PREGAME;
 
@@ -73,6 +76,7 @@ public abstract class PlayerManagerMixin {
 
         updateGameMode(player);
 
+        currentRole.put(player.getUuid(), "hunter");
         parkourTimer.put(player.getUuid(), 0);
         startedParkour.put(player.getUuid(), false);
         finishedParkour.put(player.getUuid(), false);
@@ -87,6 +91,17 @@ public abstract class PlayerManagerMixin {
             player.addStatusEffect(new StatusEffectInstance(StatusEffects.SATURATION, StatusEffectInstance.INFINITE, 255, false, false, false));
             player.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE, StatusEffectInstance.INFINITE, 255, false, false, false));
             player.playSound(SoundEvents.ENTITY_PLAYER_LEVELUP, SoundCategory.BLOCKS, 0.5f, 0.5f);
+
+            if (!presetMode.equals("Free Select")) {
+                NbtCompound nbt = new NbtCompound();
+                nbt.putBoolean("Remove", true);
+                ItemStack itemStack = new ItemStack(Items.BARRIER);
+                itemStack.setNbt(nbt);
+                for (ServerPlayerEntity serverPlayer : player.getServer().getPlayerManager().getPlayerList()) {
+                    serverPlayer.getInventory().setStack(3, itemStack);
+                    serverPlayer.getInventory().setStack(5, itemStack);
+                }
+            }
         }
 
         if (ManhuntGame.state == ManhuntState.PLAYING) {
