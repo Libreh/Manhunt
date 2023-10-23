@@ -1,8 +1,11 @@
 package manhunt.mixin;
 
 import manhunt.config.ManhuntConfig;
+import manhunt.database.DatabasePlayer;
+import manhunt.database.PostgreSQLDatabase;
 import manhunt.game.ManhuntGame;
 import manhunt.game.ManhuntState;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.item.ItemStack;
@@ -20,7 +23,7 @@ import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.world.GameMode;
-import nota.model.Playlist;
+import nota.Nota;
 import nota.model.Song;
 import nota.player.RadioSongPlayer;
 import nota.utils.NBSDecoder;
@@ -33,7 +36,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import java.io.File;
 
 import static manhunt.Manhunt.*;
-import static manhunt.config.ManhuntConfig.presetMode;
+import static manhunt.config.ManhuntConfig.setRoles;
 import static manhunt.game.ManhuntState.PLAYING;
 import static manhunt.game.ManhuntState.PREGAME;
 
@@ -46,42 +49,38 @@ public abstract class PlayerManagerMixin {
 
     @Inject(at = @At(value = "TAIL"), method = "onPlayerConnect")
     private void onPlayerJoin(ClientConnection connection, ServerPlayerEntity player, ConnectedClientData clientData, CallbackInfo info) {
-        if (getPlayerData(player).getString("pingSound") == null) {
-            playerData.put(player.getUuid(), true);
-            muteMusic.put(player.getUuid(), false);
-            muteLobbyMusic.put(player.getUuid(), false);
-            doNotDisturb.put(player.getUuid(), false);
-            currentRole.put(player.getUuid(), "hunter");
-        } else {
-            if (getPlayerData(player).getBool("muteMusic")) {
-                muteMusic.put(player.getUuid(), true);
-            } else {
-                muteMusic.put(player.getUuid(), false);
-            }
-            if (getPlayerData(player).getBool("muteLobbyMusic")) {
-                muteLobbyMusic.put(player.getUuid(), true);
-            } else {
-                muteLobbyMusic.put(player.getUuid(), false);
-            }
-            if (getPlayerData(player).getBool("doNotDisturb")) {
-                doNotDisturb.put(player.getUuid(), true);
-            } else {
-                doNotDisturb.put(player.getUuid(), false);
+        PostgreSQLDatabase database = new PostgreSQLDatabase();
+
+        for (DatabasePlayer databasePlayer : database.getPlayersDataFromDatabase()) {
+            if (databasePlayer.getName().equals(player.getName().getString())) {
+                if (databasePlayer.isMuteLobbyMusic()) {
+                    muteLobbyMusic.put(player.getUuid(), true);
+                } else {
+                    muteLobbyMusic.put(player.getUuid(), false);
+                }
+                if (databasePlayer.isDoNotDisturb()) {
+                    doNotDisturb.put(player.getUuid(), true);
+                } else {
+                    doNotDisturb.put(player.getUuid(), false);
+                }
             }
         }
-
-        if (!getPlayerData(player).getBool("muteMusic") && !getPlayerData(player).getBool("muteLobbyMusic")) {
-            playLobbyMusic(player);
-        }
-
-        updateGameMode(player);
-
-        currentRole.put(player.getUuid(), "hunter");
-        parkourTimer.put(player.getUuid(), 0);
-        startedParkour.put(player.getUuid(), false);
-        finishedParkour.put(player.getUuid(), false);
 
         if (ManhuntGame.state == PREGAME) {
+            for (DatabasePlayer databasePlayer : database.getPlayersDataFromDatabase()) {
+                if (databasePlayer.getUuid().equals(player.getUuid().toString())) {
+                    if (!databasePlayer.isMuteLobbyMusic()) {
+                        Nota.stopPlaying(player);
+                        playLobbyMusic(player);
+                    }
+                }
+            }
+
+            updateGameMode(player);
+
+            parkourTimer.put(player.getUuid(), 0);
+            startedParkour.put(player.getUuid(), false);
+            finishedParkour.put(player.getUuid(), false);
 
             player.getInventory().clear();
 
@@ -92,7 +91,7 @@ public abstract class PlayerManagerMixin {
             player.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE, StatusEffectInstance.INFINITE, 255, false, false, false));
             player.playSound(SoundEvents.ENTITY_PLAYER_LEVELUP, SoundCategory.BLOCKS, 0.5f, 0.5f);
 
-            if (!presetMode.equals("Free Select")) {
+            if (!setRoles.equals("Free Select")) {
                 NbtCompound nbt = new NbtCompound();
                 nbt.putBoolean("Remove", true);
                 ItemStack itemStack = new ItemStack(Items.BARRIER);
@@ -101,6 +100,21 @@ public abstract class PlayerManagerMixin {
                     serverPlayer.getInventory().setStack(3, itemStack);
                     serverPlayer.getInventory().setStack(5, itemStack);
                 }
+                if (setRoles.equals("All Runners")) {
+                    currentRole.put(player.getUuid(), "runner");
+                    player.getServer().getScoreboard().addPlayerToTeam(player.getName().getString(), player.getServer().getScoreboard().getTeam("runners"));
+                }
+            }
+
+            if (setRoles.equals("Free Select") || setRoles.equals("All Hunters")) {
+                currentRole.put(player.getUuid(), "hunter");
+                player.getServer().getScoreboard().addPlayerToTeam(player.getName().getString(), player.getServer().getScoreboard().getTeam("hunters"));
+            }
+
+            if (player.hasPermissionLevel(2) || player.hasPermissionLevel(4)) {
+                database.insertPlayerDataToDatabase(player, "gameleader", "true");
+            } else if (!player.hasPermissionLevel(2) && !player.hasPermissionLevel(4)) {
+                database.insertPlayerDataToDatabase(player, "gameleader", "false");
             }
         }
 
@@ -116,19 +130,13 @@ public abstract class PlayerManagerMixin {
                 }
             }
         }
-
-        if (player.hasPermissionLevel(2) || player.hasPermissionLevel(4)) {
-            getPlayerData(player).put("lobbyRole", "leader");
-        } else if (!player.hasPermissionLevel(2) && !player.hasPermissionLevel(4)) {
-            getPlayerData(player).put("lobbyRole", "player");
-        }
     }
 
     @Inject(at = @At(value = "HEAD"), method = "remove")
     public void onPlayerLeave(ServerPlayerEntity player, CallbackInfo info) {
-        getPlayerData(player).put("muteMusic", muteMusic.get(player.getUuid()));
-        getPlayerData(player).put("muteLobbyMusic", muteLobbyMusic.get(player.getUuid()));
-        getPlayerData(player).put("doNotDisturb", doNotDisturb.get(player.getUuid()));
+        PostgreSQLDatabase database = new PostgreSQLDatabase();
+        database.insertPlayerDataToDatabase(player, "mutelobbymusic", muteLobbyMusic.get(player.getUuid()).toString());
+        database.insertPlayerDataToDatabase(player, "donotdisturb", doNotDisturb.get(player.getUuid()).toString());
     }
 
     @Inject(at = @At(value = "RETURN"), method = "loadPlayerData", cancellable = true)
@@ -171,18 +179,12 @@ public abstract class PlayerManagerMixin {
     }
 
     private void playLobbyMusic(ServerPlayerEntity player) {
-        Song elevatorMusic = NBSDecoder.parse(new File(ManhuntConfig.musicDirectory + "/" + "elevatorMusic.nbs"));
-        Song localForecast = NBSDecoder.parse(new File(ManhuntConfig.musicDirectory + "/" + "localForecast.nbs"));
-        Song soChill = NBSDecoder.parse(new File(ManhuntConfig.musicDirectory + "/" + "soChill.nbs"));
-        Playlist lobbyMusic = new Playlist(soChill, localForecast, elevatorMusic);
-        RadioSongPlayer rsp = new RadioSongPlayer(lobbyMusic);
+        Song soChill = NBSDecoder.parse(new File(FabricLoader.getInstance().getGameDir().resolve("nbs") + "/" + "soChill.nbs"));
+        RadioSongPlayer rsp = new RadioSongPlayer(soChill);
         rsp.setVolume(Byte.parseByte("20"));
         rsp.addPlayer(player);
         rsp.setPlaying(true);
-        player.sendMessage(Text.translatable("manhunt.jukebox.playing", Text.translatable(rsp.getSong().getPath().getAbsoluteFile().getName())));
-        player.sendMessage(Text.translatable("manhunt.jukebox.cancel"));
-        player.sendMessage(Text.translatable("manhunt.jukebox.permanent"));
-        player.sendMessage(Text.translatable("manhunt.mutelobbymusic.disable"));
+        player.sendMessage(Text.translatable("manhunt.jukebox.mutelobbymusic"));
         player.sendMessage(Text.translatable("manhunt.jukebox.volume"));
     }
 

@@ -14,19 +14,17 @@ public class ManhuntConfig {
 
     public static String databaseName = "";
     public static String databaseAddress = "";
-    public static String databasePort = "";
     public static String databaseUser = "";
     public static String databasePassword = "";
-    public static String musicDirectory = "";
     public static boolean pingingEnabled = true;
-    public static String presetMode = "Free Select";
+    public static String setRoles = "Free Select";
     public static int hunterFreeze = 10;
     public static int timeLimit = 180;
     public static String compassUpdate = "Automatic";
     public static boolean dimensionInfo = true;
     public static boolean latePlayers = true;
     public static boolean teamColor = true;
-    public static boolean bedExplosions = true;
+    public static boolean bedExplosions = false;
     public static String worldDifficulty = "easy";
     public static int borderSize = 59999968;
     public static boolean gameTitles = true;
@@ -40,12 +38,10 @@ public class ManhuntConfig {
 
             if ((je = jo.get("databaseName")) != null) databaseName = je.getAsString();
             if ((je = jo.get("databaseAddress")) != null) databaseAddress = je.getAsString();
-            if ((je = jo.get("databasePort")) != null) databasePort = je.getAsString();
             if ((je = jo.get("databaseUser")) != null) databaseUser = je.getAsString();
             if ((je = jo.get("databasePassword")) != null) databasePassword = je.getAsString();
-            if ((je = jo.get("musicDirectory")) != null) musicDirectory = je.getAsString();
             if ((je = jo.get("pingingEnabled")) != null) pingingEnabled = je.getAsBoolean();
-            if ((je = jo.get("presetMode")) != null) presetMode = je.getAsString();
+            if ((je = jo.get("setRoles")) != null) setRoles = je.getAsString();
             if ((je = jo.get("hunterFreeze")) != null) hunterFreeze = je.getAsInt();
             if ((je = jo.get("timeLimit")) != null) timeLimit = je.getAsInt();
             if ((je = jo.get("compassUpdate")) != null) compassUpdate = je.getAsString();
@@ -73,12 +69,10 @@ public class ManhuntConfig {
             JsonObject jo = new JsonObject();
             jo.add("databaseName", new JsonPrimitive(databaseName));
             jo.add("databaseAddress", new JsonPrimitive(databaseAddress));
-            jo.add("databasePort", new JsonPrimitive(databasePort));
             jo.add("databaseUser", new JsonPrimitive(databaseUser));
             jo.add("databasePassword", new JsonPrimitive(databasePassword));
-            jo.add("musicDirectory", new JsonPrimitive(musicDirectory));
             jo.add("pingingEnabled", new JsonPrimitive(pingingEnabled));
-            jo.add("presetMode", new JsonPrimitive(presetMode));
+            jo.add("setRoles", new JsonPrimitive(setRoles));
             jo.add("hunterFreeze", new JsonPrimitive(hunterFreeze));
             jo.add("timeLimit", new JsonPrimitive(timeLimit));
             jo.add("compassUpdate", new JsonPrimitive(compassUpdate));

@@ -145,10 +145,10 @@ public class ManhuntGame {
             } else {
                 player.sendMessage(Text.translatable("manhunt.chat.game", Text.translatable("manhunt.item.worlddifficulty"), Text.literal("Hard").formatted(Formatting.RED)), false);
             }
-            if (borderSize == 0) {
-                player.sendMessage(Text.translatable("manhunt.chat.game", Text.translatable("manhunt.item.bordersize"), Text.literal(borderSize + " seconds (disabled)").formatted(Formatting.RED)), false);
+            if (borderSize == 59999968) {
+                player.sendMessage(Text.translatable("manhunt.chat.game", Text.translatable("manhunt.item.bordersize"), Text.literal(borderSize + " blocks (maximum)").formatted(Formatting.RED)), false);
             } else {
-                player.sendMessage(Text.translatable("manhunt.chat.game", Text.translatable("manhunt.item.bordersize"), Text.literal(borderSize + " seconds").formatted(Formatting.GREEN)), false);
+                player.sendMessage(Text.translatable("manhunt.chat.game", Text.translatable("manhunt.item.bordersize"), Text.literal(borderSize + " blocks").formatted(Formatting.GREEN)), false);
             }
             if (gameTitles) {
                 player.sendMessage(Text.translatable("manhunt.chat.game", Text.translatable("manhunt.item.gametitles"), Text.literal("Show").formatted(Formatting.GREEN)), false);
