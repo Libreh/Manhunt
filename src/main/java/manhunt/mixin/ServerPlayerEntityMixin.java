@@ -1,8 +1,7 @@
 package manhunt.mixin;
 
 import com.mojang.authlib.GameProfile;
-import manhunt.game.ManhuntGame;
-import manhunt.game.ManhuntState;
+import manhunt.GameState;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.packet.s2c.play.SubtitleS2CPacket;
@@ -22,7 +21,9 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import static manhunt.config.ManhuntConfig.gameTitles;
+import static manhunt.Config.showGameTitles;
+import static manhunt.Manhunt.gameState;
+import static manhunt.Manhunt.updateGameMode;
 
 @Mixin(ServerPlayerEntity.class)
 public abstract class ServerPlayerEntityMixin extends PlayerEntity {
@@ -44,10 +45,10 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity {
 
                 scoreboard.clearPlayerTeam(this.getName().getString());
 
-                if (gameTitles && server.getScoreboard().getTeam("runners").getPlayerList().isEmpty()) {
-                    ManhuntGame.state = ManhuntState.POSTGAME;
+                if (showGameTitles && server.getScoreboard().getTeam("runners").getPlayerList().isEmpty()) {
+                    gameState = GameState.POSTGAME;
                     for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
-                        ManhuntGame.updateGameMode(player);
+                        updateGameMode(player);
                         player.networkHandler.sendPacket(new TitleS2CPacket(Text.translatable("manhunt.title.hunters")));
                         player.networkHandler.sendPacket(new SubtitleS2CPacket(Text.translatable("manhunt.title.dead")));
                         player.playSound(SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, SoundCategory.PLAYERS, 0.2f, 1f);

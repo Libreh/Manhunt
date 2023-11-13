@@ -1,4 +1,0 @@
-accessWidener v2 named
-
-accessible method net/minecraft/entity/decoration/DisplayEntity setTeleportDuration (I)V
-accessible method net/minecraft/entity/decoration/DisplayEntity$BlockDisplayEntity setBlockState (Lnet/minecraft/block/BlockState;)V

@@ -2,9 +2,8 @@ package manhunt.commands;
 
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
+import manhunt.GameState;
 import manhunt.Manhunt;
-import manhunt.game.ManhuntGame;
-import manhunt.game.ManhuntState;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
@@ -20,6 +19,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import static manhunt.Manhunt.gameState;
 import static net.minecraft.server.command.CommandManager.literal;
 
 public class PauseCommand {
@@ -31,7 +31,7 @@ public class PauseCommand {
     }
 
     private static int attemptPause(ServerCommandSource source) {
-        if (ManhuntGame.state == ManhuntState.PLAYING) {
+        if (gameState == GameState.PLAYING) {
             var player = source.getPlayer();
 
             if (player.hasPermissionLevel(2) || player.hasPermissionLevel(4)) {

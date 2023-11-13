@@ -20,7 +20,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.Objects;
 
-import static manhunt.config.ManhuntConfig.bedExplosions;
+import static manhunt.Config.disableBedExplosions;
 
 @Mixin(PlayerEntity.class)
 public abstract class PlayerEntityMixin extends LivingEntity {
@@ -73,7 +73,7 @@ public abstract class PlayerEntityMixin extends LivingEntity {
 
     @Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/player/PlayerEntity;setAbsorptionAmount(F)V"), method = "applyDamage", cancellable = true)
     private void cancelDamage(DamageSource source, float amount, CallbackInfo ci) {
-        if (bedExplosions && source.getType().deathMessageType() == DeathMessageType.INTENTIONAL_GAME_DESIGN) {
+        if (disableBedExplosions && source.getType().deathMessageType() == DeathMessageType.INTENTIONAL_GAME_DESIGN) {
             ci.cancel();
         }
     }

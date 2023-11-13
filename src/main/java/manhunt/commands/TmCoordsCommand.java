@@ -2,12 +2,12 @@ package manhunt.commands;
 
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
-import manhunt.game.ManhuntGame;
-import manhunt.game.ManhuntState;
+import manhunt.GameState;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 
+import static manhunt.Manhunt.gameState;
 import static net.minecraft.server.command.CommandManager.literal;
 
 public class TmCoordsCommand {
@@ -19,7 +19,7 @@ public class TmCoordsCommand {
     }
 
     private static int sendTeamCoords(ServerCommandSource source) {
-        if (ManhuntGame.state == ManhuntState.PLAYING) {
+        if (gameState == GameState.PLAYING) {
             if (source.getPlayer().getScoreboardTeam().isEqual(source.getPlayer().getScoreboard().getTeam("hunters"))) {
                 for (String playerName : source.getServer().getScoreboard().getTeam("hunters").getPlayerList()) {
                     source.getServer().getPlayerManager().getPlayer(playerName).sendMessage(Text.translatable("manhunt.chat.huntercoords", Text.literal(source.getPlayer().getName().getString()).formatted(Formatting.RED), (int) source.getPlayer().getX(), (int) source.getPlayer().getY(), (int) source.getPlayer().getZ()));

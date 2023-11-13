@@ -1,6 +1,5 @@
 package manhunt.mixin;
 
-import manhunt.Manhunt;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.dedicated.MinecraftDedicatedServer;
 import org.spongepowered.asm.mixin.Mixin;
@@ -10,6 +9,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.function.BooleanSupplier;
 
+import static manhunt.Manhunt.isPaused;
+
 @Mixin(MinecraftServer.class)
 public abstract class MinecraftServerMixin {
 
@@ -17,7 +18,7 @@ public abstract class MinecraftServerMixin {
     private void beforeTick(BooleanSupplier shouldKeepTicking, CallbackInfo ci) {
         MinecraftServer server = (MinecraftServer) (Object) this;
 
-        if (!Manhunt.isPaused()) {
+        if (!isPaused()) {
             return;
         }
 

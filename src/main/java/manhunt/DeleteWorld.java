@@ -1,4 +1,4 @@
-package manhunt.util;
+package manhunt;
 
 import net.fabricmc.loader.api.FabricLoader;
 

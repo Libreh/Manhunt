@@ -3,10 +3,6 @@ plugins {
 	id 'maven-publish'
 }
 
-loom {
-	accessWidenerPath = file("src/main/resources/manhunt.accesswidener")
-}
-
 version = project.mod_version
 group = project.maven_group
 
@@ -21,18 +17,6 @@ repositories {
 	maven { url "https://api.modrinth.com/maven" }
 }
 
-loom {
-    splitEnvironmentSourceSets()
-
-	mods {
-		"modid" {
-			sourceSet sourceSets.main
-			sourceSet sourceSets.client
-		}
-	}
-
-}
-
 dependencies {
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
 	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
@@ -40,13 +24,11 @@ dependencies {
 
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-	modImplementation include("xyz.nucleoid:server-translations-api:2.1.0+1.20.2-rc2")
-	modImplementation include("eu.pb4:sgui:1.3.0+1.20.2")
-
-	modImplementation include("com.github.Libreh:nota:master-SNAPSHOT")
-
-	modImplementation include("com.zaxxer:HikariCP:4.0.3")
-	modImplementation include("org.postgresql:postgresql:42.6.0")
+	modImplementation include("com.github.Libreh:nota:${project.nota_version}")
+	modImplementation include("eu.pb4:sgui:${project.sgui_version}")
+	modImplementation include("org.xerial:sqlite-jdbc:${project.sqlite_version}")
+	modImplementation include("com.mysql:mysql-connector-j:${project.mysql_version}")
+	modImplementation include("maven.modrinth:sqlib:${project.sqlib_version}")
 }
 
 processResources {

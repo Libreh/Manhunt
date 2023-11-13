@@ -2,7 +2,6 @@ package manhunt.commands;
 
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
-import manhunt.database.PostgreSQLDatabase;
 import net.minecraft.command.argument.IdentifierArgumentType;
 import net.minecraft.command.suggestion.SuggestionProviders;
 import net.minecraft.server.command.ServerCommandSource;
@@ -10,6 +9,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 
+import static manhunt.Manhunt.table;
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
 
@@ -25,8 +25,7 @@ public class PingSoundCommand {
     }
 
     private static int setPingSound(ServerCommandSource source, Identifier pingSound) {
-        PostgreSQLDatabase database = new PostgreSQLDatabase();
-        database.insertPlayerDataToDatabase(source.getPlayer(), "pingsound", pingSound.toString());
+        table.get(source.getPlayer().getUuid()).put("pingsound", pingSound.toString());
 
         source.sendFeedback(() -> Text.translatable("manhunt.set.to", Text.literal("Ping sound"), Text.literal(pingSound.toString()).formatted(Formatting.GRAY)), false);
 
