@@ -1,4 +1,4 @@
-package manhunt;
+package manhunt.util;
 
 import net.fabricmc.loader.api.FabricLoader;
 
@@ -8,7 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.Stream;
 
-public class DeleteWorld {
+public class ResetUtil {
 
     public static void invoke() throws IOException {
         var gameDir = FabricLoader.getInstance().getGameDir();

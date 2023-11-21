@@ -2,10 +2,10 @@ package manhunt.commands;
 
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
+import manhunt.util.MessageUtil;
 import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.Text;
 
-import static manhunt.Manhunt.lobbyRegistryKey;
+import static manhunt.game.ManhuntGame.lobbyRegistryKey;
 import static net.minecraft.server.command.CommandManager.literal;
 
 public class DurationCommand {
@@ -39,9 +39,9 @@ public class DurationCommand {
             } else {
                 secondsString = String.valueOf(seconds);
             }
-            source.sendFeedback(() -> Text.translatable("manhunt.chat.duration", hoursString, minutesString, secondsString), false);
+            source.sendFeedback(() -> MessageUtil.ofVomponent(source.getPlayer(), "manhunt.chat.duration",  hoursString, minutesString, secondsString), false);
         } else {
-            source.sendFeedback(() -> Text.translatable("manhunt.chat.pregame"), false);
+            source.sendFeedback(() -> MessageUtil.ofVomponent(source.getPlayer(), "manhunt.chat.pregame"), false);
         }
 
         return Command.SINGLE_SUCCESS;

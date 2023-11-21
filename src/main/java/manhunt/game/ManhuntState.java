@@ -1,6 +1,6 @@
-package manhunt;
+package manhunt.game;
 
-public enum GameState {
+public enum ManhuntState {
     PREGAME("§a", "PRE-GAME"),
     PLAYING("§6", "IN-GAME"),
     POSTGAME("§e", "POST-GAME");
@@ -8,7 +8,7 @@ public enum GameState {
     private final String color;
     private final String motd;
 
-    GameState(String color, String motd) {
+    ManhuntState(String color, String motd) {
         this.color = color;
         this.motd = motd;
     }

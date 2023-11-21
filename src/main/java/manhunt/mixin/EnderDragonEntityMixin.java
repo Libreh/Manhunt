@@ -1,21 +1,17 @@
 package manhunt.mixin;
 
-import manhunt.GameState;
+import manhunt.game.ManhuntGame;
+import manhunt.game.ManhuntState;
+import manhunt.util.MessageUtil;
 import net.minecraft.entity.boss.dragon.EnderDragonEntity;
-import net.minecraft.network.packet.s2c.play.SubtitleS2CPacket;
-import net.minecraft.network.packet.s2c.play.TitleS2CPacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
-import net.minecraft.text.Text;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-import static manhunt.Config.showGameTitles;
-import static manhunt.Manhunt.gameState;
 
 @Mixin(EnderDragonEntity.class)
 public abstract class EnderDragonEntityMixin {
@@ -24,12 +20,11 @@ public abstract class EnderDragonEntityMixin {
     private void runnersWon(CallbackInfo ci) {
         EnderDragonEntity dragon = ((EnderDragonEntity) (Object) this);
         MinecraftServer server = dragon.getServer();
-        if (!showGameTitles) {
+        if (!ManhuntGame.settings.gameTitles) {
             if (server.getScoreboard().getPlayerTeam("runners").getPlayerList().isEmpty() && dragon.deathTime == 1) {
-                gameState = GameState.POSTGAME;
+                ManhuntGame.gameState = ManhuntState.POSTGAME;
                 for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
-                    player.networkHandler.sendPacket(new TitleS2CPacket(Text.translatable("manhunt.title.runners")));
-                    player.networkHandler.sendPacket(new SubtitleS2CPacket(Text.translatable("manhunt.title.dragon")));
+                    MessageUtil.showTitle(player, "manhunt.title.runners", "manhunt.title.dragon");
                     player.playSound(SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, SoundCategory.PLAYERS, 0.2f, 2f);
                 }
             }

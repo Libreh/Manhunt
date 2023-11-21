@@ -2,12 +2,11 @@ package manhunt.commands;
 
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
-import manhunt.GameState;
+import manhunt.game.ManhuntState;
+import manhunt.util.MessageUtil;
 import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
 
-import static manhunt.Manhunt.gameState;
+import static manhunt.game.ManhuntGame.gameState;
 import static net.minecraft.server.command.CommandManager.literal;
 
 public class TmCoordsCommand {
@@ -19,18 +18,18 @@ public class TmCoordsCommand {
     }
 
     private static int sendTeamCoords(ServerCommandSource source) {
-        if (gameState == GameState.PLAYING) {
+        if (gameState == ManhuntState.PLAYING) {
             if (source.getPlayer().getScoreboardTeam().isEqual(source.getPlayer().getScoreboard().getTeam("hunters"))) {
                 for (String playerName : source.getServer().getScoreboard().getTeam("hunters").getPlayerList()) {
-                    source.getServer().getPlayerManager().getPlayer(playerName).sendMessage(Text.translatable("manhunt.chat.huntercoords", Text.literal(source.getPlayer().getName().getString()).formatted(Formatting.RED), (int) source.getPlayer().getX(), (int) source.getPlayer().getY(), (int) source.getPlayer().getZ()));
+                    MessageUtil.sendMessage(source.getServer().getPlayerManager().getPlayer(playerName), "manhunt.chat.huntercoords", source.getPlayer().getName().getString(), (int) source.getPlayer().getX(), (int) source.getPlayer().getY(), (int) source.getPlayer().getZ());
                 }
             } else {
                 for (String playerName : source.getServer().getScoreboard().getTeam("runners").getPlayerList()) {
-                    source.getServer().getPlayerManager().getPlayer(playerName).sendMessage(Text.translatable("manhunt.chat.runnercoords", Text.literal(source.getPlayer().getName().getString()).formatted(Formatting.GREEN), (int) source.getPlayer().getX(), (int) source.getPlayer().getY(), (int) source.getPlayer().getZ()));
+                    MessageUtil.sendMessage(source.getServer().getPlayerManager().getPlayer(playerName), "manhunt.chat.runtercoords", source.getPlayer().getName().getString(), (int) source.getPlayer().getX(), (int) source.getPlayer().getY(), (int) source.getPlayer().getZ());
                 }
             }
         } else {
-            source.sendFeedback(() -> Text.translatable("manhunt.chat.done"), false);
+            source.sendFeedback(() -> MessageUtil.ofVomponent(source.getPlayer(), "manhunt.chat.done"), false);
         }
 
         return Command.SINGLE_SUCCESS;

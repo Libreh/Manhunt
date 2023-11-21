@@ -11,9 +11,9 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import static manhunt.GameState.PLAYING;
-import static manhunt.GameState.PREGAME;
-import static manhunt.Manhunt.gameState;
+import static manhunt.game.ManhuntGame.gameState;
+import static manhunt.game.ManhuntState.PLAYING;
+import static manhunt.game.ManhuntState.PREGAME;
 
 @Mixin(PlayerManager.class)
 public abstract class PlayerManagerMixin {

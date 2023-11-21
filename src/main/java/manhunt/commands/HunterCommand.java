@@ -2,14 +2,13 @@ package manhunt.commands;
 
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
+import manhunt.util.MessageUtil;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
 
-import static manhunt.Manhunt.currentRole;
+import static manhunt.game.ManhuntGame.currentRole;
 import static net.minecraft.server.command.CommandManager.literal;
 
 public class HunterCommand {
@@ -25,7 +24,7 @@ public class HunterCommand {
     private static int setHunter(ServerCommandSource source, ServerPlayerEntity player) {
         currentRole.put(player.getUuid(), "hunter");
 
-        source.sendFeedback(() -> Text.translatable("manhunt.chat.role", player.getName().getString(), Text.literal("Hunter").formatted(Formatting.RED)), true);
+        source.sendFeedback(() -> MessageUtil.ofVomponent(source.getPlayer(), "manhunt.chat.role.hunter", player.getName().getString()), false);
 
         return Command.SINGLE_SUCCESS;
     }

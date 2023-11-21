@@ -2,13 +2,13 @@ package manhunt.commands;
 
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
-import manhunt.GameState;
+import manhunt.game.ManhuntState;
+import manhunt.util.MessageUtil;
 import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.Text;
 
 import java.util.Collections;
 
-import static manhunt.Manhunt.*;
+import static manhunt.game.ManhuntGame.*;
 import static net.minecraft.server.command.CommandManager.literal;
 
 public class StartCommand {
@@ -20,9 +20,9 @@ public class StartCommand {
     }
 
     private static int startCommand(ServerCommandSource source) {
-        if (gameState == GameState.PREGAME) {
+        if (gameState == ManhuntState.PREGAME) {
             if (Collections.frequency(currentRole.values(), "runner") == 0) {
-                source.sendFeedback(() -> Text.translatable("manhunt.chat.minimum"), false);
+                source.sendFeedback(() -> MessageUtil.ofVomponent(source.getPlayer(), "manhunt.chat.minimum"), false);
             } else if (Collections.frequency(currentRole.values(), "runner") >= 1) {
                 startGame(source.getServer());
             }
