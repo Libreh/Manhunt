@@ -25,19 +25,27 @@ public class DoNotDisturbCommand {
     }
 
     private static int disturbStatus(ServerCommandSource source) {
+        Manhunt.table.beginTransaction();
+
         boolean value = Manhunt.table.get(source.getPlayer().getUuid()).getBool("donotdisturb");
 
-        if (true) {
+        if (value) {
             source.sendFeedback(() -> MessageUtil.ofVomponent(source.getPlayer(), "manhunt.get.to", "Do Not Disturb", "On"), false);
         } else {
             source.sendFeedback(() -> MessageUtil.ofVomponent(source.getPlayer(), "manhunt.get.to", "Do Not Disturb", "Off"), false);
         }
 
+        Manhunt.table.endTransaction();
+
         return Command.SINGLE_SUCCESS;
     }
 
     private static int disturbOn(ServerCommandSource source) {
+        Manhunt.table.beginTransaction();
+
         Manhunt.table.get(source.getPlayer().getUuid()).put("donotdisturb", true);
+
+        Manhunt.table.endTransaction();
 
         source.sendFeedback(() -> MessageUtil.ofVomponent(source.getPlayer(), "manhunt.set.to", "Do Not Disturb", "On"), false);
 
@@ -45,7 +53,11 @@ public class DoNotDisturbCommand {
     }
 
     private static int disturbOff(ServerCommandSource source) {
+        Manhunt.table.beginTransaction();
+
         Manhunt.table.get(source.getPlayer().getUuid()).put("donotdisturb", false);
+
+        Manhunt.table.endTransaction();
 
         source.sendFeedback(() -> MessageUtil.ofVomponent(source.getPlayer(), "manhunt.set.to", "Do Not Disturb", "Off"), false);
 

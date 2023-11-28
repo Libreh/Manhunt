@@ -10,7 +10,6 @@ import manhunt.config.Configs;
 import manhunt.config.model.ConfigModel;
 import manhunt.util.MessageUtil;
 import me.mrnavastar.sqlib.DataContainer;
-import me.mrnavastar.sqlib.SQLib;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.advancement.AdvancementEntry;
@@ -30,7 +29,6 @@ import net.minecraft.nbt.NbtIo;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.network.message.MessageType;
 import net.minecraft.network.message.SignedMessage;
-import net.minecraft.network.packet.s2c.play.OverlayMessageS2CPacket;
 import net.minecraft.network.packet.s2c.play.PlaySoundS2CPacket;
 import net.minecraft.network.packet.s2c.play.PositionFlag;
 import net.minecraft.registry.Registries;
@@ -91,8 +89,6 @@ public class ManhuntGame {
     public static HashMap<UUID, Integer> parkourTimer = new HashMap<>();
     public static HashMap<UUID, Boolean> startedParkour = new HashMap<>();
     public static HashMap<UUID, Boolean> finishedParkour = new HashMap<>();
-    private static long lastDelay = System.currentTimeMillis();
-    private static boolean holding;
     private static boolean paused;
     public static boolean isPaused() {
         return paused;
@@ -124,7 +120,9 @@ public class ManhuntGame {
             case 3 -> Difficulty.HARD;
             default -> Difficulty.EASY;
         };
+
         server.setDifficulty(difficulty, true);
+
         server.getGameRules().get(GameRules.ANNOUNCE_ADVANCEMENTS).set(false, server);
         server.getGameRules().get(GameRules.DO_FIRE_TICK).set(false, server);
         server.getGameRules().get(GameRules.DO_INSOMNIA).set(false, server);
@@ -168,7 +166,7 @@ public class ManhuntGame {
                     nbt.putBoolean("NotReady", true);
                     nbt.putInt("HideFlags", 1);
                     nbt.put("display", new NbtCompound());
-                    nbt.getCompound("display").putString("Name", "{\"translate\": \"manhunt.item.unready\",\"italic\": false,\"color\": \"white\"}");
+                    nbt.getCompound("display").putString("Name", "{\"translate\": \"Unready\",\"italic\": false,\"color\": \"red\"}");
 
                     ItemStack itemStack = new ItemStack(Items.RED_CONCRETE);
                     itemStack.setNbt(nbt);
@@ -182,7 +180,7 @@ public class ManhuntGame {
                     nbt.putBoolean("Hunter", true);
                     nbt.putInt("HideFlags", 1);
                     nbt.put("display", new NbtCompound());
-                    nbt.getCompound("display").putString("Name", "{\"translate\": \"manhunt.item.hunter\",\"italic\": false,\"color\": \"white\"}");
+                    nbt.getCompound("display").putString("Name", "{\"translate\": \"Hunter\",\"italic\": false,\"color\": \"aqua\"}");
 
                     ItemStack itemStack = new ItemStack(Items.RECOVERY_COMPASS);
                     itemStack.setNbt(nbt);
@@ -196,7 +194,7 @@ public class ManhuntGame {
                     nbt.putBoolean("Runner", true);
                     nbt.putInt("HideFlags", 1);
                     nbt.put("display", new NbtCompound());
-                    nbt.getCompound("display").putString("Name", "{\"translate\": \"manhunt.item.runner\",\"italic\": false,\"color\": \"white\"}");
+                    nbt.getCompound("display").putString("Name", "{\"translate\": \"Runner\",\"italic\": false,\"color\": \"gold\"}");
 
                     ItemStack itemStack = new ItemStack(Items.CLOCK);
                     itemStack.setNbt(nbt);
@@ -210,7 +208,7 @@ public class ManhuntGame {
                     nbt.putBoolean("Settings", true);
                     nbt.putInt("HideFlags", 1);
                     nbt.put("display", new NbtCompound());
-                    nbt.getCompound("display").putString("Name", "{\"translate\": \"manhunt.item.settings\",\"italic\": false,\"color\": \"white\"}");
+                    nbt.getCompound("display").putString("Name", "{\"translate\": \"Settings\",\"italic\": false,\"color\": \"white\"}");
 
                     ItemStack itemStack = new ItemStack(Items.COMPARATOR);
                     itemStack.setNbt(nbt);
@@ -294,52 +292,6 @@ public class ManhuntGame {
         }
 
         if (gameState == ManhuntState.PLAYING) {
-            for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
-                if (player.isTeamPlayer(server.getScoreboard().getTeam("hunters")) && player.isAlive()) {
-                    if (!hasTracker(player)) {
-                        NbtCompound nbt = new NbtCompound();
-                        nbt.putBoolean("Remove", true);
-                        nbt.putBoolean("Tracker", true);
-                        nbt.putBoolean("LodestoneTracked", false);
-                        nbt.putString("LodestoneDimension", "minecraft:overworld");
-                        nbt.putInt("HideFlags", 1);
-                        nbt.put("Info", new NbtCompound());
-                        nbt.put("display", new NbtCompound());
-                        nbt.getCompound("display").putString("Name", "{\"translate\": \"manhunt.item.tracker\",\"italic\": false,\"color\": \"white\"}");
-
-                        ItemStack stack = new ItemStack(Items.COMPASS);
-                        stack.setNbt(nbt);
-                        stack.addEnchantment(Enchantments.VANISHING_CURSE, 1);
-
-                        player.giveItemStack(stack);
-                    } else if (settings.compassUpdate && System.currentTimeMillis() - lastDelay > ((long) 1000)) {
-                        for (ItemStack itemStack : player.getInventory().main) {
-                            if (itemStack.getItem().equals(Items.COMPASS) && itemStack.getNbt() != null && itemStack.getNbt().getBoolean("Tracker")) {
-                                ServerPlayerEntity trackedPlayer = server.getPlayerManager().getPlayer(itemStack.getNbt().getCompound("Info").getString("Name"));
-                                if (trackedPlayer != null) {
-                                    updateCompass(player, itemStack.getNbt(), trackedPlayer);
-                                    player.getItemCooldownManager().set(itemStack.getItem(), 20);
-                                }
-                            }
-                        }
-                        lastDelay = System.currentTimeMillis();
-                    }
-                    if (holdingTracker(player)) {
-                        holding = true;
-                        if (player.getMainHandStack().getNbt() != null && player.getMainHandStack().getNbt().getBoolean("Tracker")) {
-                            NbtCompound info = player.getMainHandStack().getNbt().getCompound("Info");
-                        } else if (player.getOffHandStack().getNbt() != null) {
-                            NbtCompound info = player.getOffHandStack().getNbt().getCompound("Info");
-                        }
-                    } else {
-                        if (holding) {
-                            player.networkHandler.sendPacket(new OverlayMessageS2CPacket(Text.of("")));
-                            holding = false;
-                        }
-                    }
-                }
-            }
-
             if (server.getOverworld().getTime() % (20 * 60 * 60) / (20 * 60) >= settings.timeLimit && settings.timeLimit != 0) {
                 manhuntState(ManhuntState.POSTGAME, server);
                 for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
@@ -541,26 +493,23 @@ public class ManhuntGame {
     public static void playerJoin(ServerPlayNetworkHandler handler, PacketSender sender, MinecraftServer server) {
         ServerPlayerEntity player = handler.getPlayer();
 
-        muteLobbyMusic.put(player.getUuid(), false);
-        doNotDisturb.put(player.getUuid(), false);
-        pingSound.put(player.getUuid(), "minecraft:block.bell.use");
-        gameLeader.put(player.getUuid(), false);
+        Manhunt.table.beginTransaction();
 
-        DataContainer dataContainer = Manhunt.table.createDataContainer(player.getUuid());
-
-        SQLib.getDatabase().getTable(MOD_ID, "playerdata").beginTransaction();
-
-        dataContainer.put("mutelobbymusic", muteLobbyMusic.get(player.getUuid()));
-        dataContainer.put("donotdisturb", doNotDisturb.get(player.getUuid()));
-        dataContainer.put("pingsound", pingSound.get(player.getUuid()));
-        dataContainer.put("gameleader", gameLeader.get(player.getUuid()));
+        DataContainer dataContainer = Manhunt.table.get(player.getUuid());
+        if (dataContainer == null) {
+            dataContainer = Manhunt.table.createDataContainer(player.getUuid());
+            muteLobbyMusic.put(player.getUuid(), false);
+            doNotDisturb.put(player.getUuid(), false);
+            pingSound.put(player.getUuid(), "minecraft:block.bell.use");
+            gameLeader.put(player.getUuid(), false);
+        }
 
         muteLobbyMusic.put(player.getUuid(), dataContainer.getBool("mutelobbymusic"));
         doNotDisturb.put(player.getUuid(), dataContainer.getBool("donotdisturb"));
         pingSound.put(player.getUuid(), dataContainer.getString("pingsound"));
         gameLeader.put(player.getUuid(), dataContainer.getBool("gameleader"));
 
-        SQLib.getDatabase().getTable(MOD_ID, "playerdata").endTransaction();
+        Manhunt.table.endTransaction();
 
         if (gameState == ManhuntState.PREGAME) {
             if (!muteLobbyMusic.get(player.getUuid())) {
@@ -624,12 +573,16 @@ public class ManhuntGame {
     public static void playerDisconnect(ServerPlayNetworkHandler handler, MinecraftServer server) {
         ServerPlayerEntity player = handler.getPlayer();
 
-        DataContainer dataContainer = SQLib.getDatabase().getTable(MOD_ID, "playerdata").get(player.getUuid());
+        Manhunt.table.beginTransaction();
+
+        DataContainer dataContainer = Manhunt.table.get(player.getUuid());
 
         dataContainer.put("mutelobbymusic", muteLobbyMusic.get(player.getUuid()));
         dataContainer.put("donotdisturb", doNotDisturb.get(player.getUuid()));
         dataContainer.put("pingsound", pingSound.get(player.getUuid()));
         dataContainer.put("gameleader", gameLeader.get(player.getUuid()));
+
+        Manhunt.table.endTransaction();
     }
 
     private static void spawnStructure(MinecraftServer server) throws IOException {
@@ -701,30 +654,6 @@ public class ManhuntGame {
         }
     }
 
-    public static void updateCompass(ServerPlayerEntity player, NbtCompound nbt, ServerPlayerEntity trackedPlayer) {
-        nbt.remove("LodestonePos");
-        nbt.remove("LodestoneDimension");
-
-        nbt.put("Info", new NbtCompound());
-        if (trackedPlayer.getScoreboardTeam() != null && Objects.equals(trackedPlayer.getScoreboardTeam().getName(), "runners")) {
-            NbtCompound playerTag = trackedPlayer.writeNbt(new NbtCompound());
-            NbtList positions = playerTag.getList("Positions", 10);
-            int i;
-            for (i = 0; i < positions.size(); ++i) {
-                NbtCompound compound = positions.getCompound(i);
-                if (Objects.equals(compound.getString("LodestoneDimension"), player.writeNbt(new NbtCompound()).getString("Dimension"))) {
-                    nbt.copyFrom(compound);
-                    break;
-                }
-            }
-
-            NbtCompound info = nbt.getCompound("Info");
-            info.putLong("LastUpdateTime", player.getWorld().getTime());
-            info.putString("Name", trackedPlayer.getEntityName());
-            info.putString("Dimension", playerTag.getString("Dimension"));
-        }
-    }
-
     private static boolean hasItem(Item item, PlayerEntity player, String nbtBoolean) {
         boolean bool = false;
         for (ItemStack itemStack : player.getInventory().main) {
@@ -754,33 +683,6 @@ public class ManhuntGame {
         player.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE, StatusEffectInstance.INFINITE, 255, false, false, false));
     }
 
-    private static boolean hasTracker(ServerPlayerEntity player) {
-        boolean bool = false;
-        for (ItemStack itemStack : player.getInventory().main) {
-            if (itemStack.getItem().equals(Items.COMPASS) && itemStack.getNbt() != null && itemStack.getNbt().getBoolean("Remove") && itemStack.getNbt().getBoolean("Tracker")) {
-                bool = true;
-                break;
-            }
-        }
-
-        if (player.playerScreenHandler.getCursorStack().getNbt() != null && player.playerScreenHandler.getCursorStack().getNbt().getBoolean("Tracker")) {
-            bool = true;
-        } else if (player.getOffHandStack().getNbt() != null && player.getOffHandStack().getNbt().getBoolean("Remove") && player.getOffHandStack().getNbt().getBoolean("Tracker")) {
-            bool = true;
-        }
-        return bool;
-    }
-
-    private static boolean holdingTracker(ServerPlayerEntity player) {
-        boolean bool = false;
-        if (player.getMainHandStack().getNbt() != null && player.getMainHandStack().getNbt().getBoolean("Tracker") && player.getMainHandStack().getNbt().getCompound("Info").contains("Name")) {
-            bool = true;
-        } else if (player.getOffHandStack().getNbt() != null && player.getOffHandStack().getNbt().getBoolean("Tracker") && player.getOffHandStack().getNbt().getCompound("Info").contains("Name")) {
-            bool = true;
-        }
-        return bool;
-    }
-
     private static void playSound(ServerPlayerEntity player, SoundEvent sound, float pitch) {
         player.playSound(sound, SoundCategory.BLOCKS, (float) 1.0, pitch);
     }
@@ -800,9 +702,9 @@ public class ManhuntGame {
         settings.setTitle(MessageUtil.ofVomponent(player, "manhunt.item.settings"));
         settings.open();
         List<Text> personalLore = new ArrayList<>();
-        personalLore.add(MessageUtil.ofVomponent(player, "manhunt.item.lore"));
+        personalLore.add(MessageUtil.ofVomponent(player, "manhunt.lore.personal"));
         settings.setSlot(11, new GuiElementBuilder(Items.PAPER)
-                .setName(MessageUtil.ofVomponent("manhunt.item.personal"))
+                .setName(MessageUtil.ofVomponent(player, "manhunt.item.personal"))
                 .setLore(personalLore)
                 .setCallback(() -> {
                     personalSettings(player);
@@ -810,9 +712,9 @@ public class ManhuntGame {
                 })
         );
         List<Text> roleLore = new ArrayList<>();
-        roleLore.add(MessageUtil.ofVomponent("manhunt.lore.role"));
+        roleLore.add(MessageUtil.ofVomponent(player, "manhunt.lore.role"));
         settings.setSlot(13, new GuiElementBuilder(Items.WRITABLE_BOOK)
-                .setName(MessageUtil.ofVomponent("manhunt.item.role"))
+                .setName(MessageUtil.ofVomponent(player, "manhunt.item.role"))
                 .setLore(roleLore)
                 .setCallback(() -> {
                     roleSelector(player);
@@ -822,7 +724,7 @@ public class ManhuntGame {
         List<Text> gameLore = new ArrayList<>();
         gameLore.add(MessageUtil.ofVomponent(player, "manhunt.lore.game"));
         settings.setSlot(15, new GuiElementBuilder(Items.REPEATER)
-                .setName(MessageUtil.ofVomponent("manhunt.item.game"))
+                .setName(MessageUtil.ofVomponent(player, "manhunt.item.game"))
                 .setLore(gameLore)
                 .setCallback(() -> {
                     gameSettings(player);
@@ -835,8 +737,8 @@ public class ManhuntGame {
         SimpleGui personalsettings = new SimpleGui(ScreenHandlerType.GENERIC_9X1, player, false);
         personalsettings.setTitle(MessageUtil.ofVomponent(player, "manhunt.item.personal"));
         setGoBack(player, personalsettings);
-        changePersonalSetting(player, personalsettings, muteLobbyMusic, "manhunt.item.mutelobbymusic", "manhunt.lore.mutelobbymusic", Items.JUKEBOX, 0, SoundEvents.ENTITY_ITEM_PICKUP);
-        changePersonalSetting(player, personalsettings, doNotDisturb, "manhunt.item.donotdisturb", "manhunt.lore.donotdisturb", Items.MUSIC_DISC_11, 1, SoundEvents.BLOCK_IRON_DOOR_CLOSE);
+        changePersonalSetting(player, personalsettings, "mutelobbymusic", "manhunt.item.mutelobbymusic", "manhunt.lore.mutelobbymusic", Items.JUKEBOX, 0, SoundEvents.ENTITY_ITEM_PICKUP);
+        changePersonalSetting(player, personalsettings, "donotdisturb", "manhunt.item.donotdisturb", "manhunt.lore.donotdisturb", Items.MUSIC_DISC_11, 1, SoundEvents.BLOCK_IRON_DOOR_CLOSE);
         personalsettings.open();
     }
 
@@ -1776,9 +1678,15 @@ public class ManhuntGame {
         }
     }
 
-    private static void changePersonalSetting(ServerPlayerEntity player, SimpleGui gui, HashMap setting, String name, String lore, Item item, int slot, SoundEvent sound) {
+    private static void changePersonalSetting(ServerPlayerEntity player, SimpleGui gui, String setting, String name, String lore, Item item, int slot, SoundEvent sound) {
         if (!player.getItemCooldownManager().isCoolingDown(item)) {
-            boolean value = (boolean) setting.get(player.getUuid());
+            boolean value = false;
+            if (setting.equals("mutelobbymusic")) {
+                value = muteLobbyMusic.get(player.getUuid());
+            }
+            if (setting.equals("donotdisturb")) {
+                value = doNotDisturb.get(player.getUuid());
+            }
             List<Text> loreList = new ArrayList<>();
             loreList.add(MessageUtil.ofVomponent(player, lore));
             if (value) {
@@ -1786,22 +1694,33 @@ public class ManhuntGame {
             } else {
                 loreList.add(Text.literal("Off").formatted(Formatting.RED));
             }
+            boolean finalValue = value;
             gui.setSlot(slot, new GuiElementBuilder(item)
                     .hideFlags()
                     .setName(MessageUtil.ofVomponent(player, name))
                     .setLore(loreList)
                     .setCallback(() -> {
-                        if (value) {
-                            setting.put(player.getUuid(), false);
+                        if (finalValue) {
+                            if (setting.equals("mutelobbymusic")) {
+                                muteLobbyMusic.put(player.getUuid(), false);
+                            }
+                            if (setting.equals("donotdisturb")) {
+                                doNotDisturb.put(player.getUuid(), false);
+                            }
                             player.playSound(sound, SoundCategory.MASTER, 1f, 0.5f);
-                            if (setting.equals(muteLobbyMusic)) {
+                            if (setting.equals("mutelobbymusic")) {
                                 Nota.stopPlaying(player);
                                 playLobbyMusic(player);
                             }
                         } else {
-                            setting.put(player.getUuid(), true);
+                            if (setting.equals("mutelobbymusic")) {
+                                muteLobbyMusic.put(player.getUuid(), true);
+                            }
+                            if (setting.equals("donotdisturb")) {
+                                doNotDisturb.put(player.getUuid(), true);
+                            }
                             player.playSound(sound, SoundCategory.MASTER, 1f, 1f);
-                            if (setting.equals(muteLobbyMusic)) {
+                            if (setting.equals("mutelobbymusic")) {
                                 Nota.stopPlaying(player);
                             }
                         }
@@ -2037,7 +1956,7 @@ public class ManhuntGame {
                 }
                 gui.setSlot(slot, new GuiElementBuilder(item)
                         .hideFlags()
-                        .setName(MessageUtil.ofVomponent(name))
+                        .setName(MessageUtil.ofVomponent(player, name))
                         .setLore(loreList)
                         .setCallback(() -> {
                             if (!player.getItemCooldownManager().isCoolingDown(item)) {
@@ -2276,6 +2195,7 @@ public class ManhuntGame {
             if (settings.gameTitles) {
                 MessageUtil.showTitle(player, "manhunt.title.gamemode", "manhunt.title.start");
             }
+
             player.networkHandler.sendPacket(
                     new PlaySoundS2CPacket(
                             SoundEvents.BLOCK_NOTE_BLOCK_PLING,
@@ -2298,6 +2218,14 @@ public class ManhuntGame {
                 }
             }
             Nota.stopPlaying(player);
+
+            var difficulty = switch (settings.worldDifficulty) {
+                case 2 -> Difficulty.NORMAL;
+                case 3 -> Difficulty.HARD;
+                default -> Difficulty.EASY;
+            };
+
+            server.setDifficulty(difficulty, true);
         }
     }
 
@@ -2311,4 +2239,27 @@ public class ManhuntGame {
         }
     }
 
+    public static void updateCompass(ServerPlayerEntity player, NbtCompound nbt, ServerPlayerEntity trackedPlayer) {
+        nbt.remove("LodestonePos");
+        nbt.remove("LodestoneDimension");
+
+        nbt.put("Info", new NbtCompound());
+        if (trackedPlayer.getScoreboardTeam() != null && Objects.equals(trackedPlayer.getScoreboardTeam().getName(), "runners")) {
+            NbtCompound playerTag = trackedPlayer.writeNbt(new NbtCompound());
+            NbtList positions = playerTag.getList("Positions", 10);
+            int i;
+            for (i = 0; i < positions.size(); ++i) {
+                NbtCompound compound = positions.getCompound(i);
+                if (Objects.equals(compound.getString("LodestoneDimension"), player.writeNbt(new NbtCompound()).getString("Dimension"))) {
+                    nbt.copyFrom(compound);
+                    break;
+                }
+            }
+
+            NbtCompound info = nbt.getCompound("Info");
+            info.putLong("LastUpdateTime", player.getWorld().getTime());
+            info.putString("Name", trackedPlayer.getEntityName());
+            info.putString("Dimension", playerTag.getString("Dimension"));
+        }
+    }
 }

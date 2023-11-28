@@ -3,6 +3,7 @@ package manhunt.commands;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import manhunt.Manhunt;
+import manhunt.game.ManhuntGame;
 import manhunt.util.MessageUtil;
 import net.minecraft.command.argument.IdentifierArgumentType;
 import net.minecraft.command.suggestion.SuggestionProviders;
@@ -24,7 +25,13 @@ public class PingSoundCommand {
     }
 
     private static int setPingSound(ServerCommandSource source, Identifier pingSound) {
+        Manhunt.table.beginTransaction();
+
         Manhunt.table.get(source.getPlayer().getUuid()).put("pingsound", pingSound.toString());
+
+        Manhunt.table.endTransaction();
+
+        ManhuntGame.pingSound.put(source.getPlayer().getUuid(), pingSound.asString());
 
         source.sendFeedback(() -> MessageUtil.ofVomponent(source.getPlayer(), "manhunt.set.to", "Ping sound", pingSound.toString()), false);
 
