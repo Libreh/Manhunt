@@ -39,7 +39,7 @@ dependencies {
 
 	include(implementation group: 'org.quartz-scheduler', name: 'quartz', version: "${project.quartz_version}")
 
-	modImplementation "maven.modrinth:sqlib:${project.sqlib_version}"
+	modImplementation include("maven.modrinth:sqlib:${project.sqlib_version}")
 
 	modImplementation include("com.github.Libreh:nota:${project.nota_version}")
 	modImplementation include("eu.pb4:sgui:${project.sgui_version}")
