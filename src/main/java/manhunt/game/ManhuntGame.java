@@ -243,28 +243,28 @@ public class ManhuntGame {
                         msSeconds = String.valueOf(ms);
                     }
                     if (player.getZ() < -4 && finishedParkour.get(player.getUuid()).equals(false))
-                        MessageUtil.sendMessage(player, "manhunt.time.current", secSeconds, msSeconds);
+                        MessageUtil.sendActionBar(player, "manhunt.time.current", secSeconds, msSeconds);
                     if (player.getZ() < -24 && player.getZ() > -27) {
                         if (player.getX() < -6) {
                             if (player.getY() >= 70 && player.getY() < 72 && startedParkour.get(player.getUuid()).equals(true) && finishedParkour.get(player.getUuid()).equals(false)) {
-                                MessageUtil.sendMessage(player, "manhunt.time.current.green", secSeconds, msSeconds);
+                                MessageUtil.sendActionBar(player, "manhunt.time.current.green", secSeconds, msSeconds);
                                 playSound(player, SoundEvents.BLOCK_NOTE_BLOCK_FLUTE.value(), 2f);
                                 finishedParkour.put(player.getUuid(), true);
                             }
                         }
                     }
                     if (startedParkour.get(player.getUuid()).equals(true) && player.getZ() > -4) {
-                        MessageUtil.sendMessage(player, "manhunt.time.current.red", secSeconds, msSeconds);
+                        MessageUtil.sendActionBar(player, "manhunt.time.current.red", secSeconds, msSeconds);
                         resetPlayer(player, player.getServerWorld());
                         playSound(player, SoundEvents.BLOCK_NOTE_BLOCK_FLUTE.value(), 0.5f);
                     }
                     if (startedParkour.get(player.getUuid()).equals(true) && player.getY() < 61) {
-                        MessageUtil.sendMessage(player, "manhunt.time.current.red", secSeconds, msSeconds);
+                        MessageUtil.sendActionBar(player, "manhunt.time.current.red", secSeconds, msSeconds);
                         resetPlayer(player, player.getServerWorld());
                         playSound(player, SoundEvents.BLOCK_NOTE_BLOCK_FLUTE.value(), 0.5f);
                     }
                     if (startedParkour.get(player.getUuid()).equals(true) && player.getZ() < -27 && player.getY() < 68) {
-                        MessageUtil.sendMessage(player, "manhunt.time.current.red", secSeconds, msSeconds);
+                        MessageUtil.sendActionBar(player, "manhunt.time.current.red", secSeconds, msSeconds);
                         resetPlayer(player, player.getServerWorld());
                         playSound(player, SoundEvents.BLOCK_NOTE_BLOCK_FLUTE.value(), 0.5f);
                     }

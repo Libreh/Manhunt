@@ -106,7 +106,7 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity {
 
                 if (ManhuntGame.settings.whenRunnersDie) {
                     scoreboard.addPlayerToTeam(this.getName().getString(), scoreboard.getTeam("hunters"));
-                } else if (!ManhuntGame.settings.whenRunnersDie) {
+                } else {
                     for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
                         if (player.getName().getString().equals(this.getName().getString())) {
                             ManhuntGame.updateGameMode(player);
