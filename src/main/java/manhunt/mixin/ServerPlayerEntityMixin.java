@@ -52,12 +52,13 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity {
             if (!hasTracker((ServerPlayerEntity) (Object) this)) {
                 NbtCompound nbt = new NbtCompound();
                 nbt.putBoolean("Tracker", true);
+                nbt.putBoolean("Remove", true);
                 nbt.putBoolean("LodestoneTracked", false);
                 nbt.putString("LodestoneDimension", "minecraft:overworld");
                 nbt.putInt("HideFlags", 1);
                 nbt.put("Info", new NbtCompound());
                 nbt.put("display", new NbtCompound());
-                nbt.getCompound("display").putString("Name", "{\"translate\": \"manhunt.item.tracker\",\"italic\": false,\"color\": \"white\"}");
+                nbt.getCompound("display").putString("Name", "{\"translate\": \"Tracker\",\"italic\": false,\"color\": \"light_purple\"}");
 
                 ItemStack stack = new ItemStack(Items.COMPASS);
                 stack.setNbt(nbt);
@@ -129,7 +130,7 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity {
     private static boolean hasTracker(ServerPlayerEntity player) {
         boolean bool = false;
         for (ItemStack itemStack : player.getInventory().main) {
-            if (itemStack.getItem().equals(Items.COMPASS) && itemStack.getNbt() != null && itemStack.getNbt().getBoolean("Remove") && itemStack.getNbt().getBoolean("Tracker")) {
+            if (itemStack.getItem().equals(Items.COMPASS) && itemStack.getNbt() != null && itemStack.getNbt().getBoolean("Tracker")) {
                 bool = true;
                 break;
             }
@@ -137,7 +138,7 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity {
 
         if (player.playerScreenHandler.getCursorStack().getNbt() != null && player.playerScreenHandler.getCursorStack().getNbt().getBoolean("Tracker")) {
             bool = true;
-        } else if (player.getOffHandStack().getNbt() != null && player.getOffHandStack().getNbt().getBoolean("Remove") && player.getOffHandStack().getNbt().getBoolean("Tracker")) {
+        } else if (player.getOffHandStack().getNbt() != null && player.getOffHandStack().getNbt().getBoolean("Tracker")) {
             bool = true;
         }
         return bool;
