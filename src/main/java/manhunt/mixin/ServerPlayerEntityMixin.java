@@ -49,7 +49,7 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity {
     @Inject(method = "tick", at = @At("HEAD"))
     public void tick(CallbackInfo ci) {
         if (this.isTeamPlayer(server.getScoreboard().getTeam("hunters")) && this.isAlive()) {
-            if (!hasTracker((ServerPlayerEntity) (Object) this)) {
+            if (!hasTracker(server.getPlayerManager().getPlayer(this.getName().getString()))) {
                 NbtCompound nbt = new NbtCompound();
                 nbt.putBoolean("Tracker", true);
                 nbt.putBoolean("Remove", true);
@@ -70,7 +70,7 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity {
                     if (item.getItem().equals(Items.COMPASS) && item.getNbt() != null && item.getNbt().getBoolean("Tracker")) {
                         ServerPlayerEntity trackedPlayer = server.getPlayerManager().getPlayer(item.getNbt().getCompound("Info").getString("Name"));
                         if (trackedPlayer != null) {
-                            updateCompass((ServerPlayerEntity) (Object) this, item.getNbt(), trackedPlayer);
+                            updateCompass(server.getPlayerManager().getPlayer(this.getName().getString()), item.getNbt(), trackedPlayer);
                             this.getItemCooldownManager().set(item.getItem(), 20);
                         }
                     }
@@ -79,7 +79,7 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity {
             }
 
 
-            if (holdingTracker((ServerPlayerEntity) (Object) this)) {
+            if (holdingTracker(server.getPlayerManager().getPlayer(this.getName().getString()))) {
                 holding = true;
                 if (this.getMainHandStack().getNbt() != null && this.getMainHandStack().getNbt().getBoolean("Tracker")) {
                     NbtCompound info = this.getMainHandStack().getNbt().getCompound("Info");
