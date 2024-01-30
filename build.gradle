@@ -1,5 +1,5 @@
 plugins {
-	id 'fabric-loom' version '1.4-SNAPSHOT'
+	id 'fabric-loom' version '1.5-SNAPSHOT'
 	id 'maven-publish'
 }
 
@@ -12,9 +12,11 @@ base {
 
 repositories {
 	mavenCentral()
-	maven { url "https://api.modrinth.com/maven" }
 	maven { url 'https://maven.nucleoid.xyz' }
 	maven { url 'https://jitpack.io' }
+	maven { url "https://s01.oss.sonatype.org/content/repositories/snapshots/" }
+	maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
+	maven { url 'https://projectlombok.org/edge-releases' }
 }
 
 dependencies {
@@ -39,9 +41,6 @@ dependencies {
 
 	include(implementation group: 'org.quartz-scheduler', name: 'quartz', version: "${project.quartz_version}")
 
-	modImplementation include("maven.modrinth:sqlib:${project.sqlib_version}")
-
-	modImplementation include("com.github.Libreh:nota:${project.nota_version}")
 	modImplementation include("eu.pb4:sgui:${project.sgui_version}")
 }
 

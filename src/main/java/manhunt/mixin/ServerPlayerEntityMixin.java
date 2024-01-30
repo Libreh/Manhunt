@@ -83,8 +83,14 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity {
                 holding = true;
                 if (this.getMainHandStack().getNbt() != null && this.getMainHandStack().getNbt().getBoolean("Tracker")) {
                     NbtCompound info = this.getMainHandStack().getNbt().getCompound("Info");
+                    if (server.getPlayerManager().getPlayer(info.getString("Name")) != null) {
+                        showInfo(info);
+                    }
                 } else if (this.getOffHandStack().getNbt() != null) {
                     NbtCompound info = this.getOffHandStack().getNbt().getCompound("Info");
+                    if (server.getPlayerManager().getPlayer(info.getString("Name")) != null) {
+                        showInfo(info);
+                    }
                 }
             } else {
                 if (holding) {
@@ -103,17 +109,9 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity {
         if (this.getScoreboardTeam() != null) {
             if (this.getScoreboardTeam().isEqual(scoreboard.getTeam("runners"))) {
 
-                scoreboard.clearPlayerTeam(this.getName().getString());
+                scoreboard.clearTeam(this.getName().getString());
 
-                if (ManhuntGame.settings.whenRunnersDie) {
-                    scoreboard.addPlayerToTeam(this.getName().getString(), scoreboard.getTeam("hunters"));
-                } else {
-                    for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
-                        if (player.getName().getString().equals(this.getName().getString())) {
-                            ManhuntGame.updateGameMode(player);
-                        }
-                    }
-                }
+                scoreboard.addScoreHolderToTeam(this.getName().getString(), scoreboard.getTeam("hunters"));
 
                 if (ManhuntGame.settings.gameTitles && server.getScoreboard().getTeam("runners").getPlayerList().isEmpty()) {
                     ManhuntGame.gameState = ManhuntState.POSTGAME;
@@ -124,6 +122,20 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity {
                     }
                 }
             }
+        }
+    }
+
+    private void showInfo(NbtCompound info) {
+        String dim = info.getString("Dimension");
+        String dimension = "";
+        if (!info.contains("Dimension")) {
+            dimension = "manhunt.scoreboard.world.unknown";
+        } else if (Objects.equals(dim, "minecraft:overworld")) {
+            dimension = "manhunt.scoreboard.world.overworld";
+        } else if (Objects.equals(dim, "minecraft:the_nether")) {
+            dimension = "manhunt.scoreboard.world.the_nether";
+        } else if (Objects.equals(dim, "minecraft:the_end")) {
+            dimension = "manhunt.scoreboard.world.the_end";
         }
     }
 
@@ -163,7 +175,7 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity {
 
             NbtCompound info = nbt.getCompound("Info");
             info.putLong("LastUpdateTime", player.getWorld().getTime());
-            info.putString("Name", trackedPlayer.getEntityName());
+            info.putString("Name", trackedPlayer.getName().getString());
             info.putString("Dimension", playerTag.getString("Dimension"));
         }
     }

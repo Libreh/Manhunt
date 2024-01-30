@@ -21,7 +21,7 @@ public abstract class EnderDragonEntityMixin {
         EnderDragonEntity dragon = ((EnderDragonEntity) (Object) this);
         MinecraftServer server = dragon.getServer();
         if (!ManhuntGame.settings.gameTitles) {
-            if (server.getScoreboard().getPlayerTeam("runners").getPlayerList().isEmpty() && dragon.deathTime == 1) {
+            if (server.getScoreboard().getTeam("runners").getPlayerList().isEmpty() && dragon.deathTime == 1) {
                 ManhuntGame.gameState = ManhuntState.POSTGAME;
                 for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
                     MessageUtil.showTitle(player, "manhunt.title.runners", "manhunt.title.dragon");
