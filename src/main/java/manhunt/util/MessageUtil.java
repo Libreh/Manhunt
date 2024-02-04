@@ -23,6 +23,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+// Thanks to https://github.com/sakurawald/fuji-fabric.
+
 public class MessageUtil {
     private static final FabricServerAudiences adventure = FabricServerAudiences.of(Manhunt.SERVER);
     private static final Map<String, String> player2lang = new HashMap<>();

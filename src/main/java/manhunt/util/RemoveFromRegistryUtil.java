@@ -4,6 +4,8 @@ import net.minecraft.registry.SimpleRegistry;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.ApiStatus;
 
+// Thanks to https://github.com/NucleoidMC/fantasy.
+
 @ApiStatus.Internal
 public interface RemoveFromRegistryUtil<T> {
     @SuppressWarnings("unchecked")

@@ -9,6 +9,7 @@ import manhunt.Manhunt;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 
+// Thanks to https://github.com/sakurawald/fuji-fabric.
 
 public class ObjectConfigHandler<T> extends ConfigHandler<T> {
 

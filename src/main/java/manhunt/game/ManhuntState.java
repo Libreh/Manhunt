@@ -1,5 +1,7 @@
 package manhunt.game;
 
+// Thanks to https://gitlab.com/horrific-tweaks/bingo.
+
 public enum ManhuntState {
     PREGAME("§a", "PRE-GAME"),
     PLAYING("§6", "IN-GAME"),

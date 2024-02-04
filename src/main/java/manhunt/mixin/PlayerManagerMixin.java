@@ -15,6 +15,8 @@ import static manhunt.game.ManhuntGame.gameState;
 import static manhunt.game.ManhuntState.PLAYING;
 import static manhunt.game.ManhuntState.PREGAME;
 
+// Thanks to https://gitlab.com/horrific-tweaks/bingo.
+
 @Mixin(PlayerManager.class)
 public abstract class PlayerManagerMixin {
 

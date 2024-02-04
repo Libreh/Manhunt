@@ -13,6 +13,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+// Thanks to https://github.com/Ivan-Khar/manhunt-fabricated.
+
 @Mixin(EnderDragonEntity.class)
 public abstract class EnderDragonEntityMixin {
 

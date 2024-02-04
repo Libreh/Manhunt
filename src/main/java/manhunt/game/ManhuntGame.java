@@ -404,6 +404,8 @@ public class ManhuntGame {
         }
     }
 
+    // Thanks to https://gitlab.com/horrific-tweaks/bingo for the spawnStructure method.
+
     private static void spawnStructure(MinecraftServer server) throws IOException {
         var lobbyParkourNbt = NbtIo.readCompressed(ManhuntGame.class.getResourceAsStream("/manhunt/lobby/parkour.nbt"), NbtSizeTracker.ofUnlimitedBytes());
         var lobbyIslandNbt = NbtIo.readCompressed(ManhuntGame.class.getResourceAsStream("/manhunt/lobby/island.nbt"), NbtSizeTracker.ofUnlimitedBytes());
@@ -421,6 +423,8 @@ public class ManhuntGame {
         placeStructure(lobbyWorld, new BlockPos(-21, 54, -6), lobbyIslandNbt);
     }
 
+    // Thanks to https://gitlab.com/horrific-tweaks/bingo for the placeStructure method.
+
     private static void placeStructure(ServerWorld world, BlockPos pos, NbtCompound nbt) {
         StructureTemplate template = world.getStructureTemplateManager().createTemplate(nbt);
 
@@ -434,6 +438,8 @@ public class ManhuntGame {
         );
 
     }
+
+    // Thanks to https://github.com/Ivan-Khar/manhunt-fabricated for the cycleTrackedPlayers method.
 
     public static void cycleTrackedPlayers(ServerPlayerEntity player, @Nullable NbtCompound itemStackNbt) {
         if (itemStackNbt != null && itemStackNbt.getBoolean("Tracker") && player.isTeamPlayer(player.getServer().getScoreboard().getTeam("hunters")) && !player.getItemCooldownManager().isCoolingDown(Items.COMPASS)) {
@@ -1860,6 +1866,8 @@ public class ManhuntGame {
         }
     }
 
+    // Thanks to https://github.com/Ivan-Khar/manhunt-fabricated for the updateCompass method.
+
     public static void updateCompass(ServerPlayerEntity player, NbtCompound nbt, ServerPlayerEntity trackedPlayer) {
         nbt.remove("LodestonePos");
         nbt.remove("LodestoneDimension");
@@ -1883,6 +1891,8 @@ public class ManhuntGame {
             info.putString("Dimension", playerTag.getString("Dimension"));
         }
     }
+
+    // Thanks to https://github.com/NucleoidMC/fantasy for the getDimensionsRegistry method.
 
     public static void resetGame(ServerCommandSource source) {
         gameState = ManhuntState.PREGAME;
@@ -1935,6 +1945,8 @@ public class ManhuntGame {
             }
         }
     }
+
+    // Thanks to https://github.com/NucleoidMC/fantasy for the getDimensionsRegistry method.
 
     private static SimpleRegistry<DimensionOptions> getDimensionsRegistry(MinecraftServer server) {
         DynamicRegistryManager registryManager = server.getCombinedDynamicRegistries().getCombinedRegistryManager();
