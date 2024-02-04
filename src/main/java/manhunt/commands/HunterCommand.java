@@ -2,19 +2,17 @@ package manhunt.commands;
 
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
+import manhunt.game.ManhuntGame;
 import manhunt.util.MessageUtil;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 
-import static manhunt.game.ManhuntGame.currentRole;
-import static net.minecraft.server.command.CommandManager.literal;
-
 public class HunterCommand {
 
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
-        dispatcher.register(literal("hunter")
+        dispatcher.register(CommandManager.literal("hunter")
                 .then(CommandManager.argument("player", EntityArgumentType.player())
                         .executes(context -> setHunter(context.getSource(), EntityArgumentType.getPlayer(context, "player")))
                 )
@@ -22,10 +20,13 @@ public class HunterCommand {
     }
 
     private static int setHunter(ServerCommandSource source, ServerPlayerEntity player) {
-        currentRole.put(player.getUuid(), "hunter");
+        if (source.hasPermissionLevel(2) || source.hasPermissionLevel(4)) {
+            ManhuntGame.currentRole.put(player.getUuid(), "hunter");
 
-        source.sendFeedback(() -> MessageUtil.ofVomponent(source.getPlayer(), "manhunt.chat.role.hunter", player.getName().getString()), false);
-
+            source.sendFeedback(() -> MessageUtil.ofVomponent(source.getPlayer(), "manhunt.chat.role.hunter", player.getName().getString()), false);
+        } else {
+            source.sendFeedback(() -> MessageUtil.ofVomponent(source.getPlayer(), "manhunt.chat.player"), false);
+        }
         return Command.SINGLE_SUCCESS;
     }
 }

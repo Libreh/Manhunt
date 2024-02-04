@@ -2,22 +2,21 @@ package manhunt.commands;
 
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
+import manhunt.game.ManhuntGame;
 import manhunt.util.MessageUtil;
+import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
-
-import static manhunt.game.ManhuntGame.lobbyRegistryKey;
-import static net.minecraft.server.command.CommandManager.literal;
 
 public class DurationCommand {
 
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
-        dispatcher.register(literal("duration")
+        dispatcher.register(CommandManager.literal("duration")
                 .executes(context -> sendTeamCoords(context.getSource()))
         );
     }
 
     private static int sendTeamCoords(ServerCommandSource source) {
-        if (source.getWorld() != source.getServer().getWorld(lobbyRegistryKey)) {
+        if (source.getWorld() != source.getServer().getWorld(ManhuntGame.lobbyRegistryKey)) {
             String hoursString;
             int hours = (int) Math.floor((double) source.getWorld().getTime() % (20 * 60 * 60 * 24) / (20 * 60 * 60));
             if (hours <= 9) {

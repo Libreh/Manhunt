@@ -1,2 +1,2 @@
-# manhunt
-Server-side Fabric mod implementing Minecraft manhunt
+﻿# manhunt
+Server-side Fabric mod implementing Minecraft manhunt.

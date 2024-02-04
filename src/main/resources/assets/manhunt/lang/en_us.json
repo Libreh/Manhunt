@@ -28,7 +28,7 @@
   "manhunt.lore.worlddifficulty": "<gray>Changes the world difficulty",
   "manhunt.lore.bordersize": "<gray>Alters the borders size",
   "manhunt.lore.showgametitles": "<gray>Visibility of titles",
-  "manhunt.chat.player": "<red>Only the game leader can change this",
+  "manhunt.chat.player": "<red>Only the game leader can change or do this",
   "manhunt.chat.invalid": "<red>Invalid input!",
   "manhunt.chat.game.red": "<gray>Game setting</gray> %s <gray>has been set to</gray> <red>%s",
   "manhunt.chat.game.green": "<gray>Game setting</gray> %s <gray>has been set to</gray> <green>%s",

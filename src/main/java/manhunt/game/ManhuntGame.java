@@ -8,8 +8,12 @@ import manhunt.Manhunt;
 import manhunt.commands.*;
 import manhunt.config.Configs;
 import manhunt.config.model.ConfigModel;
+import manhunt.mixin.MinecraftServerAccessMixin;
 import manhunt.util.MessageUtil;
+import manhunt.util.RemoveFromRegistryUtil;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.advancement.AdvancementEntry;
 import net.minecraft.advancement.AdvancementProgress;
 import net.minecraft.block.entity.StructureBlockBlockEntity;
@@ -24,8 +28,10 @@ import net.minecraft.item.Items;
 import net.minecraft.nbt.*;
 import net.minecraft.network.packet.s2c.play.PlaySoundS2CPacket;
 import net.minecraft.network.packet.s2c.play.PositionFlag;
+import net.minecraft.registry.DynamicRegistryManager;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
+import net.minecraft.registry.SimpleRegistry;
 import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.CommandManager;
@@ -47,9 +53,12 @@ import net.minecraft.world.Difficulty;
 import net.minecraft.world.GameMode;
 import net.minecraft.world.GameRules;
 import net.minecraft.world.World;
+import net.minecraft.world.dimension.DimensionOptions;
+import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.*;
 
 import static manhunt.Manhunt.MOD_ID;
@@ -60,9 +69,8 @@ public class ManhuntGame {
     public static final Identifier THE_NETHER_ID = new Identifier("minecraft", "the_nether");
     public static final Identifier THE_END_ID = new Identifier("minecraft", "the_end");
     public static RegistryKey<World> lobbyRegistryKey = RegistryKey.of(RegistryKeys.WORLD, LOBBY_WORLD_ID);
-    public static RegistryKey<World> overworldRegistryKey = RegistryKey.of(RegistryKeys.WORLD, OVERWORLD_ID);
     public static RegistryKey<World> theNetherRegistryKey = RegistryKey.of(RegistryKeys.WORLD, THE_NETHER_ID);
-    public static RegistryKey<World> theEndRegistryKey = RegistryKey.of(RegistryKeys.WORLD, THE_NETHER_ID);
+    public static RegistryKey<World> theEndRegistryKey = RegistryKey.of(RegistryKeys.WORLD, THE_END_ID);
     public static final ConfigModel.Settings settings = Configs.configHandler.model().settings;
     public static List<ServerPlayerEntity> allPlayers;
     public static List<ServerPlayerEntity> allRunners;
@@ -74,6 +82,11 @@ public class ManhuntGame {
     }
     public static void setPaused(boolean paused) {
         ManhuntGame.paused = paused;
+    }
+    public final MinecraftServerAccessMixin serverAccessMixin;
+
+    public ManhuntGame(MinecraftServerAccessMixin serverAccessMixin) {
+        this.serverAccessMixin = serverAccessMixin;
     }
 
     public static void commandRegister(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess registryAccess, CommandManager.RegistrationEnvironment environment) {
@@ -1869,5 +1882,62 @@ public class ManhuntGame {
             info.putString("Name", trackedPlayer.getName().getString());
             info.putString("Dimension", playerTag.getString("Dimension"));
         }
+    }
+
+    public static void resetGame(ServerCommandSource source) {
+        gameState = ManhuntState.PREGAME;
+
+        for (ServerPlayerEntity player : source.getServer().getPlayerManager().getPlayerList()) {
+            player.teleport(source.getServer().getWorld(lobbyRegistryKey), 0.5, 63, 0, PositionFlag.ROT, 180, 0);
+        }
+
+        MinecraftServerAccessMixin minecraftServerAccess;
+        minecraftServerAccess = (MinecraftServerAccessMixin) source.getServer();
+
+        Path worldDirectory = FabricLoader.getInstance().getGameDir().resolve("world");
+
+        if (minecraftServerAccess.getWorlds().remove(source.getServer().getOverworld().getRegistryKey(), source.getServer().getWorld(source.getServer().getOverworld().getRegistryKey()))) {
+            ServerWorldEvents.UNLOAD.invoker().onWorldUnload(source.getServer(), source.getServer().getWorld(source.getServer().getOverworld().getRegistryKey()));
+
+            SimpleRegistry<DimensionOptions> dimensionsRegistry = getDimensionsRegistry(source.getServer());
+            RemoveFromRegistryUtil.remove(dimensionsRegistry, source.getServer().getOverworld().getRegistryKey().getValue());
+        }
+        if (minecraftServerAccess.getWorlds().remove(theNetherRegistryKey, source.getServer().getWorld(theNetherRegistryKey))) {
+            ServerWorldEvents.UNLOAD.invoker().onWorldUnload(source.getServer(), source.getServer().getWorld(theNetherRegistryKey));
+
+            SimpleRegistry<DimensionOptions> dimensionsRegistry = getDimensionsRegistry(source.getServer());
+            RemoveFromRegistryUtil.remove(dimensionsRegistry, source.getServer().getWorld(theNetherRegistryKey).getRegistryKey().getValue());
+
+            try {
+                FileUtils.deleteDirectory(worldDirectory.resolve("DIM1").toFile());
+            } catch (IOException e) {
+                Manhunt.LOGGER.warn("Failed to delete world directory", e);
+                try {
+                    FileUtils.forceDeleteOnExit(worldDirectory.resolve("DIM1").toFile());
+                } catch (IOException ignored) {
+                }
+            }
+        }
+        if (minecraftServerAccess.getWorlds().remove(theEndRegistryKey, source.getServer().getWorld(theEndRegistryKey))) {
+            ServerWorldEvents.UNLOAD.invoker().onWorldUnload(source.getServer(), source.getServer().getWorld(theEndRegistryKey));
+
+            SimpleRegistry<DimensionOptions> dimensionsRegistry = getDimensionsRegistry(source.getServer());
+            RemoveFromRegistryUtil.remove(dimensionsRegistry, source.getServer().getWorld(theEndRegistryKey).getRegistryKey().getValue());
+
+            try {
+                FileUtils.deleteDirectory(worldDirectory.resolve("DIM-1").toFile());
+            } catch (IOException e) {
+                Manhunt.LOGGER.warn("Failed to delete world directory", e);
+                try {
+                    FileUtils.forceDeleteOnExit(worldDirectory.resolve("DIM-1").toFile());
+                } catch (IOException ignored) {
+                }
+            }
+        }
+    }
+
+    private static SimpleRegistry<DimensionOptions> getDimensionsRegistry(MinecraftServer server) {
+        DynamicRegistryManager registryManager = server.getCombinedDynamicRegistries().getCombinedRegistryManager();
+        return (SimpleRegistry<DimensionOptions>) registryManager.get(RegistryKeys.DIMENSION);
     }
 }

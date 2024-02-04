@@ -3,14 +3,13 @@ package manhunt.commands;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import manhunt.util.MessageUtil;
+import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
-
-import static net.minecraft.server.command.CommandManager.literal;
 
 public class PingCommand {
 
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
-        dispatcher.register(literal("ping")
+        dispatcher.register(CommandManager.literal("ping")
                 .executes(context -> pingLatency(context.getSource()))
         );
     }
