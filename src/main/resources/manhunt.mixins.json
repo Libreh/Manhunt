@@ -3,13 +3,18 @@
 	"package": "manhunt.mixin",
 	"compatibilityLevel": "JAVA_17",
 	"mixins": [
+		"MinecraftServerAccessInterface",
+		"DimensionOptionsMixin",
+		"DimensionOptionsRegistryHolderMixin",
 		"EnderDragonEntityMixin",
+		"EndGatewayBlockEntityMixin",
 		"LivingEntityMixin",
-		"MinecraftServerAccessMixin",
 		"MinecraftServerMixin",
 		"PlayerEntityMixin",
 		"PlayerManagerMixin",
-		"ServerPlayerEntityMixin"
+		"ServerPlayerEntityMixin",
+		"ServerWorldMixin",
+		"SimpleRegistryMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

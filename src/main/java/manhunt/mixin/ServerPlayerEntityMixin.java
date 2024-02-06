@@ -73,7 +73,6 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity {
                         ServerPlayerEntity trackedPlayer = server.getPlayerManager().getPlayer(item.getNbt().getCompound("Info").getString("Name"));
                         if (trackedPlayer != null) {
                             updateCompass(server.getPlayerManager().getPlayer(this.getName().getString()), item.getNbt(), trackedPlayer);
-                            this.getItemCooldownManager().set(item.getItem(), 20);
                         }
                     }
                 }
@@ -132,11 +131,11 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity {
         String dimension = "";
         if (!info.contains("Dimension")) {
             dimension = "manhunt.scoreboard.world.unknown";
-        } else if (Objects.equals(dim, "minecraft:overworld")) {
+        } else if (Objects.equals(dim, "manhunt:overworld")) {
             dimension = "manhunt.scoreboard.world.overworld";
-        } else if (Objects.equals(dim, "minecraft:the_nether")) {
+        } else if (Objects.equals(dim, "manhunt:the_nether")) {
             dimension = "manhunt.scoreboard.world.the_nether";
-        } else if (Objects.equals(dim, "minecraft:the_end")) {
+        } else if (Objects.equals(dim, "manhunt:the_end")) {
             dimension = "manhunt.scoreboard.world.the_end";
         }
     }

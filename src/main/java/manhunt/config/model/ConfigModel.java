@@ -8,6 +8,7 @@ public class ConfigModel {
     public Settings settings = new Settings();
 
     public class Settings {
+        public long worldSeed = 0;
         public int setRoles = 1;
         public int hunterFreeze = 10;
         public int timeLimit = 180;

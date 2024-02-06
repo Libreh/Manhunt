@@ -61,5 +61,8 @@
   "manhunt.tracker.switchrunner": "<gray>Compass is now pointing at</gray> %s",
   "manhunt.tracker.norunners": "<red>There is no runners",
   "manhunt.target.text": "<gray>Target:</gray> %s",
-  "manhunt.ping.ms": "Ping: %s ms"
+  "manhunt.ping.ms": "Ping: %s ms",
+  "manhunt.world.created": "Create Manhunt world %s done",
+  "manhunt.world.deleted": "Delete Manhunt world %s done",
+  "manhunt.world.reset": "Start to reset Manhunt worlds..."
 }

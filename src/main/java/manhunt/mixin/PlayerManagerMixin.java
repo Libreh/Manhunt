@@ -31,14 +31,14 @@ public abstract class PlayerManagerMixin {
             nbt.putString("Dimension", "manhunt:lobby");
 
             NbtList position = new NbtList();
-            position.add(NbtDouble.of(0.5));
-            position.add(NbtDouble.of(63));
             position.add(NbtDouble.of(0));
+            position.add(NbtDouble.of(63));
+            position.add(NbtDouble.of(5.5));
             nbt.put("Pos", position);
 
             NbtList rotation = new NbtList();
-            rotation.add(NbtFloat.of(0f));
-            rotation.add(NbtFloat.of(0f));
+            rotation.add(NbtFloat.of(0.0F));
+            rotation.add(NbtFloat.of(0.0F));
             nbt.put("Rotation", rotation);
 
             player.readNbt(nbt);

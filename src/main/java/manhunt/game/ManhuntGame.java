@@ -8,14 +8,13 @@ import manhunt.Manhunt;
 import manhunt.commands.*;
 import manhunt.config.Configs;
 import manhunt.config.model.ConfigModel;
-import manhunt.mixin.MinecraftServerAccessMixin;
+import manhunt.mixin.MinecraftServerAccessInterface;
 import manhunt.util.MessageUtil;
-import manhunt.util.RemoveFromRegistryUtil;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.advancement.AdvancementEntry;
 import net.minecraft.advancement.AdvancementProgress;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.StructureBlockBlockEntity;
 import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.enchantment.Enchantments;
@@ -28,10 +27,9 @@ import net.minecraft.item.Items;
 import net.minecraft.nbt.*;
 import net.minecraft.network.packet.s2c.play.PlaySoundS2CPacket;
 import net.minecraft.network.packet.s2c.play.PositionFlag;
-import net.minecraft.registry.DynamicRegistryManager;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
-import net.minecraft.registry.SimpleRegistry;
+import net.minecraft.scoreboard.AbstractTeam;
 import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.CommandManager;
@@ -47,30 +45,22 @@ import net.minecraft.structure.StructurePlacementData;
 import net.minecraft.structure.StructureTemplate;
 import net.minecraft.text.Text;
 import net.minecraft.util.*;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.world.Difficulty;
-import net.minecraft.world.GameMode;
-import net.minecraft.world.GameRules;
-import net.minecraft.world.World;
-import net.minecraft.world.dimension.DimensionOptions;
-import org.apache.commons.io.FileUtils;
+import net.minecraft.util.math.*;
+import net.minecraft.util.math.random.Random;
+import net.minecraft.world.*;
+import net.minecraft.world.chunk.WorldChunk;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.*;
 
 import static manhunt.Manhunt.MOD_ID;
 
 public class ManhuntGame {
     public static final Identifier LOBBY_WORLD_ID = new Identifier(MOD_ID, "lobby");
-    public static final Identifier OVERWORLD_ID = new Identifier("minecraft", "overworld");
-    public static final Identifier THE_NETHER_ID = new Identifier("minecraft", "the_nether");
-    public static final Identifier THE_END_ID = new Identifier("minecraft", "the_end");
+    public static final Identifier OVERWORLD_ID = new Identifier("manhunt", "overworld");
     public static RegistryKey<World> lobbyRegistryKey = RegistryKey.of(RegistryKeys.WORLD, LOBBY_WORLD_ID);
-    public static RegistryKey<World> theNetherRegistryKey = RegistryKey.of(RegistryKeys.WORLD, THE_NETHER_ID);
-    public static RegistryKey<World> theEndRegistryKey = RegistryKey.of(RegistryKeys.WORLD, THE_END_ID);
+    public static RegistryKey<World> overworldRegistryKey = RegistryKey.of(RegistryKeys.WORLD, OVERWORLD_ID);
     public static final ConfigModel.Settings settings = Configs.configHandler.model().settings;
     public static List<ServerPlayerEntity> allPlayers;
     public static List<ServerPlayerEntity> allRunners;
@@ -83,9 +73,9 @@ public class ManhuntGame {
     public static void setPaused(boolean paused) {
         ManhuntGame.paused = paused;
     }
-    public final MinecraftServerAccessMixin serverAccessMixin;
+    public final MinecraftServerAccessInterface serverAccessMixin;
 
-    public ManhuntGame(MinecraftServerAccessMixin serverAccessMixin) {
+    public ManhuntGame(MinecraftServerAccessInterface serverAccessMixin) {
         this.serverAccessMixin = serverAccessMixin;
     }
 
@@ -101,6 +91,8 @@ public class ManhuntGame {
     }
 
     public static void serverStart(MinecraftServer server) {
+        new ManhuntWorldModule().loadWorlds(server);
+
         setPaused(false);
 
         manhuntState(ManhuntState.PREGAME, server);
@@ -126,8 +118,18 @@ public class ManhuntGame {
 
         server.setPvpEnabled(false);
 
+        server.getScoreboard().addTeam("players");
+
         server.getScoreboard().addTeam("hunters");
         server.getScoreboard().addTeam("runners");
+
+        server.getScoreboard().getTeam("players").setFriendlyFireAllowed(false);
+        server.getScoreboard().getTeam("players").setCollisionRule(AbstractTeam.CollisionRule.NEVER);
+
+        if (settings.teamColor) {
+            server.getScoreboard().getTeam("hunters").setColor(Formatting.RED);;
+            server.getScoreboard().getTeam("runners").setColor(Formatting.GREEN);;
+        }
 
         try {
             spawnStructure(server);
@@ -198,7 +200,7 @@ public class ManhuntGame {
         }
 
         if (gameState == ManhuntState.PLAYING) {
-            if (server.getOverworld().getTime() % (20 * 60 * 60) / (20 * 60) >= settings.timeLimit && settings.timeLimit != 0) {
+            if (server.getWorld(overworldRegistryKey).getTime() % (20 * 60 * 60) / (20 * 60) >= settings.timeLimit && settings.timeLimit != 0) {
                 manhuntState(ManhuntState.POSTGAME, server);
                 for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
                     MessageUtil.showTitle(player, "manhunt.title.hunters", "manhunt.title.timelimit");
@@ -212,11 +214,6 @@ public class ManhuntGame {
         if (gameState == ManhuntState.PLAYING) {
             allPlayers = world.getServer().getPlayerManager().getPlayerList();
             allRunners = new LinkedList<>();
-
-            if (settings.teamColor) {
-                world.getServer().getScoreboard().getTeam("hunters").setColor(Formatting.RED);;
-                world.getServer().getScoreboard().getTeam("runners").setColor(Formatting.GREEN);;
-            }
 
             for (ServerPlayerEntity player : allPlayers) {
                 if (player != null) {
@@ -253,7 +250,9 @@ public class ManhuntGame {
                     ItemStack item = new ItemStack(Items.LIME_CONCRETE);
                     item.setNbt(nbt);
 
-                    player.getInventory().setStack(0, item);
+                    int slotNumber = player.getInventory().getSlotWithStack(itemStack);
+
+                    player.getInventory().setStack(slotNumber, item);
 
                     player.getItemCooldownManager().set(item.getItem(), 20);
 
@@ -285,9 +284,9 @@ public class ManhuntGame {
                     ItemStack item = new ItemStack(Items.RED_CONCRETE);
                     item.setNbt(nbt);
 
-                    player.getItemCooldownManager().set(item.getItem(), 20);
+                    int slotNumber = player.getInventory().getSlotWithStack(itemStack);
 
-                    player.getInventory().setStack(0, item);
+                    player.getInventory().setStack(slotNumber, item);
 
                     player.playSound(SoundEvents.BLOCK_STONE_PLACE, SoundCategory.BLOCKS, 0.5f, 0.5f);
 
@@ -307,7 +306,9 @@ public class ManhuntGame {
                     ItemStack item = new ItemStack(Items.CLOCK);
                     item.setNbt(nbt);
 
-                    player.getInventory().setStack(3, item);
+                    int slotNumber = player.getInventory().getSlotWithStack(itemStack);
+
+                    player.getInventory().setStack(slotNumber, item);
 
                     itemStack.addEnchantment(Enchantments.VANISHING_CURSE, 1);
 
@@ -331,7 +332,9 @@ public class ManhuntGame {
                     ItemStack item = new ItemStack(Items.RECOVERY_COMPASS);
                     item.setNbt(nbt);
 
-                    player.getInventory().setStack(5, item);
+                    int slotNumber = player.getInventory().getSlotWithStack(itemStack);
+
+                    player.getInventory().setStack(slotNumber, item);
 
                     itemStack.addEnchantment(Enchantments.VANISHING_CURSE, 1);
 
@@ -365,7 +368,7 @@ public class ManhuntGame {
                 ServerPlayerEntity trackedPlayer = world.getServer().getPlayerManager().getPlayer(info.getString("Name"));
 
                 if (trackedPlayer != null) {
-                    player.playSound(SoundEvents.UI_BUTTON_CLICK.value(), SoundCategory.PLAYERS, 0.5f, 1f);
+                    player.playSound(SoundEvents.UI_BUTTON_CLICK.value(), SoundCategory.PLAYERS, 0.25f, 1f);
                     updateCompass((ServerPlayerEntity) player, itemStack.getNbt(), trackedPlayer);
                 }
             }
@@ -382,24 +385,41 @@ public class ManhuntGame {
         if (gameState == ManhuntState.PREGAME) {
             player.getInventory().clear();
             updateGameMode(player);
-            player.teleport(player.getServerWorld(), 0.5, 63, 0, PositionFlag.ROT, 0, 0);
+            player.teleport(player.getServerWorld(), 0, 63, 5.5, PositionFlag.ROT, 0, 0);
             player.clearStatusEffects();
             player.addStatusEffect(new StatusEffectInstance(StatusEffects.SATURATION, StatusEffectInstance.INFINITE, 255, false, false, false));
             player.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE, StatusEffectInstance.INFINITE, 255, false, false, false));
+
+            if (!player.isTeamPlayer(server.getScoreboard().getTeam("players"))) {
+                player.getScoreboard().addScoreHolderToTeam(player.getName().getString(), server.getScoreboard().getTeam("players"));
+            }
 
             if (!(settings.setRoles == 1)) {
                 NbtCompound nbt = new NbtCompound();
                 nbt.putBoolean("Remove", true);
                 ItemStack itemStack = new ItemStack(Items.BARRIER);
                 itemStack.setNbt(nbt);
-                for (ServerPlayerEntity serverPlayer : player.getServer().getPlayerManager().getPlayerList()) {
-                    serverPlayer.getInventory().setStack(3, itemStack);
-                    serverPlayer.getInventory().setStack(5, itemStack);
-                }
+                player.getInventory().setStack(3, itemStack);
+                player.getInventory().setStack(5, itemStack);
             }
 
             if (settings.setRoles == 3) {
                 currentRole.put(player.getUuid(), "runner");
+            }
+        }
+
+        if (gameState == ManhuntState.PLAYING) {
+            if (player.getWorld() == server.getWorld(lobbyRegistryKey)) {
+                player.getInventory().clear();
+                updateGameMode(player);
+                moveToSpawn(server.getWorld(overworldRegistryKey), player);
+                player.clearStatusEffects();
+            }
+            if (player.getWorld() == server.getOverworld()) {
+                player.getInventory().clear();
+                updateGameMode(player);
+                moveToSpawn(server.getWorld(overworldRegistryKey), player);
+                player.clearStatusEffects();
             }
         }
     }
@@ -407,8 +427,7 @@ public class ManhuntGame {
     // Thanks to https://gitlab.com/horrific-tweaks/bingo for the spawnStructure method.
 
     private static void spawnStructure(MinecraftServer server) throws IOException {
-        var lobbyParkourNbt = NbtIo.readCompressed(ManhuntGame.class.getResourceAsStream("/manhunt/lobby/parkour.nbt"), NbtSizeTracker.ofUnlimitedBytes());
-        var lobbyIslandNbt = NbtIo.readCompressed(ManhuntGame.class.getResourceAsStream("/manhunt/lobby/island.nbt"), NbtSizeTracker.ofUnlimitedBytes());
+        var lobbyIcebergNbt = NbtIo.readCompressed(ManhuntGame.class.getResourceAsStream("/manhunt/lobby/iceberg.nbt"), NbtSizeTracker.ofUnlimitedBytes());
 
         var lobbyWorld = server.getWorld(lobbyRegistryKey);
 
@@ -419,8 +438,7 @@ public class ManhuntGame {
         lobbyWorld.getChunkManager().addTicket(ChunkTicketType.START, new ChunkPos(16, 16), 16, Unit.INSTANCE);
         lobbyWorld.getChunkManager().addTicket(ChunkTicketType.START, new ChunkPos(16, 0), 16, Unit.INSTANCE);
         lobbyWorld.getChunkManager().addTicket(ChunkTicketType.START, new ChunkPos(0, 16), 16, Unit.INSTANCE);
-        placeStructure(lobbyWorld, new BlockPos(-21, 54, -54), lobbyParkourNbt);
-        placeStructure(lobbyWorld, new BlockPos(-21, 54, -6), lobbyIslandNbt);
+        placeStructure(lobbyWorld, new BlockPos(-8, 37, -8), lobbyIcebergNbt);
     }
 
     // Thanks to https://gitlab.com/horrific-tweaks/bingo for the placeStructure method.
@@ -1784,7 +1802,7 @@ public class ManhuntGame {
 
         manhuntState(ManhuntState.PLAYING, server);
 
-        var world = server.getOverworld();
+        var world = server.getWorld(overworldRegistryKey);
         world.setTimeOfDay(0);
 
         server.getGameRules().get(GameRules.ANNOUNCE_ADVANCEMENTS).set(true, server);
@@ -1796,12 +1814,12 @@ public class ManhuntGame {
         server.getGameRules().get(GameRules.FALL_DAMAGE).set(true, server);
         server.getGameRules().get(GameRules.RANDOM_TICK_SPEED).set(3, server);
         server.getGameRules().get(GameRules.SHOW_DEATH_MESSAGES).set(true, server);
-        server.getGameRules().get(GameRules.SPAWN_RADIUS).set(10, server);
+        server.getGameRules().get(GameRules.SPAWN_RADIUS).set(2, server);
 
         server.setPvpEnabled(true);
 
         for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
-            player.teleport(world, world.getSpawnPos().getX(), world.getSpawnPos().getY(), world.getSpawnPos().getZ(), 0, 0);
+            moveToSpawn(world, player);
             player.clearStatusEffects();
             player.getInventory().clear();
             player.setFireTicks(0);
@@ -1892,64 +1910,92 @@ public class ManhuntGame {
         }
     }
 
-    // Thanks to https://github.com/NucleoidMC/fantasy for the getDimensionsRegistry method.
-
     public static void resetGame(ServerCommandSource source) {
         gameState = ManhuntState.PREGAME;
 
         for (ServerPlayerEntity player : source.getServer().getPlayerManager().getPlayerList()) {
-            player.teleport(source.getServer().getWorld(lobbyRegistryKey), 0.5, 63, 0, PositionFlag.ROT, 180, 0);
-        }
+            currentRole.put(player.getUuid(), "hunter");
 
-        MinecraftServerAccessMixin minecraftServerAccess;
-        minecraftServerAccess = (MinecraftServerAccessMixin) source.getServer();
+            if (player.isTeamPlayer(source.getServer().getScoreboard().getTeam("hunters"))) {
+                source.getServer().getScoreboard().removeScoreHolderFromTeam(player.getName().getString(), source.getServer().getScoreboard().getTeam("hunters"));
+            }
 
-        Path worldDirectory = FabricLoader.getInstance().getGameDir().resolve("world");
+            if (player.isTeamPlayer(source.getServer().getScoreboard().getTeam("runners"))) {
+                source.getServer().getScoreboard().removeScoreHolderFromTeam(player.getName().getString(), source.getServer().getScoreboard().getTeam("runners"));
+            }
 
-        if (minecraftServerAccess.getWorlds().remove(source.getServer().getOverworld().getRegistryKey(), source.getServer().getWorld(source.getServer().getOverworld().getRegistryKey()))) {
-            ServerWorldEvents.UNLOAD.invoker().onWorldUnload(source.getServer(), source.getServer().getWorld(source.getServer().getOverworld().getRegistryKey()));
-
-            SimpleRegistry<DimensionOptions> dimensionsRegistry = getDimensionsRegistry(source.getServer());
-            RemoveFromRegistryUtil.remove(dimensionsRegistry, source.getServer().getOverworld().getRegistryKey().getValue());
-        }
-        if (minecraftServerAccess.getWorlds().remove(theNetherRegistryKey, source.getServer().getWorld(theNetherRegistryKey))) {
-            ServerWorldEvents.UNLOAD.invoker().onWorldUnload(source.getServer(), source.getServer().getWorld(theNetherRegistryKey));
-
-            SimpleRegistry<DimensionOptions> dimensionsRegistry = getDimensionsRegistry(source.getServer());
-            RemoveFromRegistryUtil.remove(dimensionsRegistry, source.getServer().getWorld(theNetherRegistryKey).getRegistryKey().getValue());
-
-            try {
-                FileUtils.deleteDirectory(worldDirectory.resolve("DIM1").toFile());
-            } catch (IOException e) {
-                Manhunt.LOGGER.warn("Failed to delete world directory", e);
-                try {
-                    FileUtils.forceDeleteOnExit(worldDirectory.resolve("DIM1").toFile());
-                } catch (IOException ignored) {
-                }
+            if (!player.isTeamPlayer(source.getServer().getScoreboard().getTeam("players"))) {
+                player.getScoreboard().addScoreHolderToTeam(player.getName().getString(), source.getServer().getScoreboard().getTeam("players"));
             }
         }
-        if (minecraftServerAccess.getWorlds().remove(theEndRegistryKey, source.getServer().getWorld(theEndRegistryKey))) {
-            ServerWorldEvents.UNLOAD.invoker().onWorldUnload(source.getServer(), source.getServer().getWorld(theEndRegistryKey));
 
-            SimpleRegistry<DimensionOptions> dimensionsRegistry = getDimensionsRegistry(source.getServer());
-            RemoveFromRegistryUtil.remove(dimensionsRegistry, source.getServer().getWorld(theEndRegistryKey).getRegistryKey().getValue());
-
-            try {
-                FileUtils.deleteDirectory(worldDirectory.resolve("DIM-1").toFile());
-            } catch (IOException e) {
-                Manhunt.LOGGER.warn("Failed to delete world directory", e);
-                try {
-                    FileUtils.forceDeleteOnExit(worldDirectory.resolve("DIM-1").toFile());
-                } catch (IOException ignored) {
-                }
-            }
-        }
+        new ManhuntWorldModule().resetWorlds(source.getServer());
     }
 
-    // Thanks to https://github.com/NucleoidMC/fantasy for the getDimensionsRegistry method.
+    public static void unloadWorld(MinecraftServer server, ServerWorld world) {
+        new ManhuntWorldModule().onWorldUnload(server, world);
+    }
 
-    private static SimpleRegistry<DimensionOptions> getDimensionsRegistry(MinecraftServer server) {
-        DynamicRegistryManager registryManager = server.getCombinedDynamicRegistries().getCombinedRegistryManager();
-        return (SimpleRegistry<DimensionOptions>) registryManager.get(RegistryKeys.DIMENSION);
+    private static void moveToSpawn(ServerWorld world, ServerPlayerEntity player) {
+        BlockPos blockPos = world.getSpawnPos();
+
+        int i = Math.max(0, world.getServer().getSpawnRadius(world));
+        int j = MathHelper.floor(world.getWorldBorder().getDistanceInsideBorder((double)blockPos.getX(), (double)blockPos.getZ()));
+        if (j < i) {
+            i = j;
+        }
+
+        if (j <= 1) {
+            i = 1;
+        }
+
+        long l = (long)(i * 2 + 1);
+        long m = l * l;
+        int k = m > 2147483647L ? Integer.MAX_VALUE : (int)m;
+        int n = k <= 16 ? k - 1 : 17;
+        int o = Random.create().nextInt(k);
+
+        for(int p = 0; p < k; ++p) {
+            int q = (o + n * p) % k;
+            int r = q % (i * 2 + 1);
+            int s = q / (i * 2 + 1);
+            BlockPos blockPos2 = findOverworldSpawn(world, blockPos.getX() + r - i, blockPos.getZ() + s - i);
+            if (blockPos2 != null) {
+                player.teleport(world, blockPos2.getX(), blockPos2.getY(), blockPos2.getZ(), 0, 0);
+                player.setSpawnPoint(world.getRegistryKey(), blockPos2, 0, true, false);
+            }
+        }
+
+    }
+
+    @Nullable
+    private static BlockPos findOverworldSpawn(ServerWorld world, int x, int z) {
+        boolean bl = world.getDimension().hasCeiling();
+        WorldChunk worldChunk = world.getChunk(ChunkSectionPos.getSectionCoord(x), ChunkSectionPos.getSectionCoord(z));
+        int i = bl ? world.getChunkManager().getChunkGenerator().getSpawnHeight(world) : worldChunk.sampleHeightmap(Heightmap.Type.MOTION_BLOCKING, x & 15, z & 15);
+        if (i < world.getBottomY()) {
+            return null;
+        } else {
+            int j = worldChunk.sampleHeightmap(Heightmap.Type.WORLD_SURFACE, x & 15, z & 15);
+            if (j <= i && j > worldChunk.sampleHeightmap(Heightmap.Type.OCEAN_FLOOR, x & 15, z & 15)) {
+                return null;
+            } else {
+                BlockPos.Mutable mutable = new BlockPos.Mutable();
+
+                for(int k = i + 1; k >= world.getBottomY(); --k) {
+                    mutable.set(x, k, z);
+                    BlockState blockState = world.getBlockState(mutable);
+                    if (!blockState.getFluidState().isEmpty()) {
+                        break;
+                    }
+
+                    if (Block.isFaceFullSquare(blockState.getCollisionShape(world, mutable), Direction.UP)) {
+                        return mutable.up().toImmutable();
+                    }
+                }
+
+                return null;
+            }
+        }
     }
 }
