@@ -34,7 +34,7 @@ public class TogglePauseCommand {
                 if (ManhuntGame.isPaused()) {
                     for (ServerPlayerEntity gamePlayer : player.getServer().getPlayerManager().getPlayerList()) {
                         gamePlayer.getAttributeInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED).setBaseValue(0.1);
-                        gamePlayer.playSound(SoundEvents.BLOCK_ANVIL_LAND, SoundCategory.MASTER, 0.2f, 0.5f);
+                        gamePlayer.playSound(SoundEvents.BLOCK_ANVIL_LAND, SoundCategory.MASTER, 0.1f, 0.5f);
                         gamePlayer.removeStatusEffect(StatusEffects.BLINDNESS);
                         gamePlayer.removeStatusEffect(StatusEffects.JUMP_BOOST);
                         gamePlayer.removeStatusEffect(StatusEffects.MINING_FATIGUE);
@@ -49,7 +49,7 @@ public class TogglePauseCommand {
             } else if (!ManhuntGame.isPaused()) {
                 for (ServerPlayerEntity gamePlayer : player.getServer().getPlayerManager().getPlayerList()) {
                     gamePlayer.getAttributeInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED).setBaseValue(0);
-                    gamePlayer.playSound(SoundEvents.BLOCK_ANVIL_LAND, SoundCategory.MASTER, 0.2f, 1.5f);
+                    gamePlayer.playSound(SoundEvents.BLOCK_ANVIL_LAND, SoundCategory.MASTER, 0.1f, 1.5f);
                     gamePlayer.addStatusEffect(new StatusEffectInstance(StatusEffects.BLINDNESS, StatusEffectInstance.INFINITE, 255, false, true));
                     gamePlayer.addStatusEffect(new StatusEffectInstance(StatusEffects.JUMP_BOOST, StatusEffectInstance.INFINITE, 248, false, false));
                     gamePlayer.addStatusEffect(new StatusEffectInstance(StatusEffects.MINING_FATIGUE, StatusEffectInstance.INFINITE, 255, false, false));

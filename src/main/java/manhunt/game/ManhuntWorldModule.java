@@ -25,7 +25,7 @@ import net.minecraft.world.dimension.DimensionType;
 import net.minecraft.world.dimension.DimensionTypes;
 import net.minecraft.world.gen.chunk.ChunkGenerator;
 
-// Thanks to https://github.com/sakurawald/fuji-fabric.
+// Thanks to https://github.com/sakurawald/fuji-fabric
 
 public class ManhuntWorldModule {
     private static final String DEFAULT_MANHUNT_WORLD_NAMESPACE = "manhunt";
@@ -34,7 +34,7 @@ public class ManhuntWorldModule {
     private final String DEFAULT_THE_END_PATH = "the_end";
 
     public void resetWorlds(MinecraftServer server) {
-        MessageUtil.sendBroadcast("manhunt.world.reset");
+        MessageUtil.sendBroadcast("manhunt.world.begin");
         Configs.configHandler.model().settings.worldSeed = RandomSeed.getSeed();
         Configs.configHandler.saveToDisk();
         deleteWorld(server, DEFAULT_OVERWORLD_PATH);
@@ -110,7 +110,7 @@ public class ManhuntWorldModule {
             world.setEnderDragonFight(new EnderDragonFight(world, world.getSeed(), EnderDragonFight.Data.DEFAULT));
         }
 
-        ((DimensionOptionsInterface) (Object) dimensionOptions).manhunt$saveProperties(false);
+        ((DimensionOptionsInterface) (Object) dimensionOptions).manhunt$setSaveProperties(false);
 
         SimpleRegistry<DimensionOptions> dimensionsRegistry = getDimensionOptionsRegistry(server);
         boolean isFrozen = ((SimpleRegistryInterface<?>) dimensionsRegistry).manhunt$isFrozen();
@@ -124,7 +124,9 @@ public class ManhuntWorldModule {
         serverAccessor.getWorlds().put(world.getRegistryKey(), world);
         ServerWorldEvents.LOAD.invoker().onWorldLoad(server, world);
         world.tick(() -> true);
-        MessageUtil.sendBroadcast("manhunt.world.created", path);
+        if (path.equals(DEFAULT_THE_END_PATH)) {
+            MessageUtil.sendBroadcast("manhunt.world.finish", path);
+        }
     }
 
     private ServerWorld getManhuntWorldByPath(MinecraftServer server, String path) {
@@ -138,7 +140,6 @@ public class ManhuntWorldModule {
         if (world == null) return;
 
         ManhuntWorldManager.enqueueWorldDeletion(world);
-        MessageUtil.sendBroadcast("manhunt.world.deleted", path);
     }
 
     public void onWorldUnload(MinecraftServer server, ServerWorld world) {

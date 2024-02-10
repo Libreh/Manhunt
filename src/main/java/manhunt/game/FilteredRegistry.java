@@ -18,7 +18,7 @@ import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-// Thanks to https://github.com/sakurawald/fuji-fabric.
+// Thanks to https://github.com/sakurawald/fuji-fabric
 
 @SuppressWarnings({"unused", "InfiniteRecursion", "LombokGetterMayBeUsed"})
 public class FilteredRegistry<T> extends SimpleRegistry<T> {

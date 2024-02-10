@@ -18,8 +18,10 @@ public class ResetCommand {
 
     private static int resetCommand(ServerCommandSource source) {
         if (source.hasPermissionLevel(2) || source.hasPermissionLevel(4)) {
-            if (ManhuntGame.gameState == ManhuntState.POSTGAME) {
+            if (!(ManhuntGame.gameState == ManhuntState.PREGAME)) {
                 ManhuntGame.resetGame(source);
+            } else {
+                source.sendFeedback(() -> MessageUtil.ofVomponent(source.getPlayer(), "manhunt.chat.pregame"), false);
             }
         } else {
             source.sendFeedback(() -> MessageUtil.ofVomponent(source.getPlayer(), "manhunt.chat.player"), false);

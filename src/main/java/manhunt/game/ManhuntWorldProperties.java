@@ -3,11 +3,8 @@ package manhunt.game;
 import net.minecraft.world.SaveProperties;
 import net.minecraft.world.level.UnmodifiableLevelProperties;
 
-// Thanks to https://github.com/sakurawald/fuji-fabric.
+// Thanks to https://github.com/sakurawald/fuji-fabric
 
-/**
- * The only purpose of this class is to warp the seed.
- **/
 @SuppressWarnings("LombokGetterMayBeUsed")
 public final class ManhuntWorldProperties extends UnmodifiableLevelProperties {
 

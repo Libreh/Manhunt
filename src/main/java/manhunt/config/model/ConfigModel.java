@@ -1,6 +1,6 @@
 package manhunt.config.model;
 
-// Thanks to https://github.com/sakurawald/fuji-fabric.
+// Thanks to https://github.com/sakurawald/fuji-fabric
 
 @SuppressWarnings("ALL")
 public class ConfigModel {

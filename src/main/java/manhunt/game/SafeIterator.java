@@ -3,7 +3,7 @@ package manhunt.game;
 import java.util.Collection;
 import java.util.Iterator;
 
-// Thanks to https://github.com/sakurawald/fuji-fabric.
+// Thanks to https://github.com/sakurawald/fuji-fabric
 
 public final class SafeIterator<T> implements Iterator<T> {
     private final Object[] values;

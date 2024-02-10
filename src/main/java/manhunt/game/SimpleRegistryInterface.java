@@ -4,7 +4,7 @@ import net.minecraft.registry.SimpleRegistry;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.ApiStatus;
 
-// Thanks to https://github.com/sakurawald/fuji-fabric.
+// Thanks to https://github.com/sakurawald/fuji-fabric
 
 @ApiStatus.Internal
 public interface SimpleRegistryInterface<T> {

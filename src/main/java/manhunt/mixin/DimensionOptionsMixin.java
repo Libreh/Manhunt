@@ -5,21 +5,21 @@ import net.minecraft.world.dimension.DimensionOptions;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 
-// Thanks to https://github.com/sakurawald/fuji-fabric.
+// Thanks to https://github.com/sakurawald/fuji-fabric
 
 @Mixin(DimensionOptions.class)
 public class DimensionOptionsMixin implements DimensionOptionsInterface {
 
     @Unique
-    private boolean manhunt$saveProperties = true;
+    private boolean manhunt$setSaveProperties = true;
 
     @Unique
-    public void manhunt$saveProperties(boolean value) {
-        this.manhunt$saveProperties = value;
+    public void manhunt$setSaveProperties(boolean value) {
+        this.manhunt$setSaveProperties = value;
     }
 
     @Unique
-    public boolean manhunt$saveProperties() {
-        return this.manhunt$saveProperties;
+    public boolean manhunt$getSaveProperties() {
+        return this.manhunt$setSaveProperties;
     }
 }

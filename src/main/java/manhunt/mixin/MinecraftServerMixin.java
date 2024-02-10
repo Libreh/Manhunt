@@ -17,7 +17,7 @@ import java.util.function.BooleanSupplier;
 
 import static manhunt.game.ManhuntGame.isPaused;
 
-// Thanks to https://github.com/sakurawald/fuji-fabric.
+// Thanks to https://github.com/sakurawald/fuji-fabric
 
 @Mixin(MinecraftServer.class)
 public abstract class MinecraftServerMixin {
@@ -45,7 +45,7 @@ public abstract class MinecraftServerMixin {
         }
     }
 
-    @Redirect(method = "tickWorlds", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/MinecraftServer;tickWorlds(Ljava/util/function/BooleanSupplier;)V", ordinal = 0), require = 0)
+    @Redirect(method = "tickWorlds", at = @At(value = "INVOKE", target = "Ljava/lang/Iterable;iterator()Ljava/util/Iterator;", ordinal = 0), require = 0)
     private Iterator<ServerWorld> manhunt$copyBeforeTicking(Iterable<ServerWorld> instance) {
         return new SafeIterator<>((Collection<ServerWorld>) instance);
     }

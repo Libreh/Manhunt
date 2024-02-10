@@ -30,7 +30,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.Objects;
 
-// Thanks to https://github.com/Ivan-Khar/manhunt-fabricated.
+// Thanks to https://github.com/Ivan-Khar/manhunt-fabricated
 
 @Mixin(ServerPlayerEntity.class)
 public abstract class ServerPlayerEntityMixin extends PlayerEntity {
@@ -50,56 +50,57 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity {
 
     @Inject(method = "tick", at = @At("HEAD"))
     public void tick(CallbackInfo ci) {
-        if (this.isTeamPlayer(server.getScoreboard().getTeam("hunters")) && this.isAlive()) {
-            if (!hasTracker(server.getPlayerManager().getPlayer(this.getName().getString()))) {
-                NbtCompound nbt = new NbtCompound();
-                nbt.putBoolean("Tracker", true);
-                nbt.putBoolean("Remove", true);
-                nbt.putBoolean("LodestoneTracked", false);
-                nbt.putString("LodestoneDimension", "minecraft:overworld");
-                nbt.putInt("HideFlags", 1);
-                nbt.put("Info", new NbtCompound());
-                nbt.put("display", new NbtCompound());
-                nbt.getCompound("display").putString("Name", "{\"translate\": \"Tracker\",\"italic\": false,\"color\": \"light_purple\"}");
+        if (ManhuntGame.gameState == ManhuntState.PLAYING) {
+            if (this.isTeamPlayer(server.getScoreboard().getTeam("hunters")) && this.isAlive()) {
+                if (!hasTracker(server.getPlayerManager().getPlayer(this.getName().getString()))) {
+                    NbtCompound nbt = new NbtCompound();
+                    nbt.putBoolean("Tracker", true);
+                    nbt.putBoolean("Remove", true);
+                    nbt.putBoolean("LodestoneTracked", false);
+                    nbt.putString("LodestoneDimension", "manhunt:overworld");
+                    nbt.putInt("HideFlags", 1);
+                    nbt.put("Info", new NbtCompound());
+                    nbt.put("display", new NbtCompound());
+                    nbt.getCompound("display").putString("Name", "{\"translate\": \"Tracker\",\"italic\": false,\"color\": \"light_purple\"}");
 
-                ItemStack stack = new ItemStack(Items.COMPASS);
-                stack.setNbt(nbt);
-                stack.addEnchantment(Enchantments.VANISHING_CURSE, 1);
+                    ItemStack stack = new ItemStack(Items.COMPASS);
+                    stack.setNbt(nbt);
+                    stack.addEnchantment(Enchantments.VANISHING_CURSE, 1);
 
-                this.giveItemStack(stack);
-            } else if (ManhuntGame.settings.compassUpdate && System.currentTimeMillis() - lastDelay > ((long) 1000)) {
-                for (ItemStack item : this.getInventory().main) {
-                    if (item.getItem().equals(Items.COMPASS) && item.getNbt() != null && item.getNbt().getBoolean("Tracker")) {
-                        ServerPlayerEntity trackedPlayer = server.getPlayerManager().getPlayer(item.getNbt().getCompound("Info").getString("Name"));
-                        if (trackedPlayer != null) {
-                            updateCompass(server.getPlayerManager().getPlayer(this.getName().getString()), item.getNbt(), trackedPlayer);
+                    this.giveItemStack(stack);
+                } else if (ManhuntGame.settings.compassUpdate && System.currentTimeMillis() - lastDelay > ((long) 1000)) {
+                    for (ItemStack item : this.getInventory().main) {
+                        if (item.getItem().equals(Items.COMPASS) && item.getNbt() != null && item.getNbt().getBoolean("Tracker")) {
+                            ServerPlayerEntity trackedPlayer = server.getPlayerManager().getPlayer(item.getNbt().getCompound("Info").getString("Name"));
+                            if (trackedPlayer != null) {
+                                updateCompass(server.getPlayerManager().getPlayer(this.getName().getString()), item.getNbt(), trackedPlayer);
+                            }
                         }
                     }
+                    lastDelay = System.currentTimeMillis();
                 }
-                lastDelay = System.currentTimeMillis();
-            }
 
 
-            if (holdingTracker(server.getPlayerManager().getPlayer(this.getName().getString()))) {
-                holding = true;
-                if (this.getMainHandStack().getNbt() != null && this.getMainHandStack().getNbt().getBoolean("Tracker")) {
-                    NbtCompound info = this.getMainHandStack().getNbt().getCompound("Info");
-                    if (server.getPlayerManager().getPlayer(info.getString("Name")) != null) {
-                        showInfo(info);
+                if (holdingTracker(server.getPlayerManager().getPlayer(this.getName().getString()))) {
+                    holding = true;
+                    if (this.getMainHandStack().getNbt() != null && this.getMainHandStack().getNbt().getBoolean("Tracker")) {
+                        NbtCompound info = this.getMainHandStack().getNbt().getCompound("Info");
+                        if (server.getPlayerManager().getPlayer(info.getString("Name")) != null) {
+                            showInfo(info);
+                        }
+                    } else if (this.getOffHandStack().getNbt() != null) {
+                        NbtCompound info = this.getOffHandStack().getNbt().getCompound("Info");
+                        if (server.getPlayerManager().getPlayer(info.getString("Name")) != null) {
+                            showInfo(info);
+                        }
                     }
-                } else if (this.getOffHandStack().getNbt() != null) {
-                    NbtCompound info = this.getOffHandStack().getNbt().getCompound("Info");
-                    if (server.getPlayerManager().getPlayer(info.getString("Name")) != null) {
-                        showInfo(info);
+                } else {
+                    if (holding) {
+                        this.networkHandler.sendPacket(new OverlayMessageS2CPacket(Text.of("")));
+                        holding = false;
                     }
                 }
-            } else {
-                if (holding) {
-                    this.networkHandler.sendPacket(new OverlayMessageS2CPacket(Text.of("")));
-                    holding = false;
-                }
             }
-
         }
     }
 
@@ -119,7 +120,7 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity {
                     for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
                         ManhuntGame.updateGameMode(player);
                         MessageUtil.showTitle(player, "manhunt.title.hunters", "manhunt.title.dead");
-                        player.playSound(SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, SoundCategory.PLAYERS, 0.2f, 1f);
+                        player.playSound(SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, SoundCategory.PLAYERS, 0.1f, 0.5f);
                     }
                 }
             }

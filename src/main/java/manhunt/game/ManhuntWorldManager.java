@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-// Thanks to https://github.com/sakurawald/fuji-fabric.
+// Thanks to https://github.com/sakurawald/fuji-fabric
 
 public class ManhuntWorldManager {
     private static final Set<ServerWorld> deletionQueue = new ReferenceOpenHashSet<>();

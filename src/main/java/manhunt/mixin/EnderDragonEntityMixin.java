@@ -18,18 +18,20 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(EnderDragonEntity.class)
 public abstract class EnderDragonEntityMixin {
 
-    @Inject(at = @At(value = "INVOKE"), method = "kill")
+    @Inject(method = "updatePostDeath", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/GameRules;getBoolean(Lnet/minecraft/world/GameRules$Key;)Z"))
     private void runnersWon(CallbackInfo ci) {
-        EnderDragonEntity dragon = ((EnderDragonEntity) (Object) this);
-        MinecraftServer server = dragon.getServer();
-        if (!ManhuntGame.settings.gameTitles) {
-            if (server.getScoreboard().getTeam("runners").getPlayerList().isEmpty() && dragon.deathTime == 1) {
-                ManhuntGame.gameState = ManhuntState.POSTGAME;
-                for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
-                    MessageUtil.showTitle(player, "manhunt.title.runners", "manhunt.title.dragon");
-                    player.playSound(SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, SoundCategory.PLAYERS, 0.2f, 2f);
+        try {
+            EnderDragonEntity dragon = ((EnderDragonEntity) (Object) this);
+            MinecraftServer server = dragon.getServer();
+            if (ManhuntGame.settings.gameTitles) {
+                if (!server.getScoreboard().getTeam("runners").getPlayerList().isEmpty() && dragon.deathTime == 1) {
+                    ManhuntGame.gameState = ManhuntState.POSTGAME;
+                    for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+                        MessageUtil.showTitle(player, "manhunt.title.runners", "manhunt.title.dragon");
+                        player.playSound(SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, SoundCategory.PLAYERS, 0.2f, 2f);
+                    }
                 }
             }
-        }
+        } catch (NullPointerException ignored) {}
     }
 }

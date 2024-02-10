@@ -8,7 +8,7 @@ import manhunt.Manhunt;
 
 import java.io.*;
 
-// Thanks to https://github.com/sakurawald/fuji-fabric.
+// Thanks to https://github.com/sakurawald/fuji-fabric
 
 public class ResourceConfigHandler extends ConfigHandler<JsonElement> {
 

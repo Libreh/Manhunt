@@ -11,11 +11,10 @@ import org.spongepowered.asm.mixin.injection.ModifyArg;
 
 import java.util.function.Function;
 
-// Thanks to https://github.com/sakurawald/fuji-fabric.
+// Thanks to https://github.com/sakurawald/fuji-fabric
 
 @Mixin(DimensionOptionsRegistryHolder.class)
 public class DimensionOptionsRegistryHolderMixin {
-    /* Prevent resource worlds to write in level.dat */
     @ModifyArg(method = "method_45516", at = @At(value = "INVOKE", target = "Lcom/mojang/serialization/MapCodec;forGetter(Ljava/util/function/Function;)Lcom/mojang/serialization/codecs/RecordCodecBuilder;"))
     private static Function<Object, Registry<DimensionOptions>> manhunt$swapRegistryGetter(Function<Object, Registry<DimensionOptions>> getter) {
         return (x) -> new FilteredRegistry<>(getter.apply(x), DimensionOptionsInterface.SAVE_PROPERTIES_PREDICATE);

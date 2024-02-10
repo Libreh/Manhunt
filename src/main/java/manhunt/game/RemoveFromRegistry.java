@@ -4,7 +4,7 @@ import net.minecraft.registry.SimpleRegistry;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.ApiStatus;
 
-// Thanks to https://github.com/NucleoidMC/fantasy.
+// Thanks to https://github.com/NucleoidMC/fantasy
 
 @ApiStatus.Internal
 public interface RemoveFromRegistry<T> {

@@ -28,7 +28,7 @@ public class TmCoordsCommand {
                 }
             }
         } else {
-            source.sendFeedback(() -> MessageUtil.ofVomponent(source.getPlayer(), "manhunt.chat.done"), false);
+            source.sendFeedback(() -> MessageUtil.ofVomponent(source.getPlayer(), "manhunt.chat.pregame"), false);
         }
 
         return Command.SINGLE_SUCCESS;

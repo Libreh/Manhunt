@@ -12,7 +12,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.Map;
 import java.util.Set;
 
-// Thanks to https://github.com/sakurawald/fuji-fabric.
+// Thanks to https://github.com/sakurawald/fuji-fabric
 
 public abstract class ConfigHandler<T> {
 

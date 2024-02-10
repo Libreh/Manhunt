@@ -5,10 +5,9 @@ import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.chunk.ChunkStatus;
 import org.jetbrains.annotations.Nullable;
 
-// Thanks to https://github.com/sakurawald/fuji-fabric.
+// Thanks to https://github.com/sakurawald/fuji-fabric
 
 public class VoidWorldGenerationProgressListener implements WorldGenerationProgressListener {
-
     public static final VoidWorldGenerationProgressListener INSTANCE = new VoidWorldGenerationProgressListener();
 
     @Override
