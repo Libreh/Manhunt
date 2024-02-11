@@ -2,11 +2,15 @@ package manhunt.command;
 
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
+import manhunt.Manhunt;
 import manhunt.game.ManhuntGame;
 import manhunt.game.ManhuntState;
 import manhunt.util.MessageUtil;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
+
+import java.util.Arrays;
+import java.util.function.Predicate;
 
 public class ResetCommand {
 
@@ -17,7 +21,7 @@ public class ResetCommand {
     }
 
     private static int resetCommand(ServerCommandSource source) {
-        if (source.hasPermissionLevel(2) || source.hasPermissionLevel(4)) {
+        if (Arrays.stream(Manhunt.SERVER.getPlayerManager().getWhitelistedNames()).anyMatch(Predicate.isEqual(source.getName().toString()))) {
             if (!(ManhuntGame.gameState == ManhuntState.PREGAME)) {
                 ManhuntGame.resetGame(source);
             } else {

@@ -28,7 +28,7 @@ public class SendTeamCoordsCommand {
                 }
             } else {
                 for (String playerName : source.getServer().getScoreboard().getTeam("runners").getPlayerList()) {
-                    MessageUtil.sendMessage(server.getPlayerManager().getPlayer(playerName), "manhunt.chat.runtercoords", source.getPlayer().getName().getString(), (int) source.getPlayer().getX(), (int) source.getPlayer().getY(), (int) source.getPlayer().getZ());
+                    MessageUtil.sendMessage(server.getPlayerManager().getPlayer(playerName), "manhunt.chat.runnercoords", source.getPlayer().getName().getString(), (int) source.getPlayer().getX(), (int) source.getPlayer().getY(), (int) source.getPlayer().getZ());
                 }
             }
         } else {
