@@ -1,11 +1,15 @@
 package manhunt.game;
 
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
+import manhunt.Manhunt;
 import manhunt.mixin.MinecraftServerAccessInterface;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.DynamicRegistryManager;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
@@ -32,7 +36,7 @@ public class ManhuntWorldManager {
     }
 
     public static void enqueueWorldDeletion(ServerWorld world) {
-        MinecraftServer server = world.getServer();
+        MinecraftServer server = Manhunt.SERVER;
         server.submit(() -> {
             deletionQueue.add(world);
         });
@@ -59,14 +63,52 @@ public class ManhuntWorldManager {
             return;
         }
 
+        MinecraftServer server = Manhunt.SERVER;
+
         List<ServerPlayerEntity> players = new ArrayList<>(world.getPlayers());
+
         for (ServerPlayerEntity player : players) {
-            player.teleport(world.getServer().getWorld(ManhuntGame.lobbyRegistryKey), 0, 63, 5.5, 0.0F, 0.0F);
+            player.teleport(server.getWorld(ManhuntGame.lobbyRegistryKey), 0, 63, 5.5, 0.0F, 0.0F);
             player.getInventory().clear();
             ManhuntGame.updateGameMode(player);
             player.clearStatusEffects();
             player.addStatusEffect(new StatusEffectInstance(StatusEffects.SATURATION, StatusEffectInstance.INFINITE, 255, false, false, false));
             player.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE, StatusEffectInstance.INFINITE, 255, false, false, false));
+            player.setFireTicks(0);
+            player.setOnFire(false);
+            player.setHealth(20);
+            player.getHungerManager().setFoodLevel(20);
+            player.getHungerManager().setSaturationLevel(5);
+            player.getHungerManager().setExhaustion(0);
+            player.setExperienceLevel(0);
+            player.setExperiencePoints(0);
+
+            ManhuntGame.currentRole.putIfAbsent(player.getUuid(), "hunter");
+
+            if (player.isTeamPlayer(server.getScoreboard().getTeam("hunters"))) {
+                server.getScoreboard().removeScoreHolderFromTeam(player.getName().getString(), server.getScoreboard().getTeam("hunters"));
+            }
+
+            if (player.isTeamPlayer(server.getScoreboard().getTeam("runners"))) {
+                server.getScoreboard().removeScoreHolderFromTeam(player.getName().getString(), server.getScoreboard().getTeam("runners"));
+            }
+
+            if (!player.isTeamPlayer(server.getScoreboard().getTeam("players"))) {
+                player.getScoreboard().addScoreHolderToTeam(player.getName().getString(), server.getScoreboard().getTeam("players"));
+            }
+
+            if (!(ManhuntGame.settings.setRoles == 1)) {
+                NbtCompound nbt = new NbtCompound();
+                nbt.putBoolean("Remove", true);
+                ItemStack itemStack = new ItemStack(Items.BARRIER);
+                itemStack.setNbt(nbt);
+                player.getInventory().setStack(3, itemStack);
+                player.getInventory().setStack(5, itemStack);
+            }
+
+            if (ManhuntGame.settings.setRoles == 3) {
+                ManhuntGame.currentRole.put(player.getUuid(), "runner");
+            }
         }
     }
 

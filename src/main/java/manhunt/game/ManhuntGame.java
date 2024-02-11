@@ -219,19 +219,21 @@ public class ManhuntGame {
 
     public static void worldTick(ServerWorld world) {
         if (gameState == ManhuntState.PLAYING) {
-            allPlayers = world.getServer().getPlayerManager().getPlayerList();
+            allPlayers = Manhunt.SERVER.getPlayerManager().getPlayerList();
             allRunners = new LinkedList<>();
+            
+            MinecraftServer server = Manhunt.SERVER;
 
             for (ServerPlayerEntity player : allPlayers) {
                 if (player != null) {
-                    if (player.isTeamPlayer(world.getServer().getScoreboard().getTeam("runners"))) {
+                    if (player.isTeamPlayer(server.getScoreboard().getTeam("runners"))) {
                         allRunners.add(player);
                     }
-                    if (!player.isTeamPlayer(world.getServer().getScoreboard().getTeam("hunters")) && !player.isTeamPlayer(world.getServer().getScoreboard().getTeam("runners"))) {
+                    if (!player.isTeamPlayer(server.getScoreboard().getTeam("hunters")) && !player.isTeamPlayer(server.getScoreboard().getTeam("runners"))) {
                         if (currentRole.get(player.getUuid()).equals("hunter")) {
-                            player.getScoreboard().addScoreHolderToTeam(player.getName().getString(), player.getScoreboard().getTeam("hunters"));
+                            server.getScoreboard().addScoreHolderToTeam(player.getName().getString(), player.getScoreboard().getTeam("hunters"));
                         } else {
-                            player.getScoreboard().addScoreHolderToTeam(player.getName().getString(), player.getScoreboard().getTeam("runners"));
+                            server.getScoreboard().addScoreHolderToTeam(player.getName().getString(), player.getScoreboard().getTeam("runners"));
                         }
                     }
                 }
@@ -247,7 +249,7 @@ public class ManhuntGame {
         if (gameState == ManhuntState.PREGAME) {
             player.getInventory().clear();
             updateGameMode(player);
-            player.teleport(player.getServerWorld(), 0, 63, 5.5, PositionFlag.ROT, 0, 0);
+            player.teleport(server.getWorld(lobbyRegistryKey), 0, 63, 5.5, PositionFlag.ROT, 0, 0);
             player.clearStatusEffects();
             player.addStatusEffect(new StatusEffectInstance(StatusEffects.SATURATION, StatusEffectInstance.INFINITE, 255, false, false, false));
             player.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE, StatusEffectInstance.INFINITE, 255, false, false, false));
@@ -290,6 +292,8 @@ public class ManhuntGame {
         var itemStack = player.getStackInHand(hand);
 
         if (gameState == ManhuntState.PREGAME) {
+            MinecraftServer server = Manhunt.SERVER;
+
             if (!player.getItemCooldownManager().isCoolingDown(itemStack.getItem())) {
                 if (itemStack.getItem() == Items.RED_CONCRETE && itemStack.getNbt().getBoolean("NotReady")) {
                     isReady.put(player.getUuid(), true);
@@ -312,12 +316,12 @@ public class ManhuntGame {
 
                     player.playSound(SoundEvents.BLOCK_STONE_PLACE, SoundCategory.BLOCKS, 0.5f, 1.5f);
 
-                    if (isReady.size() == player.getServer().getPlayerManager().getPlayerList().size()) {
+                    if (isReady.size() == server.getPlayerManager().getPlayerList().size()) {
                         if (Collections.frequency(currentRole.values(), "runner") == 0) {
                             MessageUtil.sendBroadcast("manhunt.chat.minimum");
                         } else {
                             if (Collections.frequency(currentRole.values(), "runner") >= 1) {
-                                startGame(player.getServer());
+                                startGame(server);
                             }
                         }
                     }
@@ -420,7 +424,7 @@ public class ManhuntGame {
                     info.putString("Name", allRunners.get(0).getName().getString());
                 }
 
-                ServerPlayerEntity trackedPlayer = world.getServer().getPlayerManager().getPlayer(info.getString("Name"));
+                ServerPlayerEntity trackedPlayer = Manhunt.SERVER.getPlayerManager().getPlayer(info.getString("Name"));
 
                 if (trackedPlayer != null) {
                     player.playSound(SoundEvents.UI_BUTTON_CLICK.value(), SoundCategory.PLAYERS, 0.1f, 1f);
@@ -468,7 +472,7 @@ public class ManhuntGame {
     // Thanks to https://github.com/Ivan-Khar/manhunt-fabricated for the cycleTrackedPlayers method
 
     public static void cycleTrackedPlayers(ServerPlayerEntity player, @Nullable NbtCompound itemStackNbt) {
-        if (itemStackNbt != null && itemStackNbt.getBoolean("Tracker") && player.isTeamPlayer(player.getServer().getScoreboard().getTeam("hunters")) && !player.getItemCooldownManager().isCoolingDown(Items.COMPASS)) {
+        if (itemStackNbt != null && itemStackNbt.getBoolean("Tracker") && player.isTeamPlayer(Manhunt.SERVER.getScoreboard().getTeam("hunters")) && !player.getItemCooldownManager().isCoolingDown(Items.COMPASS)) {
             if (!itemStackNbt.contains("Info")) {
                 itemStackNbt.put("Info", new NbtCompound());
             }
@@ -551,51 +555,46 @@ public class ManhuntGame {
     private static void roleSelector(ServerPlayerEntity player) {
         if (player.hasPermissionLevel(2) || player.hasPermissionLevel(4)) {
             SimpleGui roleselector = new SimpleGui(ScreenHandlerType.GENERIC_9X6, player, false);
+            
             roleselector.setTitle(MessageUtil.ofVomponent(player, "manhunt.item.role"));
+            
+            MinecraftServer server = Manhunt.SERVER;
+            
             if (player.hasPermissionLevel(2) || player.hasPermissionLevel(4)) {
-                if (player.getServer().getCurrentPlayerCount() == 1) {
+                if (server.getCurrentPlayerCount() == 1) {
                     changeRoleSelection(player, roleselector, 1, 0);
                 }
-                if (player.getServer().getCurrentPlayerCount() == 2) {
-                    changeRoleSelection(player, roleselector, 1, 0);
-                    changeRoleSelection(player, roleselector, 2, 1);
-                }
-                if (player.getServer().getCurrentPlayerCount() == 3) {
+                if (server.getCurrentPlayerCount() == 2) {
                     changeRoleSelection(player, roleselector, 1, 0);
                     changeRoleSelection(player, roleselector, 2, 1);
-                    changeRoleSelection(player, roleselector, 3, 2);
                 }
-                if (player.getServer().getCurrentPlayerCount() == 4) {
+                if (server.getCurrentPlayerCount() == 3) {
                     changeRoleSelection(player, roleselector, 1, 0);
                     changeRoleSelection(player, roleselector, 2, 1);
                     changeRoleSelection(player, roleselector, 3, 2);
-                    changeRoleSelection(player, roleselector, 4, 3);
                 }
-                if (player.getServer().getCurrentPlayerCount() == 5) {
+                if (server.getCurrentPlayerCount() == 4) {
                     changeRoleSelection(player, roleselector, 1, 0);
                     changeRoleSelection(player, roleselector, 2, 1);
                     changeRoleSelection(player, roleselector, 3, 2);
                     changeRoleSelection(player, roleselector, 4, 3);
-                    changeRoleSelection(player, roleselector, 5, 4);
                 }
-                if (player.getServer().getCurrentPlayerCount() == 6) {
+                if (server.getCurrentPlayerCount() == 5) {
                     changeRoleSelection(player, roleselector, 1, 0);
                     changeRoleSelection(player, roleselector, 2, 1);
                     changeRoleSelection(player, roleselector, 3, 2);
                     changeRoleSelection(player, roleselector, 4, 3);
                     changeRoleSelection(player, roleselector, 5, 4);
-                    changeRoleSelection(player, roleselector, 6, 5);
                 }
-                if (player.getServer().getCurrentPlayerCount() == 7) {
+                if (server.getCurrentPlayerCount() == 6) {
                     changeRoleSelection(player, roleselector, 1, 0);
                     changeRoleSelection(player, roleselector, 2, 1);
                     changeRoleSelection(player, roleselector, 3, 2);
                     changeRoleSelection(player, roleselector, 4, 3);
                     changeRoleSelection(player, roleselector, 5, 4);
                     changeRoleSelection(player, roleselector, 6, 5);
-                    changeRoleSelection(player, roleselector, 7, 6);
                 }
-                if (player.getServer().getCurrentPlayerCount() == 8) {
+                if (server.getCurrentPlayerCount() == 7) {
                     changeRoleSelection(player, roleselector, 1, 0);
                     changeRoleSelection(player, roleselector, 2, 1);
                     changeRoleSelection(player, roleselector, 3, 2);
@@ -603,9 +602,8 @@ public class ManhuntGame {
                     changeRoleSelection(player, roleselector, 5, 4);
                     changeRoleSelection(player, roleselector, 6, 5);
                     changeRoleSelection(player, roleselector, 7, 6);
-                    changeRoleSelection(player, roleselector, 8, 7);
                 }
-                if (player.getServer().getCurrentPlayerCount() == 9) {
+                if (server.getCurrentPlayerCount() == 8) {
                     changeRoleSelection(player, roleselector, 1, 0);
                     changeRoleSelection(player, roleselector, 2, 1);
                     changeRoleSelection(player, roleselector, 3, 2);
@@ -614,9 +612,8 @@ public class ManhuntGame {
                     changeRoleSelection(player, roleselector, 6, 5);
                     changeRoleSelection(player, roleselector, 7, 6);
                     changeRoleSelection(player, roleselector, 8, 7);
-                    changeRoleSelection(player, roleselector, 9, 10);
                 }
-                if (player.getServer().getCurrentPlayerCount() == 10) {
+                if (server.getCurrentPlayerCount() == 9) {
                     changeRoleSelection(player, roleselector, 1, 0);
                     changeRoleSelection(player, roleselector, 2, 1);
                     changeRoleSelection(player, roleselector, 3, 2);
@@ -626,9 +623,8 @@ public class ManhuntGame {
                     changeRoleSelection(player, roleselector, 7, 6);
                     changeRoleSelection(player, roleselector, 8, 7);
                     changeRoleSelection(player, roleselector, 9, 10);
-                    changeRoleSelection(player, roleselector, 10, 11);
                 }
-                if (player.getServer().getCurrentPlayerCount() == 11) {
+                if (server.getCurrentPlayerCount() == 10) {
                     changeRoleSelection(player, roleselector, 1, 0);
                     changeRoleSelection(player, roleselector, 2, 1);
                     changeRoleSelection(player, roleselector, 3, 2);
@@ -639,9 +635,8 @@ public class ManhuntGame {
                     changeRoleSelection(player, roleselector, 8, 7);
                     changeRoleSelection(player, roleselector, 9, 10);
                     changeRoleSelection(player, roleselector, 10, 11);
-                    changeRoleSelection(player, roleselector, 11, 12);
                 }
-                if (player.getServer().getCurrentPlayerCount() == 12) {
+                if (server.getCurrentPlayerCount() == 11) {
                     changeRoleSelection(player, roleselector, 1, 0);
                     changeRoleSelection(player, roleselector, 2, 1);
                     changeRoleSelection(player, roleselector, 3, 2);
@@ -653,9 +648,8 @@ public class ManhuntGame {
                     changeRoleSelection(player, roleselector, 9, 10);
                     changeRoleSelection(player, roleselector, 10, 11);
                     changeRoleSelection(player, roleselector, 11, 12);
-                    changeRoleSelection(player, roleselector, 12, 13);
                 }
-                if (player.getServer().getCurrentPlayerCount() == 13) {
+                if (server.getCurrentPlayerCount() == 12) {
                     changeRoleSelection(player, roleselector, 1, 0);
                     changeRoleSelection(player, roleselector, 2, 1);
                     changeRoleSelection(player, roleselector, 3, 2);
@@ -668,9 +662,8 @@ public class ManhuntGame {
                     changeRoleSelection(player, roleselector, 10, 11);
                     changeRoleSelection(player, roleselector, 11, 12);
                     changeRoleSelection(player, roleselector, 12, 13);
-                    changeRoleSelection(player, roleselector, 13, 14);
                 }
-                if (player.getServer().getCurrentPlayerCount() == 14) {
+                if (server.getCurrentPlayerCount() == 13) {
                     changeRoleSelection(player, roleselector, 1, 0);
                     changeRoleSelection(player, roleselector, 2, 1);
                     changeRoleSelection(player, roleselector, 3, 2);
@@ -684,9 +677,8 @@ public class ManhuntGame {
                     changeRoleSelection(player, roleselector, 11, 12);
                     changeRoleSelection(player, roleselector, 12, 13);
                     changeRoleSelection(player, roleselector, 13, 14);
-                    changeRoleSelection(player, roleselector, 14, 15);
                 }
-                if (player.getServer().getCurrentPlayerCount() == 15) {
+                if (server.getCurrentPlayerCount() == 14) {
                     changeRoleSelection(player, roleselector, 1, 0);
                     changeRoleSelection(player, roleselector, 2, 1);
                     changeRoleSelection(player, roleselector, 3, 2);
@@ -701,9 +693,8 @@ public class ManhuntGame {
                     changeRoleSelection(player, roleselector, 12, 13);
                     changeRoleSelection(player, roleselector, 13, 14);
                     changeRoleSelection(player, roleselector, 14, 15);
-                    changeRoleSelection(player, roleselector, 15, 16);
                 }
-                if (player.getServer().getCurrentPlayerCount() == 16) {
+                if (server.getCurrentPlayerCount() == 15) {
                     changeRoleSelection(player, roleselector, 1, 0);
                     changeRoleSelection(player, roleselector, 2, 1);
                     changeRoleSelection(player, roleselector, 3, 2);
@@ -719,9 +710,8 @@ public class ManhuntGame {
                     changeRoleSelection(player, roleselector, 13, 14);
                     changeRoleSelection(player, roleselector, 14, 15);
                     changeRoleSelection(player, roleselector, 15, 16);
-                    changeRoleSelection(player, roleselector, 16, 17);
                 }
-                if (player.getServer().getCurrentPlayerCount() == 17) {
+                if (server.getCurrentPlayerCount() == 16) {
                     changeRoleSelection(player, roleselector, 1, 0);
                     changeRoleSelection(player, roleselector, 2, 1);
                     changeRoleSelection(player, roleselector, 3, 2);
@@ -738,9 +728,8 @@ public class ManhuntGame {
                     changeRoleSelection(player, roleselector, 14, 15);
                     changeRoleSelection(player, roleselector, 15, 16);
                     changeRoleSelection(player, roleselector, 16, 17);
-                    changeRoleSelection(player, roleselector, 17, 20);
                 }
-                if (player.getServer().getCurrentPlayerCount() == 18) {
+                if (server.getCurrentPlayerCount() == 17) {
                     changeRoleSelection(player, roleselector, 1, 0);
                     changeRoleSelection(player, roleselector, 2, 1);
                     changeRoleSelection(player, roleselector, 3, 2);
@@ -758,9 +747,8 @@ public class ManhuntGame {
                     changeRoleSelection(player, roleselector, 15, 16);
                     changeRoleSelection(player, roleselector, 16, 17);
                     changeRoleSelection(player, roleselector, 17, 20);
-                    changeRoleSelection(player, roleselector, 18, 21);
                 }
-                if (player.getServer().getCurrentPlayerCount() == 19) {
+                if (server.getCurrentPlayerCount() == 18) {
                     changeRoleSelection(player, roleselector, 1, 0);
                     changeRoleSelection(player, roleselector, 2, 1);
                     changeRoleSelection(player, roleselector, 3, 2);
@@ -779,9 +767,8 @@ public class ManhuntGame {
                     changeRoleSelection(player, roleselector, 16, 17);
                     changeRoleSelection(player, roleselector, 17, 20);
                     changeRoleSelection(player, roleselector, 18, 21);
-                    changeRoleSelection(player, roleselector, 19, 22);
                 }
-                if (player.getServer().getCurrentPlayerCount() == 20) {
+                if (server.getCurrentPlayerCount() == 19) {
                     changeRoleSelection(player, roleselector, 1, 0);
                     changeRoleSelection(player, roleselector, 2, 1);
                     changeRoleSelection(player, roleselector, 3, 2);
@@ -801,9 +788,8 @@ public class ManhuntGame {
                     changeRoleSelection(player, roleselector, 17, 20);
                     changeRoleSelection(player, roleselector, 18, 21);
                     changeRoleSelection(player, roleselector, 19, 22);
-                    changeRoleSelection(player, roleselector, 20, 23);
                 }
-                if (player.getServer().getCurrentPlayerCount() == 21) {
+                if (server.getCurrentPlayerCount() == 20) {
                     changeRoleSelection(player, roleselector, 1, 0);
                     changeRoleSelection(player, roleselector, 2, 1);
                     changeRoleSelection(player, roleselector, 3, 2);
@@ -824,9 +810,8 @@ public class ManhuntGame {
                     changeRoleSelection(player, roleselector, 18, 21);
                     changeRoleSelection(player, roleselector, 19, 22);
                     changeRoleSelection(player, roleselector, 20, 23);
-                    changeRoleSelection(player, roleselector, 21, 24);
                 }
-                if (player.getServer().getCurrentPlayerCount() == 22) {
+                if (server.getCurrentPlayerCount() == 21) {
                     changeRoleSelection(player, roleselector, 1, 0);
                     changeRoleSelection(player, roleselector, 2, 1);
                     changeRoleSelection(player, roleselector, 3, 2);
@@ -848,9 +833,8 @@ public class ManhuntGame {
                     changeRoleSelection(player, roleselector, 19, 22);
                     changeRoleSelection(player, roleselector, 20, 23);
                     changeRoleSelection(player, roleselector, 21, 24);
-                    changeRoleSelection(player, roleselector, 22, 25);
                 }
-                if (player.getServer().getCurrentPlayerCount() == 23) {
+                if (server.getCurrentPlayerCount() == 22) {
                     changeRoleSelection(player, roleselector, 1, 0);
                     changeRoleSelection(player, roleselector, 2, 1);
                     changeRoleSelection(player, roleselector, 3, 2);
@@ -873,9 +857,8 @@ public class ManhuntGame {
                     changeRoleSelection(player, roleselector, 20, 23);
                     changeRoleSelection(player, roleselector, 21, 24);
                     changeRoleSelection(player, roleselector, 22, 25);
-                    changeRoleSelection(player, roleselector, 23, 26);
                 }
-                if (player.getServer().getCurrentPlayerCount() == 24) {
+                if (server.getCurrentPlayerCount() == 23) {
                     changeRoleSelection(player, roleselector, 1, 0);
                     changeRoleSelection(player, roleselector, 2, 1);
                     changeRoleSelection(player, roleselector, 3, 2);
@@ -900,7 +883,32 @@ public class ManhuntGame {
                     changeRoleSelection(player, roleselector, 22, 25);
                     changeRoleSelection(player, roleselector, 23, 26);
                 }
-                if (player.getServer().getCurrentPlayerCount() == 25) {
+                if (server.getCurrentPlayerCount() == 24) {
+                    changeRoleSelection(player, roleselector, 1, 0);
+                    changeRoleSelection(player, roleselector, 2, 1);
+                    changeRoleSelection(player, roleselector, 3, 2);
+                    changeRoleSelection(player, roleselector, 4, 3);
+                    changeRoleSelection(player, roleselector, 5, 4);
+                    changeRoleSelection(player, roleselector, 6, 5);
+                    changeRoleSelection(player, roleselector, 7, 6);
+                    changeRoleSelection(player, roleselector, 8, 7);
+                    changeRoleSelection(player, roleselector, 9, 10);
+                    changeRoleSelection(player, roleselector, 10, 11);
+                    changeRoleSelection(player, roleselector, 11, 12);
+                    changeRoleSelection(player, roleselector, 12, 13);
+                    changeRoleSelection(player, roleselector, 13, 14);
+                    changeRoleSelection(player, roleselector, 14, 15);
+                    changeRoleSelection(player, roleselector, 15, 16);
+                    changeRoleSelection(player, roleselector, 16, 17);
+                    changeRoleSelection(player, roleselector, 17, 20);
+                    changeRoleSelection(player, roleselector, 18, 21);
+                    changeRoleSelection(player, roleselector, 19, 22);
+                    changeRoleSelection(player, roleselector, 20, 23);
+                    changeRoleSelection(player, roleselector, 21, 24);
+                    changeRoleSelection(player, roleselector, 22, 25);
+                    changeRoleSelection(player, roleselector, 23, 26);
+                }
+                if (server.getCurrentPlayerCount() == 25) {
                     changeRoleSelection(player, roleselector, 1, 0);
                     changeRoleSelection(player, roleselector, 2, 1);
                     changeRoleSelection(player, roleselector, 3, 2);
@@ -927,7 +935,7 @@ public class ManhuntGame {
                     changeRoleSelection(player, roleselector, 24, 27);
                     changeRoleSelection(player, roleselector, 25, 30);
                 }
-                if (player.getServer().getCurrentPlayerCount() == 26) {
+                if (server.getCurrentPlayerCount() == 26) {
                     changeRoleSelection(player, roleselector, 1, 0);
                     changeRoleSelection(player, roleselector, 2, 1);
                     changeRoleSelection(player, roleselector, 3, 2);
@@ -955,7 +963,7 @@ public class ManhuntGame {
                     changeRoleSelection(player, roleselector, 25, 30);
                     changeRoleSelection(player, roleselector, 26, 31);
                 }
-                if (player.getServer().getCurrentPlayerCount() == 27) {
+                if (server.getCurrentPlayerCount() == 27) {
                     changeRoleSelection(player, roleselector, 1, 0);
                     changeRoleSelection(player, roleselector, 2, 1);
                     changeRoleSelection(player, roleselector, 3, 2);
@@ -984,7 +992,7 @@ public class ManhuntGame {
                     changeRoleSelection(player, roleselector, 26, 31);
                     changeRoleSelection(player, roleselector, 27, 32);
                 }
-                if (player.getServer().getCurrentPlayerCount() == 28) {
+                if (server.getCurrentPlayerCount() == 28) {
                     changeRoleSelection(player, roleselector, 1, 0);
                     changeRoleSelection(player, roleselector, 2, 1);
                     changeRoleSelection(player, roleselector, 3, 2);
@@ -1014,7 +1022,7 @@ public class ManhuntGame {
                     changeRoleSelection(player, roleselector, 27, 32);
                     changeRoleSelection(player, roleselector, 28, 33);
                 }
-                if (player.getServer().getCurrentPlayerCount() == 29) {
+                if (server.getCurrentPlayerCount() == 29) {
                     changeRoleSelection(player, roleselector, 1, 0);
                     changeRoleSelection(player, roleselector, 2, 1);
                     changeRoleSelection(player, roleselector, 3, 2);
@@ -1045,7 +1053,7 @@ public class ManhuntGame {
                     changeRoleSelection(player, roleselector, 28, 33);
                     changeRoleSelection(player, roleselector, 29, 34);
                 }
-                if (player.getServer().getCurrentPlayerCount() == 30) {
+                if (server.getCurrentPlayerCount() == 30) {
                     changeRoleSelection(player, roleselector, 1, 0);
                     changeRoleSelection(player, roleselector, 2, 1);
                     changeRoleSelection(player, roleselector, 3, 2);
@@ -1077,7 +1085,7 @@ public class ManhuntGame {
                     changeRoleSelection(player, roleselector, 29, 34);
                     changeRoleSelection(player, roleselector, 30, 35);
                 }
-                if (player.getServer().getCurrentPlayerCount() == 31) {
+                if (server.getCurrentPlayerCount() == 31) {
                     changeRoleSelection(player, roleselector, 1, 0);
                     changeRoleSelection(player, roleselector, 2, 1);
                     changeRoleSelection(player, roleselector, 3, 2);
@@ -1110,7 +1118,7 @@ public class ManhuntGame {
                     changeRoleSelection(player, roleselector, 30, 35);
                     changeRoleSelection(player, roleselector, 31, 36);
                 }
-                if (player.getServer().getCurrentPlayerCount() == 32) {
+                if (server.getCurrentPlayerCount() == 32) {
                     changeRoleSelection(player, roleselector, 1, 0);
                     changeRoleSelection(player, roleselector, 2, 1);
                     changeRoleSelection(player, roleselector, 3, 2);
@@ -1144,7 +1152,7 @@ public class ManhuntGame {
                     changeRoleSelection(player, roleselector, 31, 36);
                     changeRoleSelection(player, roleselector, 32, 37);
                 }
-                if (player.getServer().getCurrentPlayerCount() == 33) {
+                if (server.getCurrentPlayerCount() == 33) {
                     changeRoleSelection(player, roleselector, 1, 0);
                     changeRoleSelection(player, roleselector, 2, 1);
                     changeRoleSelection(player, roleselector, 3, 2);
@@ -1179,7 +1187,7 @@ public class ManhuntGame {
                     changeRoleSelection(player, roleselector, 32, 37);
                     changeRoleSelection(player, roleselector, 33, 40);
                 }
-                if (player.getServer().getCurrentPlayerCount() == 34) {
+                if (server.getCurrentPlayerCount() == 34) {
                     changeRoleSelection(player, roleselector, 1, 0);
                     changeRoleSelection(player, roleselector, 2, 1);
                     changeRoleSelection(player, roleselector, 3, 2);
@@ -1215,7 +1223,7 @@ public class ManhuntGame {
                     changeRoleSelection(player, roleselector, 33, 40);
                     changeRoleSelection(player, roleselector, 34, 41);
                 }
-                if (player.getServer().getCurrentPlayerCount() == 35) {
+                if (server.getCurrentPlayerCount() == 35) {
                     changeRoleSelection(player, roleselector, 1, 0);
                     changeRoleSelection(player, roleselector, 2, 1);
                     changeRoleSelection(player, roleselector, 3, 2);
@@ -1252,7 +1260,7 @@ public class ManhuntGame {
                     changeRoleSelection(player, roleselector, 34, 41);
                     changeRoleSelection(player, roleselector, 35, 42);
                 }
-                if (player.getServer().getCurrentPlayerCount() == 36) {
+                if (server.getCurrentPlayerCount() == 36) {
                     changeRoleSelection(player, roleselector, 1, 0);
                     changeRoleSelection(player, roleselector, 2, 1);
                     changeRoleSelection(player, roleselector, 3, 2);
@@ -1290,7 +1298,7 @@ public class ManhuntGame {
                     changeRoleSelection(player, roleselector, 35, 42);
                     changeRoleSelection(player, roleselector, 36, 43);
                 }
-                if (player.getServer().getCurrentPlayerCount() == 37) {
+                if (server.getCurrentPlayerCount() == 37) {
                     changeRoleSelection(player, roleselector, 1, 0);
                     changeRoleSelection(player, roleselector, 2, 1);
                     changeRoleSelection(player, roleselector, 3, 2);
@@ -1329,7 +1337,7 @@ public class ManhuntGame {
                     changeRoleSelection(player, roleselector, 36, 43);
                     changeRoleSelection(player, roleselector, 37, 44);
                 }
-                if (player.getServer().getCurrentPlayerCount() == 38) {
+                if (server.getCurrentPlayerCount() == 38) {
                     changeRoleSelection(player, roleselector, 1, 0);
                     changeRoleSelection(player, roleselector, 2, 1);
                     changeRoleSelection(player, roleselector, 3, 2);
@@ -1369,7 +1377,7 @@ public class ManhuntGame {
                     changeRoleSelection(player, roleselector, 37, 44);
                     changeRoleSelection(player, roleselector, 38, 45);
                 }
-                if (player.getServer().getCurrentPlayerCount() == 39) {
+                if (server.getCurrentPlayerCount() == 39) {
                     changeRoleSelection(player, roleselector, 1, 0);
                     changeRoleSelection(player, roleselector, 2, 1);
                     changeRoleSelection(player, roleselector, 3, 2);
@@ -1410,7 +1418,7 @@ public class ManhuntGame {
                     changeRoleSelection(player, roleselector, 38, 45);
                     changeRoleSelection(player, roleselector, 39, 46);
                 }
-                if (player.getServer().getCurrentPlayerCount() == 40) {
+                if (server.getCurrentPlayerCount() == 40) {
                     changeRoleSelection(player, roleselector, 1, 0);
                     changeRoleSelection(player, roleselector, 2, 1);
                     changeRoleSelection(player, roleselector, 3, 2);
@@ -1483,7 +1491,9 @@ public class ManhuntGame {
 
     private static void changeRoleSelection(ServerPlayerEntity player, SimpleGui gui, int count, int slot) {
         if (!player.getItemCooldownManager().isCoolingDown(Items.PLAYER_HEAD)) {
-            ServerPlayerEntity listPlayer = player.getServer().getPlayerManager().getPlayerList().get(count - 1);
+            MinecraftServer server = Manhunt.SERVER;
+
+            ServerPlayerEntity listPlayer = server.getPlayerManager().getPlayerList().get(count - 1);
             String value = currentRole.get(listPlayer.getUuid());
             List<Text> loreList = new ArrayList<>();
             if (value.equals("hunter")) {
@@ -1492,7 +1502,7 @@ public class ManhuntGame {
                 loreList.add(Text.literal("Runner").formatted(Formatting.GREEN));
             }
             gui.setSlot(slot, new GuiElementBuilder(Items.PLAYER_HEAD)
-                    .setSkullOwner(listPlayer.getGameProfile(), player.getServer())
+                    .setSkullOwner(listPlayer.getGameProfile(), server)
                     .setName(Text.literal(listPlayer.getName().getString()))
                     .setLore(loreList)
                     .setCallback(() -> {
@@ -1514,6 +1524,8 @@ public class ManhuntGame {
 
     private static void changeGameSetting(ServerPlayerEntity player, SimpleGui gui, String setting, String name, String lore, Item item, int slot, SoundEvent sound) {
         if (!player.getItemCooldownManager().isCoolingDown(item)) {
+            MinecraftServer server = Manhunt.SERVER;
+
             List<Text> loreList = new ArrayList<>();
             loreList.add(MessageUtil.ofVomponent(player, lore));
             if (setting.equals("setRoles")) {
@@ -1532,7 +1544,7 @@ public class ManhuntGame {
                                 nbt.putBoolean("Remove", true);
                                 ItemStack itemStack = new ItemStack(Items.BARRIER);
                                 itemStack.setNbt(nbt);
-                                for (ServerPlayerEntity serverPlayer : player.getServer().getPlayerManager().getPlayerList()) {
+                                for (ServerPlayerEntity serverPlayer : server.getPlayerManager().getPlayerList()) {
                                     serverPlayer.getInventory().setStack(3, itemStack);
                                     serverPlayer.getInventory().setStack(5, itemStack);
                                 }
@@ -1542,7 +1554,7 @@ public class ManhuntGame {
                                         Configs.configHandler.saveToDisk();
                                         MessageUtil.sendBroadcast("manhunt.chat.game.yellow", "Preset Mode", "All Hunters");
                                         player.playSound(sound, SoundCategory.MASTER, 1f, 1f);
-                                        for (ServerPlayerEntity serverPlayer : player.getServer().getPlayerManager().getPlayerList()) {
+                                        for (ServerPlayerEntity serverPlayer : server.getPlayerManager().getPlayerList()) {
                                             currentRole.put(serverPlayer.getUuid(), "hunter");
                                         }
                                     }
@@ -1551,7 +1563,7 @@ public class ManhuntGame {
                                         Configs.configHandler.saveToDisk();
                                         MessageUtil.sendBroadcast("manhunt.chat.game.red", "Preset Mode", "All Runners");
                                         player.playSound(sound, SoundCategory.MASTER, 1f, 1.5f);
-                                        for (ServerPlayerEntity serverPlayer : player.getServer().getPlayerManager().getPlayerList()) {
+                                        for (ServerPlayerEntity serverPlayer : server.getPlayerManager().getPlayerList()) {
                                             currentRole.put(serverPlayer.getUuid(), "runner");
                                         }
                                     }
@@ -1916,38 +1928,9 @@ public class ManhuntGame {
     }
 
     public static void resetGame(ServerCommandSource source) {
-        manhuntState(ManhuntState.PREGAME, source.getServer());
+        manhuntState(ManhuntState.PREGAME, Manhunt.SERVER);
 
-        for (ServerPlayerEntity player : source.getServer().getPlayerManager().getPlayerList()) {
-            currentRole.putIfAbsent(player.getUuid(), "hunter");
-
-            if (player.isTeamPlayer(source.getServer().getScoreboard().getTeam("hunters"))) {
-                source.getServer().getScoreboard().removeScoreHolderFromTeam(player.getName().getString(), source.getServer().getScoreboard().getTeam("hunters"));
-            }
-
-            if (player.isTeamPlayer(source.getServer().getScoreboard().getTeam("runners"))) {
-                source.getServer().getScoreboard().removeScoreHolderFromTeam(player.getName().getString(), source.getServer().getScoreboard().getTeam("runners"));
-            }
-
-            if (!player.isTeamPlayer(source.getServer().getScoreboard().getTeam("players"))) {
-                player.getScoreboard().addScoreHolderToTeam(player.getName().getString(), source.getServer().getScoreboard().getTeam("players"));
-            }
-
-            player.clearStatusEffects();
-            player.getInventory().clear();
-            player.setFireTicks(0);
-            player.setOnFire(false);
-            player.setHealth(20);
-            player.getHungerManager().setFoodLevel(20);
-            player.getHungerManager().setSaturationLevel(5);
-            player.getHungerManager().setExhaustion(0);
-            player.setExperienceLevel(0);
-            player.setExperiencePoints(0);
-        }
-
-        source.getServer().getWorld(lobbyRegistryKey).setSpawnPos(new BlockPos(0, 0, 0), 0);
-
-        new ManhuntWorldModule().resetWorlds(source.getServer());
+        new ManhuntWorldModule().resetWorlds(Manhunt.SERVER);
     }
 
     public static void unloadWorld(MinecraftServer server, ServerWorld world) {
@@ -1958,7 +1941,7 @@ public class ManhuntGame {
         BlockPos blockPos = setupSpawn(world);
         long l;
         long m;
-        int i = Math.max(0, player.getServer().getSpawnRadius(world));
+        int i = Math.max(0, Manhunt.SERVER.getSpawnRadius(world));
         int j = MathHelper.floor(world.getWorldBorder().getDistanceInsideBorder(blockPos.getX(), blockPos.getZ()));
         if (j < i) {
             i = j;

@@ -2,12 +2,14 @@ package manhunt.commands;
 
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
+import manhunt.Manhunt;
 import manhunt.game.ManhuntGame;
 import manhunt.game.ManhuntState;
 import manhunt.util.MessageUtil;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -31,8 +33,10 @@ public class TogglePauseCommand {
 
         if (player.hasPermissionLevel(2) || player.hasPermissionLevel(4)) {
             if (ManhuntGame.gameState == ManhuntState.PLAYING) {
+                MinecraftServer server = Manhunt.SERVER;
+
                 if (ManhuntGame.isPaused()) {
-                    for (ServerPlayerEntity gamePlayer : player.getServer().getPlayerManager().getPlayerList()) {
+                    for (ServerPlayerEntity gamePlayer : server.getPlayerManager().getPlayerList()) {
                         gamePlayer.getAttributeInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED).setBaseValue(0.10000000149011612);
                         gamePlayer.playSound(SoundEvents.BLOCK_ANVIL_LAND, SoundCategory.MASTER, 0.1f, 0.5f);
                         gamePlayer.removeStatusEffect(StatusEffects.BLINDNESS);
@@ -46,7 +50,7 @@ public class TogglePauseCommand {
                     ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
                     scheduledExecutorService.schedule(() -> ManhuntGame.setPaused(false), 1, TimeUnit.SECONDS);
                 } else if (!ManhuntGame.isPaused()) {
-                    for (ServerPlayerEntity gamePlayer : player.getServer().getPlayerManager().getPlayerList()) {
+                    for (ServerPlayerEntity gamePlayer : server.getPlayerManager().getPlayerList()) {
                         gamePlayer.getAttributeInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED).setBaseValue(0);
                         gamePlayer.playSound(SoundEvents.BLOCK_ANVIL_LAND, SoundCategory.MASTER, 0.1f, 1.5f);
                         gamePlayer.addStatusEffect(new StatusEffectInstance(StatusEffects.BLINDNESS, StatusEffectInstance.INFINITE, 255, false, true));
