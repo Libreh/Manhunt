@@ -26,7 +26,7 @@ public abstract class EnderDragonEntityMixin {
             if (ManhuntGame.settings.gameTitles) {
                 Configs.configHandler.model().settings.gameTitles = false;
                 Configs.configHandler.saveToDisk();
-                ManhuntGame.gameState = ManhuntState.POSTGAME;
+                ManhuntGame.manhuntState(ManhuntState.POSTGAME, dragon.getServer());
                 MinecraftServer server = dragon.getServer();
                 for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
                     MessageUtil.showTitle(player, "manhunt.title.runners", "manhunt.title.dragon");

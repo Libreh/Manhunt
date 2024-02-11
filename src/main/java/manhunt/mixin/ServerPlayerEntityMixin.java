@@ -127,7 +127,7 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity {
                 scoreboard.addScoreHolderToTeam(this.getName().getString(), scoreboard.getTeam("hunters"));
 
                 if (ManhuntGame.settings.gameTitles && server.getScoreboard().getTeam("runners").getPlayerList().isEmpty()) {
-                    ManhuntGame.gameState = ManhuntState.POSTGAME;
+                    ManhuntGame.manhuntState(ManhuntState.POSTGAME, server);
                     for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
                         ManhuntGame.updateGameMode(player);
                         MessageUtil.showTitle(player, "manhunt.title.hunters", "manhunt.title.dead");

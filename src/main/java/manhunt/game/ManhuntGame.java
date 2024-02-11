@@ -1916,7 +1916,7 @@ public class ManhuntGame {
     }
 
     public static void resetGame(ServerCommandSource source) {
-        gameState = ManhuntState.PREGAME;
+        manhuntState(ManhuntState.PREGAME, source.getServer());
 
         for (ServerPlayerEntity player : source.getServer().getPlayerManager().getPlayerList()) {
             currentRole.putIfAbsent(player.getUuid(), "hunter");
