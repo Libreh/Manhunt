@@ -5,6 +5,7 @@ import net.fabricmc.fabric.api.dimension.v1.FabricDimensions;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.registry.RegistryKey;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.math.BlockPos;
@@ -53,12 +54,6 @@ public abstract class EntityMixin {
     @Shadow
     public abstract Vec3d getVelocity();
 
-    @Shadow
-    public abstract float getYaw();
-
-    @Shadow
-    public abstract float getPitch();
-
     @Redirect(method = "tickPortal", at = @At(value = "FIELD", target = "Lnet/minecraft/world/World;NETHER:Lnet/minecraft/registry/RegistryKey;", opcode = Opcodes.GETSTATIC))
     private RegistryKey<World> redirectNetherRegistryKey() {
         if (world.getRegistryKey().getValue().getNamespace().equals("manhunt")) {
@@ -79,8 +74,12 @@ public abstract class EntityMixin {
 
     @Redirect(method = "tickPortal", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/Entity;moveToWorld(Lnet/minecraft/server/world/ServerWorld;)Lnet/minecraft/entity/Entity;"))
     private Entity moveToWorld(Entity instance, ServerWorld destination) {
-        TeleportTarget target = netherTeleportTarget(destination);
-        return FabricDimensions.teleport(((Entity)(Object)this), destination, target);
+        if (instance instanceof ServerPlayerEntity) {
+            TeleportTarget target = netherTeleportTarget(destination);
+            return FabricDimensions.teleport(((Entity)(Object)this), destination, target);
+        } else {
+            return instance;
+        }
     }
 
     @Unique
@@ -98,7 +97,7 @@ public abstract class EntityMixin {
                     ? this.positionInPortal(axis, BlockLocating.getLargestRectangle(this.lastNetherPortalPosition, axis, 21, Direction.Axis.Y, 21, (pos) -> this.world.getBlockState(pos) == blockState))
                     : new Vec3d(0.5, 0.0, 0.0);
 
-            return NetherPortal.getNetherTeleportTarget(destination, portalRect.get(), axis, vec3d, ((Entity) (Object) this), this.getVelocity(), this.getYaw(), this.getPitch());
+            return NetherPortal.getNetherTeleportTarget(destination, portalRect.get(), axis, vec3d, ((Entity) (Object) this), this.getVelocity(), 0.0F, 0.0F);
         }
 
         return null;

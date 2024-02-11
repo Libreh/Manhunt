@@ -239,6 +239,53 @@ public class ManhuntGame {
         }
     }
 
+    public static void playerJoin(ServerPlayNetworkHandler handler, PacketSender sender, MinecraftServer server) {
+        ServerPlayerEntity player = handler.getPlayer();
+
+        currentRole.put(player.getUuid(), "hunter");
+
+        if (gameState == ManhuntState.PREGAME) {
+            player.getInventory().clear();
+            updateGameMode(player);
+            player.teleport(player.getServerWorld(), 0, 63, 5.5, PositionFlag.ROT, 0, 0);
+            player.clearStatusEffects();
+            player.addStatusEffect(new StatusEffectInstance(StatusEffects.SATURATION, StatusEffectInstance.INFINITE, 255, false, false, false));
+            player.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE, StatusEffectInstance.INFINITE, 255, false, false, false));
+
+            if (!player.isTeamPlayer(server.getScoreboard().getTeam("players"))) {
+                player.getScoreboard().addScoreHolderToTeam(player.getName().getString(), server.getScoreboard().getTeam("players"));
+            }
+
+            if (!(settings.setRoles == 1)) {
+                NbtCompound nbt = new NbtCompound();
+                nbt.putBoolean("Remove", true);
+                ItemStack itemStack = new ItemStack(Items.BARRIER);
+                itemStack.setNbt(nbt);
+                player.getInventory().setStack(3, itemStack);
+                player.getInventory().setStack(5, itemStack);
+            }
+
+            if (settings.setRoles == 3) {
+                currentRole.put(player.getUuid(), "runner");
+            }
+        }
+
+        if (gameState == ManhuntState.PLAYING) {
+            if (player.getWorld() == server.getWorld(lobbyRegistryKey)) {
+                player.getInventory().clear();
+                updateGameMode(player);
+                moveToSpawn(server.getWorld(overworldRegistryKey), player);
+                player.clearStatusEffects();
+            }
+            if (player.getWorld() == server.getOverworld()) {
+                player.getInventory().clear();
+                updateGameMode(player);
+                moveToSpawn(server.getWorld(overworldRegistryKey), player);
+                player.clearStatusEffects();
+            }
+        }
+    }
+
     public static TypedActionResult<ItemStack> useItem(PlayerEntity player, World world, Hand hand) {
         var itemStack = player.getStackInHand(hand);
 
@@ -366,6 +413,7 @@ public class ManhuntGame {
                 if (!itemStack.getNbt().contains("Info")) {
                     itemStack.getNbt().put("Info", new NbtCompound());
                 }
+
                 NbtCompound info = itemStack.getNbt().getCompound("Info");
 
                 if (!info.contains("Name", NbtElement.STRING_TYPE) && !allRunners.isEmpty()) {
@@ -382,53 +430,6 @@ public class ManhuntGame {
         }
 
         return TypedActionResult.pass(itemStack);
-    }
-
-    public static void playerJoin(ServerPlayNetworkHandler handler, PacketSender sender, MinecraftServer server) {
-        ServerPlayerEntity player = handler.getPlayer();
-
-        currentRole.put(player.getUuid(), "hunter");
-
-        if (gameState == ManhuntState.PREGAME) {
-            player.getInventory().clear();
-            updateGameMode(player);
-            player.teleport(player.getServerWorld(), 0, 63, 5.5, PositionFlag.ROT, 0, 0);
-            player.clearStatusEffects();
-            player.addStatusEffect(new StatusEffectInstance(StatusEffects.SATURATION, StatusEffectInstance.INFINITE, 255, false, false, false));
-            player.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE, StatusEffectInstance.INFINITE, 255, false, false, false));
-
-            if (!player.isTeamPlayer(server.getScoreboard().getTeam("players"))) {
-                player.getScoreboard().addScoreHolderToTeam(player.getName().getString(), server.getScoreboard().getTeam("players"));
-            }
-
-            if (!(settings.setRoles == 1)) {
-                NbtCompound nbt = new NbtCompound();
-                nbt.putBoolean("Remove", true);
-                ItemStack itemStack = new ItemStack(Items.BARRIER);
-                itemStack.setNbt(nbt);
-                player.getInventory().setStack(3, itemStack);
-                player.getInventory().setStack(5, itemStack);
-            }
-
-            if (settings.setRoles == 3) {
-                currentRole.put(player.getUuid(), "runner");
-            }
-        }
-
-        if (gameState == ManhuntState.PLAYING) {
-            if (player.getWorld() == server.getWorld(lobbyRegistryKey)) {
-                player.getInventory().clear();
-                updateGameMode(player);
-                moveToSpawn(server.getWorld(overworldRegistryKey), player);
-                player.clearStatusEffects();
-            }
-            if (player.getWorld() == server.getOverworld()) {
-                player.getInventory().clear();
-                updateGameMode(player);
-                moveToSpawn(server.getWorld(overworldRegistryKey), player);
-                player.clearStatusEffects();
-            }
-        }
     }
 
     // Thanks to https://gitlab.com/horrific-tweaks/bingo for the spawnStructure method
@@ -1839,6 +1840,8 @@ public class ManhuntGame {
             player.getHungerManager().setFoodLevel(20);
             player.getHungerManager().setSaturationLevel(5);
             player.getHungerManager().setExhaustion(0);
+            player.setExperienceLevel(0);
+            player.setExperiencePoints(0);
 
             for (AdvancementEntry advancement : server.getAdvancementLoader().getAdvancements()) {
                 AdvancementProgress progress = player.getAdvancementTracker().getProgress(advancement);
@@ -1938,6 +1941,8 @@ public class ManhuntGame {
             player.getHungerManager().setFoodLevel(20);
             player.getHungerManager().setSaturationLevel(5);
             player.getHungerManager().setExhaustion(0);
+            player.setExperienceLevel(0);
+            player.setExperiencePoints(0);
         }
 
         source.getServer().getWorld(lobbyRegistryKey).setSpawnPos(new BlockPos(0, 0, 0), 0);

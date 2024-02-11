@@ -10,6 +10,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.network.packet.s2c.play.OverlayMessageS2CPacket;
 import net.minecraft.scoreboard.Scoreboard;
@@ -68,7 +69,17 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity {
                     stack.addEnchantment(Enchantments.VANISHING_CURSE, 1);
 
                     this.giveItemStack(stack);
-                } else if (ManhuntGame.settings.compassUpdate && System.currentTimeMillis() - lastDelay > ((long) 1000)) {
+
+                    NbtCompound info = stack.getNbt().getCompound("Info");
+
+                    if (!info.contains("Name", NbtElement.STRING_TYPE) && !ManhuntGame.allRunners.isEmpty()) {
+                        info.putString("Name", ManhuntGame.allRunners.get(0).getName().getString());
+                    }
+
+                    ServerPlayerEntity trackedPlayer = this.getServer().getPlayerManager().getPlayer(info.getString("Name"));
+
+                    updateCompass((ServerPlayerEntity) (Object)this, stack.getNbt(), trackedPlayer);
+                } else if (ManhuntGame.settings.compassUpdate && System.currentTimeMillis() - lastDelay > ((long) 500)) {
                     for (ItemStack item : this.getInventory().main) {
                         if (item.getItem().equals(Items.COMPASS) && item.getNbt() != null && item.getNbt().getBoolean("Tracker")) {
                             ServerPlayerEntity trackedPlayer = server.getPlayerManager().getPlayer(item.getNbt().getCompound("Info").getString("Name"));
