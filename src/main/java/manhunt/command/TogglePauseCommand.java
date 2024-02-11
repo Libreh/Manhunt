@@ -31,7 +31,7 @@ public class TogglePauseCommand {
     }
 
     private static int togglePause(ServerCommandSource source) {
-        if (Arrays.stream(Manhunt.SERVER.getPlayerManager().getWhitelistedNames()).anyMatch(Predicate.isEqual(source.getName().toString()))) {
+        if (Arrays.stream(Manhunt.SERVER.getPlayerManager().getWhitelistedNames()).anyMatch(Predicate.isEqual(source.getName()))) {
             if (ManhuntGame.gameState == ManhuntState.PLAYING) {
                 MinecraftServer server = Manhunt.SERVER;
 

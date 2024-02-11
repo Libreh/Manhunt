@@ -25,7 +25,7 @@ public class HunterCommand {
     }
 
     private static int setHunter(ServerCommandSource source, ServerPlayerEntity player) {
-        if (Arrays.stream(Manhunt.SERVER.getPlayerManager().getWhitelistedNames()).anyMatch(Predicate.isEqual(source.getName().toString()))) {
+        if (Arrays.stream(Manhunt.SERVER.getPlayerManager().getWhitelistedNames()).anyMatch(Predicate.isEqual(source.getName()))) {
             ManhuntGame.currentRole.put(player.getUuid(), "hunter");
 
             MessageUtil.sendBroadcast("manhunt.chat.role.hunter", player.getName().getString());

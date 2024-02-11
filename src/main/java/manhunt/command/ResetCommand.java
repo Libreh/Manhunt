@@ -21,7 +21,7 @@ public class ResetCommand {
     }
 
     private static int resetCommand(ServerCommandSource source) {
-        if (Arrays.stream(Manhunt.SERVER.getPlayerManager().getWhitelistedNames()).anyMatch(Predicate.isEqual(source.getName().toString()))) {
+        if (Arrays.stream(Manhunt.SERVER.getPlayerManager().getWhitelistedNames()).anyMatch(Predicate.isEqual(source.getName()))) {
             if (!(ManhuntGame.gameState == ManhuntState.PREGAME)) {
                 ManhuntGame.resetGame(source);
             } else {

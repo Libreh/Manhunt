@@ -22,7 +22,7 @@ public class StartCommand {
     }
 
     private static int startCommand(ServerCommandSource source) {
-        if (Arrays.stream(Manhunt.SERVER.getPlayerManager().getWhitelistedNames()).anyMatch(Predicate.isEqual(source.getName().toString()))) {
+        if (Arrays.stream(Manhunt.SERVER.getPlayerManager().getWhitelistedNames()).anyMatch(Predicate.isEqual(source.getName()))) {
             if (ManhuntGame.gameState == ManhuntState.PREGAME) {
                 if (Collections.frequency(ManhuntGame.currentRole.values(), "runner") == 0) {
                     source.sendFeedback(() -> MessageUtil.ofVomponent(source.getPlayer(), "manhunt.chat.minimum"), false);

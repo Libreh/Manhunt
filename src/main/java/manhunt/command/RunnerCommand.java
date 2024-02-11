@@ -25,7 +25,7 @@ public class RunnerCommand {
     }
 
     private static int setRunner(ServerCommandSource source, ServerPlayerEntity player) {
-        if (Arrays.stream(Manhunt.SERVER.getPlayerManager().getWhitelistedNames()).anyMatch(Predicate.isEqual(source.getName().toString()))) {
+        if (Arrays.stream(Manhunt.SERVER.getPlayerManager().getWhitelistedNames()).anyMatch(Predicate.isEqual(source.getName()))) {
             ManhuntGame.currentRole.put(player.getUuid(), "runner");
 
             MessageUtil.sendBroadcast("manhunt.chat.role.runner", player.getName().getString());
