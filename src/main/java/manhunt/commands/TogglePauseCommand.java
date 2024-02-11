@@ -33,7 +33,7 @@ public class TogglePauseCommand {
             if (ManhuntGame.gameState == ManhuntState.PLAYING) {
                 if (ManhuntGame.isPaused()) {
                     for (ServerPlayerEntity gamePlayer : player.getServer().getPlayerManager().getPlayerList()) {
-                        gamePlayer.getAttributeInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED).setBaseValue(0.1);
+                        gamePlayer.getAttributeInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED).setBaseValue(0.10000000149011612);
                         gamePlayer.playSound(SoundEvents.BLOCK_ANVIL_LAND, SoundCategory.MASTER, 0.1f, 0.5f);
                         gamePlayer.removeStatusEffect(StatusEffects.BLINDNESS);
                         gamePlayer.removeStatusEffect(StatusEffects.JUMP_BOOST);
@@ -45,23 +45,23 @@ public class TogglePauseCommand {
                     MessageUtil.sendBroadcast("manhunt.chat.unpaused");
                     ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
                     scheduledExecutorService.schedule(() -> ManhuntGame.setPaused(false), 1, TimeUnit.SECONDS);
+                } else if (!ManhuntGame.isPaused()) {
+                    for (ServerPlayerEntity gamePlayer : player.getServer().getPlayerManager().getPlayerList()) {
+                        gamePlayer.getAttributeInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED).setBaseValue(0);
+                        gamePlayer.playSound(SoundEvents.BLOCK_ANVIL_LAND, SoundCategory.MASTER, 0.1f, 1.5f);
+                        gamePlayer.addStatusEffect(new StatusEffectInstance(StatusEffects.BLINDNESS, StatusEffectInstance.INFINITE, 255, false, true));
+                        gamePlayer.addStatusEffect(new StatusEffectInstance(StatusEffects.JUMP_BOOST, StatusEffectInstance.INFINITE, 248, false, false));
+                        gamePlayer.addStatusEffect(new StatusEffectInstance(StatusEffects.MINING_FATIGUE, StatusEffectInstance.INFINITE, 255, false, false));
+                        gamePlayer.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE, StatusEffectInstance.INFINITE, 255, false, false));
+                        gamePlayer.addStatusEffect(new StatusEffectInstance(StatusEffects.WEAKNESS, StatusEffectInstance.INFINITE, 255, false, false));
+                        MessageUtil.showTitle(gamePlayer, "manhunt.title.paused", "manhunt.title.holdup");
+                    }
+                    MessageUtil.sendBroadcast("manhunt.chat.paused");
+                    ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
+                    scheduledExecutorService.schedule(() -> ManhuntGame.setPaused(true), 1, TimeUnit.SECONDS);
                 }
-            } else if (!ManhuntGame.isPaused()) {
-                for (ServerPlayerEntity gamePlayer : player.getServer().getPlayerManager().getPlayerList()) {
-                    gamePlayer.getAttributeInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED).setBaseValue(0);
-                    gamePlayer.playSound(SoundEvents.BLOCK_ANVIL_LAND, SoundCategory.MASTER, 0.1f, 1.5f);
-                    gamePlayer.addStatusEffect(new StatusEffectInstance(StatusEffects.BLINDNESS, StatusEffectInstance.INFINITE, 255, false, true));
-                    gamePlayer.addStatusEffect(new StatusEffectInstance(StatusEffects.JUMP_BOOST, StatusEffectInstance.INFINITE, 248, false, false));
-                    gamePlayer.addStatusEffect(new StatusEffectInstance(StatusEffects.MINING_FATIGUE, StatusEffectInstance.INFINITE, 255, false, false));
-                    gamePlayer.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE, StatusEffectInstance.INFINITE, 255, false, false));
-                    gamePlayer.addStatusEffect(new StatusEffectInstance(StatusEffects.WEAKNESS, StatusEffectInstance.INFINITE, 255, false, false));
-                    MessageUtil.showTitle(gamePlayer, "manhunt.title.paused", "manhunt.title.holdup");
-                }
-                MessageUtil.sendBroadcast("manhunt.chat.paused");
-                ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
-                scheduledExecutorService.schedule(() -> ManhuntGame.setPaused(true), 1, TimeUnit.SECONDS);
             } else {
-                source.sendFeedback(() -> MessageUtil.ofVomponent(player, "manhunt.lore.game"), false);
+                source.sendFeedback(() -> MessageUtil.ofVomponent(player, "manhunt.chat.pregame"), false);
             }
         } else {
             source.sendFeedback(() -> MessageUtil.ofVomponent(source.getPlayer(), "manhunt.chat.player"), false);

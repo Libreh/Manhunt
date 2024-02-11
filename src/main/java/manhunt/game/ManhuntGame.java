@@ -261,7 +261,7 @@ public class ManhuntGame {
 
                     player.getInventory().setStack(slotNumber, item);
 
-                    player.getItemCooldownManager().set(item.getItem(), 20);
+                    player.getItemCooldownManager().set(item.getItem(), 10);
 
                     player.playSound(SoundEvents.BLOCK_STONE_PLACE, SoundCategory.BLOCKS, 0.5f, 1.5f);
 
@@ -301,7 +301,7 @@ public class ManhuntGame {
                 }
 
                 if (itemStack.getItem() == Items.RECOVERY_COMPASS && itemStack.getNbt().getBoolean("Hunter") && !player.getItemCooldownManager().isCoolingDown(Items.CLOCK)) {
-                    player.getItemCooldownManager().set(itemStack.getItem(), 20);
+                    player.getItemCooldownManager().set(itemStack.getItem(), 10);
 
                     NbtCompound nbt = new NbtCompound();
                     nbt.putBoolean("Remove", true);
@@ -327,7 +327,7 @@ public class ManhuntGame {
                 }
 
                 if (itemStack.getItem() == Items.CLOCK && itemStack.getNbt().getBoolean("Runner") && !player.getItemCooldownManager().isCoolingDown(Items.RECOVERY_COMPASS)) {
-                    player.getItemCooldownManager().set(itemStack.getItem(), 20);
+                    player.getItemCooldownManager().set(itemStack.getItem(), 10);
 
                     NbtCompound nbt = new NbtCompound();
                     nbt.putBoolean("Remove", true);
@@ -362,7 +362,7 @@ public class ManhuntGame {
 
         if (gameState == ManhuntState.PLAYING) {
             if (itemStack.getNbt() != null && itemStack.getNbt().getBoolean("Tracker") && !player.isSpectator() && player.isTeamPlayer(world.getScoreboard().getTeam("hunters")) && !player.getItemCooldownManager().isCoolingDown(itemStack.getItem())) {
-                player.getItemCooldownManager().set(itemStack.getItem(), 20);
+                player.getItemCooldownManager().set(itemStack.getItem(), 10);
                 if (!itemStack.getNbt().contains("Info")) {
                     itemStack.getNbt().put("Info", new NbtCompound());
                 }
@@ -479,7 +479,7 @@ public class ManhuntGame {
             if (allRunners.isEmpty())
                 MessageUtil.sendMessage(player, "manhunt.tracker.norunners");
             else {
-                player.getItemCooldownManager().set(player.getMainHandStack().getItem(), 20);
+                player.getItemCooldownManager().set(player.getMainHandStack().getItem(), 10);
 
                 for (int i = 0; i < allRunners.size(); i++) {
                     ServerPlayerEntity gamePlayer = allRunners.get(i);
@@ -1505,7 +1505,7 @@ public class ManhuntGame {
                             MessageUtil.sendBroadcast("manhunt.chat.role.runner", listPlayer.getName().getString());
                         }
                         changeRoleSelection(player, gui, count, slot);
-                        player.getItemCooldownManager().set(Items.PLAYER_HEAD, 20);
+                        player.getItemCooldownManager().set(Items.PLAYER_HEAD, 10);
                     })
             );
         }
@@ -1562,7 +1562,7 @@ public class ManhuntGame {
                                     }
                                 }
                                 changeGameSetting(player, gui, setting, name, lore, item, slot, sound);
-                                player.getItemCooldownManager().set(item, 20);
+                                player.getItemCooldownManager().set(item, 10);
                             }
                         })
                 );
@@ -1641,7 +1641,7 @@ public class ManhuntGame {
                                                         MessageUtil.sendMessage(player, "manhunt.chat.invalid");
                                                     }
                                                     gameSettings(player);
-                                                    player.getItemCooldownManager().set(item, 20);
+                                                    player.getItemCooldownManager().set(item, 10);
                                                 })
                                         );
                                     }
@@ -1679,7 +1679,7 @@ public class ManhuntGame {
                                     player.playSound(sound, SoundCategory.MASTER, 1f, 1f);
                                 }
                                 changeGameSetting(player, gui, setting, name, lore, item, slot, sound);
-                                player.getItemCooldownManager().set(item, 20);
+                                player.getItemCooldownManager().set(item, 10);
                                 Configs.configHandler.saveToDisk();
                             }
                         })
@@ -1710,7 +1710,7 @@ public class ManhuntGame {
                                     player.playSound(sound, SoundCategory.MASTER, 1f, 1f);
                                 }
                                 changeGameSetting(player, gui, setting, name, lore, item, slot, sound);
-                                player.getItemCooldownManager().set(item, 20);
+                                player.getItemCooldownManager().set(item, 10);
                                 Configs.configHandler.saveToDisk();
                             }
                         })
@@ -1747,7 +1747,7 @@ public class ManhuntGame {
                                     player.playSound(sound, SoundCategory.MASTER, 1f, 1.2f);
                                 }
                                 changeGameSetting(player, gui, setting, name, lore, item, slot, sound);
-                                player.getItemCooldownManager().set(item, 20);
+                                player.getItemCooldownManager().set(item, 10);
                                 Configs.configHandler.saveToDisk();
                             }
                         })
@@ -1777,7 +1777,7 @@ public class ManhuntGame {
                                     player.playSound(sound, SoundCategory.MASTER, 1f, 1f);
                                 }
                                 changeGameSetting(player, gui, setting, name, lore, item, slot, sound);
-                                player.getItemCooldownManager().set(item, 20);
+                                player.getItemCooldownManager().set(item, 10);
                                 Configs.configHandler.saveToDisk();
                             }
                         })

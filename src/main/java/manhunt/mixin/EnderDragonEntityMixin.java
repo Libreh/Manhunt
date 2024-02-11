@@ -1,5 +1,6 @@
 package manhunt.mixin;
 
+import manhunt.config.Configs;
 import manhunt.game.ManhuntGame;
 import manhunt.game.ManhuntState;
 import manhunt.util.MessageUtil;
@@ -18,20 +19,29 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(EnderDragonEntity.class)
 public abstract class EnderDragonEntityMixin {
 
-    @Inject(method = "updatePostDeath", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/GameRules;getBoolean(Lnet/minecraft/world/GameRules$Key;)Z"))
+    @Inject(method = "tickMovement", at = @At("TAIL"))
     private void runnersWon(CallbackInfo ci) {
-        try {
-            EnderDragonEntity dragon = ((EnderDragonEntity) (Object) this);
-            MinecraftServer server = dragon.getServer();
+        EnderDragonEntity dragon = ((EnderDragonEntity) (Object) this);
+        if (dragon.getHealth() == 1.0F) {
             if (ManhuntGame.settings.gameTitles) {
-                if (!server.getScoreboard().getTeam("runners").getPlayerList().isEmpty() && dragon.deathTime == 1) {
-                    ManhuntGame.gameState = ManhuntState.POSTGAME;
-                    for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
-                        MessageUtil.showTitle(player, "manhunt.title.runners", "manhunt.title.dragon");
-                        player.playSound(SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, SoundCategory.PLAYERS, 0.2f, 2f);
-                    }
+                Configs.configHandler.model().settings.gameTitles = false;
+                Configs.configHandler.saveToDisk();
+                ManhuntGame.gameState = ManhuntState.POSTGAME;
+                MinecraftServer server = dragon.getServer();
+                for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+                    MessageUtil.showTitle(player, "manhunt.title.runners", "manhunt.title.dragon");
+                    player.playSound(SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, SoundCategory.PLAYERS, 0.2f, 2f);
                 }
             }
-        } catch (NullPointerException ignored) {}
+        }
+    }
+
+    @Inject(method = "updatePostDeath", at = @At("TAIL"))
+    private void setGameTitles(CallbackInfo ci) {
+        EnderDragonEntity dragon = ((EnderDragonEntity) (Object) this);
+        if (dragon.ticksSinceDeath == 1) {
+            Configs.configHandler.model().settings.gameTitles = true;
+            Configs.configHandler.saveToDisk();
+        }
     }
 }
