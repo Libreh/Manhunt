@@ -53,9 +53,9 @@ public abstract class PlayerManagerMixin {
             nbt.putString("Dimension", "overworld");
 
             NbtList position = new NbtList();
-            position.add(NbtDouble.of(ManhuntGame.setupSpawn(server.getWorld(ManhuntGame.overworldRegistryKey)).getX()));
-            position.add(NbtDouble.of(ManhuntGame.setupSpawn(server.getWorld(ManhuntGame.overworldRegistryKey)).getY()));
-            position.add(NbtDouble.of(ManhuntGame.setupSpawn(server.getWorld(ManhuntGame.overworldRegistryKey)).getZ()));
+            position.add(NbtDouble.of(ManhuntGame.worldSpawnPos.getX()));
+            position.add(NbtDouble.of(ManhuntGame.worldSpawnPos.getY()));
+            position.add(NbtDouble.of(ManhuntGame.worldSpawnPos.getZ()));
             nbt.put("Pos", position);
 
             NbtList rotation = new NbtList();

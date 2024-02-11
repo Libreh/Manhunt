@@ -1,4 +1,4 @@
-package manhunt.commands;
+package manhunt.command;
 
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
@@ -9,21 +9,22 @@ import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 
-public class HunterCommand {
+public class RunnerCommand {
 
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
-        dispatcher.register(CommandManager.literal("hunter")
+        dispatcher.register(CommandManager.literal("runner")
+                .executes(context -> setRunner(context.getSource(), context.getSource().getPlayer()))
                 .then(CommandManager.argument("player", EntityArgumentType.player())
-                        .executes(context -> setHunter(context.getSource(), EntityArgumentType.getPlayer(context, "player")))
+                        .executes(context -> setRunner(context.getSource(), EntityArgumentType.getPlayer(context, "player")))
                 )
         );
     }
 
-    private static int setHunter(ServerCommandSource source, ServerPlayerEntity player) {
+    private static int setRunner(ServerCommandSource source, ServerPlayerEntity player) {
         if (source.hasPermissionLevel(2) || source.hasPermissionLevel(4)) {
-            ManhuntGame.currentRole.put(player.getUuid(), "hunter");
+            ManhuntGame.currentRole.put(player.getUuid(), "runner");
 
-            source.sendFeedback(() -> MessageUtil.ofVomponent(source.getPlayer(), "manhunt.chat.role.hunter", player.getName().getString()), false);
+            MessageUtil.sendBroadcast("manhunt.chat.role.runner", player.getName().getString());
         } else {
             source.sendFeedback(() -> MessageUtil.ofVomponent(source.getPlayer(), "manhunt.chat.player"), false);
         }

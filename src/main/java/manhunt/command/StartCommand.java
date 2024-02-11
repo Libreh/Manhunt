@@ -1,4 +1,4 @@
-package manhunt.commands;
+package manhunt.command;
 
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;

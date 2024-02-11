@@ -5,7 +5,7 @@ import eu.pb4.sgui.api.elements.GuiElementBuilder;
 import eu.pb4.sgui.api.gui.AnvilInputGui;
 import eu.pb4.sgui.api.gui.SimpleGui;
 import manhunt.Manhunt;
-import manhunt.commands.*;
+import manhunt.command.*;
 import manhunt.config.Configs;
 import manhunt.config.model.ConfigModel;
 import manhunt.mixin.MinecraftServerAccessInterface;
@@ -43,6 +43,7 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
+import net.minecraft.stat.Stats;
 import net.minecraft.structure.StructurePlacementData;
 import net.minecraft.structure.StructureTemplate;
 import net.minecraft.text.Text;
@@ -80,6 +81,7 @@ public class ManhuntGame {
         ManhuntGame.paused = paused;
     }
     public final MinecraftServerAccessInterface serverAccessMixin;
+    public static BlockPos worldSpawnPos;
 
     public ManhuntGame(MinecraftServerAccessInterface serverAccessMixin) {
         this.serverAccessMixin = serverAccessMixin;
@@ -92,7 +94,7 @@ public class ManhuntGame {
         StartCommand.register(dispatcher);
         DurationCommand.register(dispatcher);
         TogglePauseCommand.register(dispatcher);
-        TmCoordsCommand.register(dispatcher);
+        SendTeamCoordsCommand.register(dispatcher);
         ResetCommand.register(dispatcher);
     }
 
@@ -148,7 +150,7 @@ public class ManhuntGame {
     public static void serverTick(MinecraftServer server) {
         if (gameState == ManhuntState.PREGAME) {
             for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
-                if (!hasItem(Items.RED_CONCRETE, player, "NotReady") && !hasItem(Items.LIME_CONCRETE, player, "Ready")) {
+                if (!hasItem(Items.RED_CONCRETE, player, "NotReady") && !hasItem(Items.LIME_CONCRETE, player, "Ready") && settings.setRoles == 1) {
                     NbtCompound nbt = new NbtCompound();
                     nbt.putBoolean("Remove", true);
                     nbt.putBoolean("NotReady", true);
@@ -263,6 +265,7 @@ public class ManhuntGame {
                 nbt.putBoolean("Remove", true);
                 ItemStack itemStack = new ItemStack(Items.BARRIER);
                 itemStack.setNbt(nbt);
+                player.getInventory().setStack(0, itemStack);
                 player.getInventory().setStack(3, itemStack);
                 player.getInventory().setStack(5, itemStack);
             }
@@ -1826,7 +1829,10 @@ public class ManhuntGame {
 
         for (ServerWorld serverWorld : server.getWorlds()) {
             serverWorld.setTimeOfDay(0);
+            serverWorld.resetWeather();
         }
+
+        worldSpawnPos = setupSpawn(world);
 
         server.getGameRules().get(GameRules.ANNOUNCE_ADVANCEMENTS).set(true, server);
         server.getGameRules().get(GameRules.DO_FIRE_TICK).set(true, server);
@@ -1859,8 +1865,11 @@ public class ManhuntGame {
                 AdvancementProgress progress = player.getAdvancementTracker().getProgress(advancement);
                 for (String criteria : progress.getObtainedCriteria()) {
                     player.getAdvancementTracker().revokeCriterion(advancement, criteria);
+                    Manhunt.LOGGER.info(advancement + criteria);
                 }
             }
+
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.BOAT_ONE_CM));
 
             updateGameMode(player);
 
@@ -1870,7 +1879,7 @@ public class ManhuntGame {
 
             player.networkHandler.sendPacket(new PlaySoundS2CPacket(SoundEvents.BLOCK_NOTE_BLOCK_PLING, SoundCategory.BLOCKS, player.getX(), player.getY(), player.getZ(), 0.1f, 1.5f, 0));
 
-            if (player.isTeamPlayer(player.getScoreboard().getTeam("hunters"))) {
+            if (player.isTeamPlayer(server.getScoreboard().getTeam("hunters"))) {
                 if (settings.hunterFreeze != 0) {
                     player.addStatusEffect(new StatusEffectInstance(StatusEffects.BLINDNESS, settings.hunterFreeze * 20, 255, false, true));
                     player.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, settings.hunterFreeze * 20, 255, false, false));
@@ -1938,7 +1947,7 @@ public class ManhuntGame {
     }
 
     private static void moveToSpawn(ServerWorld world, ServerPlayerEntity player) {
-        BlockPos blockPos = setupSpawn(world);
+        BlockPos blockPos = worldSpawnPos;
         long l;
         long m;
         int i = Math.max(0, Manhunt.SERVER.getSpawnRadius(world));

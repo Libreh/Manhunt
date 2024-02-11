@@ -102,6 +102,7 @@ public class ManhuntWorldManager {
                 nbt.putBoolean("Remove", true);
                 ItemStack itemStack = new ItemStack(Items.BARRIER);
                 itemStack.setNbt(nbt);
+                player.getInventory().setStack(0, itemStack);
                 player.getInventory().setStack(3, itemStack);
                 player.getInventory().setStack(5, itemStack);
             }

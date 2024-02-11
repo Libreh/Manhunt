@@ -1,10 +1,12 @@
 package manhunt.mixin;
 
+import manhunt.Manhunt;
 import manhunt.game.ManhuntGame;
 import net.fabricmc.fabric.api.dimension.v1.FabricDimensions;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.registry.RegistryKey;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.state.property.Properties;
@@ -75,6 +77,8 @@ public abstract class EntityMixin {
     @Redirect(method = "tickPortal", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/Entity;moveToWorld(Lnet/minecraft/server/world/ServerWorld;)Lnet/minecraft/entity/Entity;"))
     private Entity moveToWorld(Entity instance, ServerWorld destination) {
         if (instance instanceof ServerPlayerEntity) {
+            MinecraftServer server = Manhunt.SERVER;
+            server.getCommandManager().executeWithPrefix(server.getCommandSource().withSilent().withLevel(2), "advancement grant " + instance.getName().getString() + " only minecraft:story/enter_the_nether");
             TeleportTarget target = netherTeleportTarget(destination);
             return FabricDimensions.teleport(((Entity)(Object)this), destination, target);
         } else {
