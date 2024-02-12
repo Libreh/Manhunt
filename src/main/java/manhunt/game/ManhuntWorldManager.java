@@ -5,11 +5,11 @@ import manhunt.Manhunt;
 import manhunt.mixin.MinecraftServerAccessInterface;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
+import net.minecraft.advancement.AdvancementEntry;
+import net.minecraft.advancement.AdvancementProgress;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.nbt.NbtCompound;
+import net.minecraft.network.packet.s2c.play.PositionFlag;
 import net.minecraft.registry.DynamicRegistryManager;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
@@ -17,6 +17,7 @@ import net.minecraft.registry.SimpleRegistry;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.stat.Stats;
 import net.minecraft.world.World;
 import net.minecraft.world.dimension.DimensionOptions;
 import net.minecraft.world.level.storage.LevelStorage;
@@ -68,12 +69,12 @@ public class ManhuntWorldManager {
         List<ServerPlayerEntity> players = new ArrayList<>(world.getPlayers());
 
         for (ServerPlayerEntity player : players) {
-            player.teleport(server.getWorld(ManhuntGame.lobbyRegistryKey), 0, 63, 5.5, 0.0F, 0.0F);
-            player.getInventory().clear();
-            ManhuntGame.updateGameMode(player);
+            ManhuntGame.currentRole.putIfAbsent(player.getUuid(), "hunter");
+
+            server.getPlayerManager().removeFromOperators(player.getGameProfile());
+            player.teleport(server.getWorld(ManhuntGame.lobbyRegistryKey), 0, 63, 5.5, PositionFlag.ROT, 0, 0);
             player.clearStatusEffects();
-            player.addStatusEffect(new StatusEffectInstance(StatusEffects.SATURATION, StatusEffectInstance.INFINITE, 255, false, false, false));
-            player.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE, StatusEffectInstance.INFINITE, 255, false, false, false));
+            player.getInventory().clear();
             player.setFireTicks(0);
             player.setOnFire(false);
             player.setHealth(20);
@@ -82,8 +83,19 @@ public class ManhuntWorldManager {
             player.getHungerManager().setExhaustion(0);
             player.setExperienceLevel(0);
             player.setExperiencePoints(0);
+            player.clearStatusEffects();
+            player.addStatusEffect(new StatusEffectInstance(StatusEffects.SATURATION, StatusEffectInstance.INFINITE, 255, false, false, false));
 
-            ManhuntGame.currentRole.putIfAbsent(player.getUuid(), "hunter");
+            for (AdvancementEntry advancement : server.getAdvancementLoader().getAdvancements()) {
+                AdvancementProgress progress = player.getAdvancementTracker().getProgress(advancement);
+                for (String criteria : progress.getObtainedCriteria()) {
+                    player.getAdvancementTracker().revokeCriterion(advancement, criteria);
+                }
+            }
+
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.BOAT_ONE_CM));
+
+            ManhuntGame.updateGameMode(player);
 
             if (player.isTeamPlayer(server.getScoreboard().getTeam("hunters"))) {
                 server.getScoreboard().removeScoreHolderFromTeam(player.getName().getString(), server.getScoreboard().getTeam("hunters"));
@@ -95,16 +107,6 @@ public class ManhuntWorldManager {
 
             if (!player.isTeamPlayer(server.getScoreboard().getTeam("players"))) {
                 player.getScoreboard().addScoreHolderToTeam(player.getName().getString(), server.getScoreboard().getTeam("players"));
-            }
-
-            if (!(ManhuntGame.settings.setRoles == 1)) {
-                NbtCompound nbt = new NbtCompound();
-                nbt.putBoolean("Remove", true);
-                ItemStack itemStack = new ItemStack(Items.BARRIER);
-                itemStack.setNbt(nbt);
-                player.getInventory().setStack(0, itemStack);
-                player.getInventory().setStack(3, itemStack);
-                player.getInventory().setStack(5, itemStack);
             }
 
             if (ManhuntGame.settings.setRoles == 3) {

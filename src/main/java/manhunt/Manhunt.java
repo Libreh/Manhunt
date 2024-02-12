@@ -34,6 +34,7 @@ public class Manhunt implements ModInitializer {
 		ServerTickEvents.START_SERVER_TICK.register(ManhuntGame::serverTick);
 		ServerTickEvents.START_WORLD_TICK.register(ManhuntGame::worldTick);
 		ServerPlayConnectionEvents.JOIN.register(ManhuntGame::playerJoin);
+		ServerPlayConnectionEvents.DISCONNECT.register(ManhuntGame::playerDisconnect);
 		UseItemCallback.EVENT.register(ManhuntGame::useItem);
 		ServerPlayerEvents.AFTER_RESPAWN.register(ManhuntGame::playerRespawn);
 		ServerWorldEvents.UNLOAD.register(ManhuntGame::unloadWorld);

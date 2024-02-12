@@ -161,6 +161,7 @@ public class ManhuntGame {
         server.getGameRules().get(GameRules.RANDOM_TICK_SPEED).set(0, server);
         server.getGameRules().get(GameRules.SHOW_DEATH_MESSAGES).set(false, server);
         server.getGameRules().get(GameRules.SPAWN_RADIUS).set(0, server);
+        server.getGameRules().get(GameRules.FALL_DAMAGE).set(false, server);
 
         server.setPvpEnabled(false);
 
@@ -283,28 +284,39 @@ public class ManhuntGame {
     public static void playerJoin(ServerPlayNetworkHandler handler, PacketSender sender, MinecraftServer server) {
         ServerPlayerEntity player = handler.getPlayer();
 
-        currentRole.put(player.getUuid(), "hunter");
+        server.getPlayerManager().removeFromOperators(player.getGameProfile());
+
+        currentRole.putIfAbsent(player.getUuid(), "hunter");
 
         if (gameState == ManhuntState.PREGAME) {
-            player.getInventory().clear();
-            updateGameMode(player);
+            server.getPlayerManager().removeFromOperators(player.getGameProfile());
             player.teleport(server.getWorld(lobbyRegistryKey), 0, 63, 5.5, PositionFlag.ROT, 0, 0);
             player.clearStatusEffects();
+            player.getInventory().clear();
+            player.setFireTicks(0);
+            player.setOnFire(false);
+            player.setHealth(20);
+            player.getHungerManager().setFoodLevel(20);
+            player.getHungerManager().setSaturationLevel(5);
+            player.getHungerManager().setExhaustion(0);
+            player.setExperienceLevel(0);
+            player.setExperiencePoints(0);
+            player.clearStatusEffects();
             player.addStatusEffect(new StatusEffectInstance(StatusEffects.SATURATION, StatusEffectInstance.INFINITE, 255, false, false, false));
-            player.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE, StatusEffectInstance.INFINITE, 255, false, false, false));
+
+            for (AdvancementEntry advancement : server.getAdvancementLoader().getAdvancements()) {
+                AdvancementProgress progress = player.getAdvancementTracker().getProgress(advancement);
+                for (String criteria : progress.getObtainedCriteria()) {
+                    player.getAdvancementTracker().revokeCriterion(advancement, criteria);
+                }
+            }
+
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.BOAT_ONE_CM));
+
+            updateGameMode(player);
 
             if (!player.isTeamPlayer(server.getScoreboard().getTeam("players"))) {
                 player.getScoreboard().addScoreHolderToTeam(player.getName().getString(), server.getScoreboard().getTeam("players"));
-            }
-
-            if (!(settings.setRoles == 1)) {
-                NbtCompound nbt = new NbtCompound();
-                nbt.putBoolean("Remove", true);
-                ItemStack itemStack = new ItemStack(Items.BARRIER);
-                itemStack.setNbt(nbt);
-                player.getInventory().setStack(0, itemStack);
-                player.getInventory().setStack(3, itemStack);
-                player.getInventory().setStack(5, itemStack);
             }
 
             if (settings.setRoles == 3) {
@@ -317,15 +329,13 @@ public class ManhuntGame {
                 player.getInventory().clear();
                 updateGameMode(player);
                 moveToSpawn(server.getWorld(overworldRegistryKey), player);
-                player.clearStatusEffects();
-            }
-            if (player.getWorld() == server.getOverworld()) {
-                player.getInventory().clear();
-                updateGameMode(player);
-                moveToSpawn(server.getWorld(overworldRegistryKey), player);
-                player.clearStatusEffects();
+                player.removeStatusEffect(StatusEffects.SATURATION);
             }
         }
+    }
+
+    public static void playerDisconnect(ServerPlayNetworkHandler handler, MinecraftServer server) {
+        allRunners.removeIf(Predicate.isEqual(handler.getPlayer()));
     }
 
     public static TypedActionResult<ItemStack> useItem(PlayerEntity player, World world, Hand hand) {
@@ -1547,14 +1557,6 @@ public class ManhuntGame {
                         .setLore(loreList)
                         .setCallback(() -> {
                             if (!player.getItemCooldownManager().isCoolingDown(item)) {
-                                NbtCompound nbt = new NbtCompound();
-                                nbt.putBoolean("Remove", true);
-                                ItemStack itemStack = new ItemStack(Items.BARRIER);
-                                itemStack.setNbt(nbt);
-                                for (ServerPlayerEntity serverPlayer : server.getPlayerManager().getPlayerList()) {
-                                    serverPlayer.getInventory().setStack(3, itemStack);
-                                    serverPlayer.getInventory().setStack(5, itemStack);
-                                }
                                 switch (settings.setRoles) {
                                     case 1 -> {
                                         Configs.configHandler.model().settings.setRoles = 2;
@@ -1848,11 +1850,13 @@ public class ManhuntGame {
         server.getGameRules().get(GameRules.FALL_DAMAGE).set(true, server);
         server.getGameRules().get(GameRules.RANDOM_TICK_SPEED).set(3, server);
         server.getGameRules().get(GameRules.SHOW_DEATH_MESSAGES).set(true, server);
-        server.getGameRules().get(GameRules.SPAWN_RADIUS).set(10, server);
+        server.getGameRules().get(GameRules.SPAWN_RADIUS).set(0, server);
+        server.getGameRules().get(GameRules.FALL_DAMAGE).set(true, server);
 
         server.setPvpEnabled(true);
 
         for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+            server.getPlayerManager().removeFromOperators(player.getGameProfile());
             moveToSpawn(world, player);
             player.clearStatusEffects();
             player.getInventory().clear();
@@ -1876,10 +1880,6 @@ public class ManhuntGame {
 
             updateGameMode(player);
 
-            if (settings.gameTitles) {
-                MessageUtil.showTitle(player, "manhunt.title.gamemode", "manhunt.title.start");
-            }
-
             player.networkHandler.sendPacket(new PlaySoundS2CPacket(SoundEvents.BLOCK_NOTE_BLOCK_PLING, SoundCategory.BLOCKS, player.getX(), player.getY(), player.getZ(), 0.1f, 1.5f, 0));
 
             if (player.isTeamPlayer(server.getScoreboard().getTeam("hunters"))) {
@@ -1893,14 +1893,18 @@ public class ManhuntGame {
                 }
             }
 
-            var difficulty = switch (settings.worldDifficulty) {
-                case 2 -> Difficulty.NORMAL;
-                case 3 -> Difficulty.HARD;
-                default -> Difficulty.EASY;
-            };
-
-            server.setDifficulty(difficulty, true);
+            if (settings.gameTitles) {
+                MessageUtil.showTitle(player, "manhunt.title.gamemode", "manhunt.title.start");
+            }
         }
+
+        var difficulty = switch (settings.worldDifficulty) {
+            case 2 -> Difficulty.NORMAL;
+            case 3 -> Difficulty.HARD;
+            default -> Difficulty.EASY;
+        };
+
+        server.setDifficulty(difficulty, true);
     }
 
     public static void updateGameMode(ServerPlayerEntity player) {
