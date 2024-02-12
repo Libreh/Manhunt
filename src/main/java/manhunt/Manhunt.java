@@ -5,6 +5,7 @@ import manhunt.game.ManhuntGame;
 import manhunt.util.LogUtil;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
@@ -34,6 +35,7 @@ public class Manhunt implements ModInitializer {
 		ServerTickEvents.START_WORLD_TICK.register(ManhuntGame::worldTick);
 		ServerPlayConnectionEvents.JOIN.register(ManhuntGame::playerJoin);
 		UseItemCallback.EVENT.register(ManhuntGame::useItem);
+		ServerPlayerEvents.AFTER_RESPAWN.register(ManhuntGame::playerRespawn);
 		ServerWorldEvents.UNLOAD.register(ManhuntGame::unloadWorld);
 	}
 }

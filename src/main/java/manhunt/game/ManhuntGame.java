@@ -56,6 +56,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 
 import static manhunt.Manhunt.MOD_ID;
@@ -98,6 +101,38 @@ public class ManhuntGame {
         SendTeamCoordsCommand.register(dispatcher);
         ShowTeamCoordsCommand.register(dispatcher);
         ResetCommand.register(dispatcher);
+    }
+
+    // Thanks to https://gitlab.com/horrific-tweaks/bingo for the spawnStructure method
+
+    private static void spawnStructure(MinecraftServer server) throws IOException {
+        var lobbyIcebergNbt = NbtIo.readCompressed(ManhuntGame.class.getResourceAsStream("/manhunt/lobby/iceberg.nbt"), NbtSizeTracker.ofUnlimitedBytes());
+
+        var lobbyWorld = server.getWorld(lobbyRegistryKey);
+
+        lobbyWorld.getChunkManager().addTicket(ChunkTicketType.START, new ChunkPos(0, 0), 16, Unit.INSTANCE);
+        lobbyWorld.getChunkManager().addTicket(ChunkTicketType.START, new ChunkPos(-15, 0), 16, Unit.INSTANCE);
+        lobbyWorld.getChunkManager().addTicket(ChunkTicketType.START, new ChunkPos(0, -15), 16, Unit.INSTANCE);
+        lobbyWorld.getChunkManager().addTicket(ChunkTicketType.START, new ChunkPos(-15, -15), 16, Unit.INSTANCE);
+        lobbyWorld.getChunkManager().addTicket(ChunkTicketType.START, new ChunkPos(16, 16), 16, Unit.INSTANCE);
+        lobbyWorld.getChunkManager().addTicket(ChunkTicketType.START, new ChunkPos(16, 0), 16, Unit.INSTANCE);
+        lobbyWorld.getChunkManager().addTicket(ChunkTicketType.START, new ChunkPos(0, 16), 16, Unit.INSTANCE);
+        placeStructure(lobbyWorld, new BlockPos(-8, 37, -8), lobbyIcebergNbt);
+    }
+
+    // Thanks to https://gitlab.com/horrific-tweaks/bingo for the placeStructure method
+
+    private static void placeStructure(ServerWorld world, BlockPos pos, NbtCompound nbt) {
+        StructureTemplate template = world.getStructureTemplateManager().createTemplate(nbt);
+
+        template.place(
+                world,
+                pos,
+                pos,
+                new StructurePlacementData(),
+                StructureBlockBlockEntity.createRandom(world.getSeed()),
+                2
+        );
     }
 
     public static void serverStart(MinecraftServer server) {
@@ -417,7 +452,7 @@ public class ManhuntGame {
         }
 
         if (gameState == ManhuntState.PLAYING) {
-            if (itemStack.getNbt() != null && itemStack.getNbt().getBoolean("Tracker") && !player.isSpectator() && player.isTeamPlayer(world.getScoreboard().getTeam("hunters")) && !player.getItemCooldownManager().isCoolingDown(itemStack.getItem())) {
+            if (!settings.compassUpdate && itemStack.getNbt() != null && itemStack.getNbt().getBoolean("Tracker") && !player.isSpectator() && player.isTeamPlayer(Manhunt.SERVER.getScoreboard().getTeam("hunters")) && !player.getItemCooldownManager().isCoolingDown(itemStack.getItem())) {
                 player.getItemCooldownManager().set(itemStack.getItem(), 10);
                 if (!itemStack.getNbt().contains("Info")) {
                     itemStack.getNbt().put("Info", new NbtCompound());
@@ -441,76 +476,47 @@ public class ManhuntGame {
         return TypedActionResult.pass(itemStack);
     }
 
-    // Thanks to https://gitlab.com/horrific-tweaks/bingo for the spawnStructure method
+    public static void tryUpdatingCompass(ServerPlayerEntity player) {
+        NbtCompound nbt = new NbtCompound();
+        nbt.putBoolean("Tracker", true);
+        nbt.putBoolean("Remove", true);
+        nbt.putBoolean("LodestoneTracked", false);
+        nbt.putString("LodestoneDimension", "manhunt:overworld");
+        nbt.putInt("HideFlags", 1);
+        nbt.put("Info", new NbtCompound());
+        nbt.put("display", new NbtCompound());
+        nbt.getCompound("display").putString("Name", "{\"translate\": \"Tracker\",\"italic\": false,\"color\": \"light_purple\"}");
 
-    private static void spawnStructure(MinecraftServer server) throws IOException {
-        var lobbyIcebergNbt = NbtIo.readCompressed(ManhuntGame.class.getResourceAsStream("/manhunt/lobby/iceberg.nbt"), NbtSizeTracker.ofUnlimitedBytes());
+        ItemStack stack = new ItemStack(Items.COMPASS);
+        stack.setNbt(nbt);
+        stack.addEnchantment(Enchantments.VANISHING_CURSE, 1);
 
-        var lobbyWorld = server.getWorld(lobbyRegistryKey);
+        int slot = player.getInventory().getSlotWithStack(stack);
 
-        lobbyWorld.getChunkManager().addTicket(ChunkTicketType.START, new ChunkPos(0, 0), 16, Unit.INSTANCE);
-        lobbyWorld.getChunkManager().addTicket(ChunkTicketType.START, new ChunkPos(-15, 0), 16, Unit.INSTANCE);
-        lobbyWorld.getChunkManager().addTicket(ChunkTicketType.START, new ChunkPos(0, -15), 16, Unit.INSTANCE);
-        lobbyWorld.getChunkManager().addTicket(ChunkTicketType.START, new ChunkPos(-15, -15), 16, Unit.INSTANCE);
-        lobbyWorld.getChunkManager().addTicket(ChunkTicketType.START, new ChunkPos(16, 16), 16, Unit.INSTANCE);
-        lobbyWorld.getChunkManager().addTicket(ChunkTicketType.START, new ChunkPos(16, 0), 16, Unit.INSTANCE);
-        lobbyWorld.getChunkManager().addTicket(ChunkTicketType.START, new ChunkPos(0, 16), 16, Unit.INSTANCE);
-        placeStructure(lobbyWorld, new BlockPos(-8, 37, -8), lobbyIcebergNbt);
+        ItemStack itemStack = player.getInventory().getStack(slot);
+
+        if (!itemStack.getNbt().contains("Info")) {
+            itemStack.getNbt().put("Info", new NbtCompound());
+        }
+
+        NbtCompound info = itemStack.getNbt().getCompound("Info");
+
+        if (!info.contains("Name", NbtElement.STRING_TYPE) && !allRunners.isEmpty()) {
+            info.putString("Name", allRunners.get(0).getName().getString());
+        }
+
+        ServerPlayerEntity trackedPlayer = Manhunt.SERVER.getPlayerManager().getPlayer(info.getString("Name"));
+
+        if (trackedPlayer != null) {
+            player.playSound(SoundEvents.UI_BUTTON_CLICK.value(), SoundCategory.PLAYERS, 0.1f, 1f);
+            updateCompass(player, itemStack.getNbt(), trackedPlayer);
+        }
     }
 
-    // Thanks to https://gitlab.com/horrific-tweaks/bingo for the placeStructure method
-
-    private static void placeStructure(ServerWorld world, BlockPos pos, NbtCompound nbt) {
-        StructureTemplate template = world.getStructureTemplateManager().createTemplate(nbt);
-
-        template.place(
-                world,
-                pos,
-                pos,
-                new StructurePlacementData(),
-                StructureBlockBlockEntity.createRandom(world.getSeed()),
-                2
-        );
-
-    }
-
-    // Thanks to https://github.com/Ivan-Khar/manhunt-fabricated for the cycleTrackedPlayers method
-
-    public static void cycleTrackedPlayers(ServerPlayerEntity player, @Nullable NbtCompound itemStackNbt) {
-        if (itemStackNbt != null && itemStackNbt.getBoolean("Tracker") && player.isTeamPlayer(Manhunt.SERVER.getScoreboard().getTeam("hunters")) && !player.getItemCooldownManager().isCoolingDown(Items.COMPASS)) {
-            if (!itemStackNbt.contains("Info")) {
-                itemStackNbt.put("Info", new NbtCompound());
-            }
-
-            int next;
-            int previous = -1;
-            NbtCompound info = itemStackNbt.getCompound("Info");
-
-            if (allRunners.isEmpty())
-                MessageUtil.sendMessage(player, "manhunt.tracker.norunners");
-            else {
-                player.getItemCooldownManager().set(player.getMainHandStack().getItem(), 10);
-
-                for (int i = 0; i < allRunners.size(); i++) {
-                    ServerPlayerEntity gamePlayer = allRunners.get(i);
-                    if (gamePlayer != null) {
-                        if (Objects.equals(gamePlayer.getName().getString(), info.getString("Name"))) {
-                            previous = i;
-                        }
-                    }
-                }
-
-                if (previous + 1 >= allRunners.size()) {
-                    next = 0;
-                } else {
-                    next = previous + 1;
-                }
-
-                if (previous != next) {
-                    updateCompass(player, itemStackNbt, allRunners.get(next));
-                    MessageUtil.sendMessage(player, "manhunt.tracker.switchrunner", allRunners.get(next).getName().getString());
-                }
-            }
+    public static void playerRespawn(ServerPlayerEntity oldPlayer, ServerPlayerEntity newPlayer, boolean alive) {
+        if (newPlayer.isTeamPlayer(Manhunt.SERVER.getScoreboard().getTeam("hunters"))) {
+            ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
+            scheduledExecutorService.schedule(() -> tryUpdatingCompass(newPlayer), 1500, TimeUnit.MILLISECONDS);
         }
     }
 
@@ -558,7 +564,7 @@ public class ManhuntGame {
     }
 
     private static void roleSelector(ServerPlayerEntity player) {
-        if (Arrays.stream(Manhunt.SERVER.getPlayerManager().getWhitelistedNames()).anyMatch(Predicate.isEqual("[" + player.getName().getString() + "]"))) {
+        if (Arrays.stream(Manhunt.SERVER.getPlayerManager().getWhitelistedNames()).anyMatch(Predicate.isEqual(player.getName().getString())) || Arrays.stream(Manhunt.SERVER.getPlayerManager().getWhitelistedNames()).anyMatch(Predicate.isEqual("[" + player.getName().getString() + "]"))) {
             SimpleGui roleselector = new SimpleGui(ScreenHandlerType.GENERIC_9X6, player, false);
 
             roleselector.setTitle(MessageUtil.ofVomponent(player, "manhunt.item.role"));
@@ -1472,7 +1478,7 @@ public class ManhuntGame {
     }
 
     private static void gameSettings(ServerPlayerEntity player) {
-        if (Arrays.stream(Manhunt.SERVER.getPlayerManager().getWhitelistedNames()).anyMatch(Predicate.isEqual("[" + player.getName().getString() + "]"))) {
+        if (Arrays.stream(Manhunt.SERVER.getPlayerManager().getWhitelistedNames()).anyMatch(Predicate.isEqual(player.getName().getString())) || Arrays.stream(Manhunt.SERVER.getPlayerManager().getWhitelistedNames()).anyMatch(Predicate.isEqual("[" + player.getName().getString() + "]"))) {
             SimpleGui gameSettings = new SimpleGui(ScreenHandlerType.GENERIC_9X2, player, false);
             gameSettings.setTitle(MessageUtil.ofVomponent(player, "manhunt.item.game"));
             changeGameSetting(player, gameSettings, "setRoles", "manhunt.item.setroles", "manhunt.lore.setroles", Items.FLETCHING_TABLE, 0, SoundEvents.ENTITY_VILLAGER_WORK_FLETCHER);
