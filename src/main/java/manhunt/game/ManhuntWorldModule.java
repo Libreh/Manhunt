@@ -124,6 +124,7 @@ public class ManhuntWorldModule {
         serverAccessor.getWorlds().put(world.getRegistryKey(), world);
         ServerWorldEvents.LOAD.invoker().onWorldLoad(server, world);
         world.tick(() -> true);
+
         if (path.equals(DEFAULT_THE_END_PATH)) {
             MessageUtil.sendBroadcast("manhunt.world.finish", path);
         }

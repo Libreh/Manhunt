@@ -44,7 +44,6 @@
   "manhunt.chat.pregame": "<red>The game hasn't started or is already finished</red>",
   "manhunt.chat.role.hunter": "%s's <gray>role has been set to</gray> <red>Hunter</red>",
   "manhunt.chat.role.runner": "%s's <gray>role has been set to</gray> <green>Runner</green>",
-  "manhunt.chat.no": "<red>You can't do that, you're not as sneaky as you think</red>",
   "manhunt.title.gamemode": "MANHUNT",
   "manhunt.title.start": "<gray>Game has started!</gray>",
   "manhunt.title.hunters": "<red>HUNTERS WON</red>",

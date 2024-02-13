@@ -50,6 +50,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.*;
 import net.minecraft.util.math.*;
 import net.minecraft.util.math.random.Random;
+import net.minecraft.util.math.random.RandomSeed;
 import net.minecraft.world.*;
 import net.minecraft.world.chunk.WorldChunk;
 import org.jetbrains.annotations.Nullable;
@@ -136,6 +137,9 @@ public class ManhuntGame {
     }
 
     public static void serverStart(MinecraftServer server) {
+        Configs.configHandler.model().settings.worldSeed = RandomSeed.getSeed();
+        Configs.configHandler.saveToDisk();
+
         new ManhuntWorldModule().loadWorlds(server);
 
         setPaused(false);
@@ -150,32 +154,33 @@ public class ManhuntGame {
 
         server.setDifficulty(difficulty, true);
 
-        server.getGameRules().get(GameRules.ANNOUNCE_ADVANCEMENTS).set(false, server);
-        server.getGameRules().get(GameRules.DO_FIRE_TICK).set(false, server);
-        server.getGameRules().get(GameRules.DO_INSOMNIA).set(false, server);
-        server.getGameRules().get(GameRules.DO_MOB_LOOT).set(false, server);
-        server.getGameRules().get(GameRules.DO_MOB_SPAWNING).set(false, server);
-        server.getGameRules().get(GameRules.DO_WEATHER_CYCLE).set(false, server);
-        server.getGameRules().get(GameRules.DO_WEATHER_CYCLE).set(false, server);
-        server.getGameRules().get(GameRules.FALL_DAMAGE).set(false, server);
-        server.getGameRules().get(GameRules.RANDOM_TICK_SPEED).set(0, server);
-        server.getGameRules().get(GameRules.SHOW_DEATH_MESSAGES).set(false, server);
-        server.getGameRules().get(GameRules.SPAWN_RADIUS).set(0, server);
-        server.getGameRules().get(GameRules.FALL_DAMAGE).set(false, server);
+        var world = server.getWorld(lobbyRegistryKey);
+
+        world.getGameRules().get(GameRules.ANNOUNCE_ADVANCEMENTS).set(false, server);
+        world.getGameRules().get(GameRules.DO_FIRE_TICK).set(false, server);
+        world.getGameRules().get(GameRules.DO_INSOMNIA).set(false, server);
+        world.getGameRules().get(GameRules.DO_MOB_LOOT).set(false, server);
+        world.getGameRules().get(GameRules.DO_MOB_SPAWNING).set(false, server);
+        world.getGameRules().get(GameRules.DO_DAYLIGHT_CYCLE).set(false, server);
+        world.getGameRules().get(GameRules.DO_WEATHER_CYCLE).set(false, server);
+        world.getGameRules().get(GameRules.FALL_DAMAGE).set(false, server);
+        world.getGameRules().get(GameRules.RANDOM_TICK_SPEED).set(0, server);
+        world.getGameRules().get(GameRules.SHOW_DEATH_MESSAGES).set(false, server);
+        world.getGameRules().get(GameRules.SPAWN_RADIUS).set(0, server);
+        world.getGameRules().get(GameRules.FALL_DAMAGE).set(false, server);
 
         server.setPvpEnabled(false);
 
         server.getScoreboard().addTeam("players");
 
+        server.getScoreboard().getTeam("players").setCollisionRule(AbstractTeam.CollisionRule.NEVER);
+
         server.getScoreboard().addTeam("hunters");
         server.getScoreboard().addTeam("runners");
 
-        server.getScoreboard().getTeam("players").setFriendlyFireAllowed(false);
-        server.getScoreboard().getTeam("players").setCollisionRule(AbstractTeam.CollisionRule.NEVER);
-
         if (settings.teamColor) {
-            server.getScoreboard().getTeam("hunters").setColor(Formatting.RED);;
-            server.getScoreboard().getTeam("runners").setColor(Formatting.GREEN);;
+            server.getScoreboard().getTeam("hunters").setColor(Formatting.RED);
+            server.getScoreboard().getTeam("runners").setColor(Formatting.GREEN);
         }
 
         try {
@@ -188,7 +193,7 @@ public class ManhuntGame {
     public static void serverTick(MinecraftServer server) {
         if (gameState == ManhuntState.PREGAME) {
             for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
-                if (!hasItem(Items.RED_CONCRETE, player, "NotReady") && !hasItem(Items.LIME_CONCRETE, player, "Ready") && settings.setRoles == 1) {
+                if (hasItem(Items.RED_CONCRETE, player, "NotReady") && hasItem(Items.LIME_CONCRETE, player, "Ready") && settings.setRoles == 1) {
                     NbtCompound nbt = new NbtCompound();
                     nbt.putBoolean("Remove", true);
                     nbt.putBoolean("NotReady", true);
@@ -202,7 +207,7 @@ public class ManhuntGame {
                     player.getInventory().setStack(0, itemStack);
                 }
 
-                if (!hasItem(Items.RECOVERY_COMPASS, player, "Hunter") && settings.setRoles == 1) {
+                if (hasItem(Items.RECOVERY_COMPASS, player, "Hunter") && settings.setRoles == 1) {
                     NbtCompound nbt = new NbtCompound();
                     nbt.putBoolean("Remove", true);
                     nbt.putBoolean("Hunter", true);
@@ -216,7 +221,7 @@ public class ManhuntGame {
                     player.getInventory().setStack(3, itemStack);
                 }
 
-                if (!hasItem(Items.CLOCK, player, "Runner") && settings.setRoles == 1) {
+                if (hasItem(Items.CLOCK, player, "Runner") && settings.setRoles == 1) {
                     NbtCompound nbt = new NbtCompound();
                     nbt.putBoolean("Remove", true);
                     nbt.putBoolean("Runner", true);
@@ -230,7 +235,7 @@ public class ManhuntGame {
                     player.getInventory().setStack(5, itemStack);
                 }
 
-                if (!hasItem(Items.COMPARATOR, player, "Settings")) {
+                if (hasItem(Items.COMPARATOR, player, "Settings")) {
                     NbtCompound nbt = new NbtCompound();
                     nbt.putBoolean("Remove", true);
                     nbt.putBoolean("Settings", true);
@@ -247,11 +252,13 @@ public class ManhuntGame {
         }
 
         if (gameState == ManhuntState.PLAYING) {
-            if (server.getWorld(overworldRegistryKey).getTime() % (20 * 60 * 60) / (20 * 60) >= settings.timeLimit && settings.timeLimit != 0) {
-                manhuntState(ManhuntState.POSTGAME, server);
-                for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
-                    MessageUtil.showTitle(player, "manhunt.title.hunters", "manhunt.title.timelimit");
-                    player.playSound(SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, SoundCategory.PLAYERS, 0.1f, 1f);
+            if (settings.timeLimit != 0) {
+                if (server.getWorld(overworldRegistryKey).getTime() % (20 * 60 * 60) / (20 * 60) >= settings.timeLimit) {
+                    manhuntState(ManhuntState.POSTGAME, server);
+                    for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+                        MessageUtil.showTitle(player, "manhunt.title.hunters", "manhunt.title.timelimit");
+                        player.playSound(SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, SoundCategory.PLAYERS, 0.1f, 1f);
+                    }
                 }
             }
         }
@@ -284,21 +291,13 @@ public class ManhuntGame {
     public static void playerJoin(ServerPlayNetworkHandler handler, PacketSender sender, MinecraftServer server) {
         ServerPlayerEntity player = handler.getPlayer();
 
-        server.getPlayerManager().removeFromOperators(player.getGameProfile());
-
-        currentRole.putIfAbsent(player.getUuid(), "hunter");
+        currentRole.put(player.getUuid(), "hunter");
 
         if (gameState == ManhuntState.PREGAME) {
             server.getPlayerManager().removeFromOperators(player.getGameProfile());
             player.teleport(server.getWorld(lobbyRegistryKey), 0, 63, 5.5, PositionFlag.ROT, 0, 0);
             player.clearStatusEffects();
             player.getInventory().clear();
-            player.setFireTicks(0);
-            player.setOnFire(false);
-            player.setHealth(20);
-            player.getHungerManager().setFoodLevel(20);
-            player.getHungerManager().setSaturationLevel(5);
-            player.getHungerManager().setExhaustion(0);
             player.setExperienceLevel(0);
             player.setExperiencePoints(0);
             player.clearStatusEffects();
@@ -311,7 +310,7 @@ public class ManhuntGame {
                 }
             }
 
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.BOAT_ONE_CM));
+            //player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.BOAT_ONE_CM));
 
             updateGameMode(player);
 
@@ -544,7 +543,7 @@ public class ManhuntGame {
         } else if (player.getOffHandStack().hasNbt() && player.getOffHandStack().getNbt().getBoolean("Remove") && player.getOffHandStack().getNbt().getBoolean(nbtBoolean)) {
             bool = true;
         }
-        return bool;
+        return !bool;
     }
 
     private static void settings(ServerPlayerEntity player) {
@@ -1833,27 +1832,33 @@ public class ManhuntGame {
 
         var world = server.getWorld(overworldRegistryKey);
 
-        for (ServerWorld serverWorld : server.getWorlds()) {
-            serverWorld.setTimeOfDay(0);
-            serverWorld.resetWeather();
-        }
+        world.getGameRules().get(GameRules.ANNOUNCE_ADVANCEMENTS).set(true, server);
+        world.getGameRules().get(GameRules.DO_FIRE_TICK).set(true, server);
+        world.getGameRules().get(GameRules.DO_INSOMNIA).set(true, server);
+        world.getGameRules().get(GameRules.DO_MOB_LOOT).set(true, server);
+        world.getGameRules().get(GameRules.DO_MOB_SPAWNING).set(true, server);
+        world.getGameRules().get(GameRules.DO_DAYLIGHT_CYCLE).set(true, server);
+        world.getGameRules().get(GameRules.DO_WEATHER_CYCLE).set(true, server);
+        world.getGameRules().get(GameRules.FALL_DAMAGE).set(true, server);
+        world.getGameRules().get(GameRules.RANDOM_TICK_SPEED).set(3, server);
+        world.getGameRules().get(GameRules.SHOW_DEATH_MESSAGES).set(true, server);
+        world.getGameRules().get(GameRules.SPAWN_RADIUS).set(10, server);
+        world.getGameRules().get(GameRules.FALL_DAMAGE).set(true, server);
 
-        worldSpawnPos = setupSpawn(world);
+        var difficulty = switch (ManhuntGame.settings.worldDifficulty) {
+            case 2 -> Difficulty.NORMAL;
+            case 3 -> Difficulty.HARD;
+            default -> Difficulty.EASY;
+        };
 
-        server.getGameRules().get(GameRules.ANNOUNCE_ADVANCEMENTS).set(true, server);
-        server.getGameRules().get(GameRules.DO_FIRE_TICK).set(true, server);
-        server.getGameRules().get(GameRules.DO_INSOMNIA).set(true, server);
-        server.getGameRules().get(GameRules.DO_MOB_LOOT).set(true, server);
-        server.getGameRules().get(GameRules.DO_MOB_SPAWNING).set(true, server);
-        server.getGameRules().get(GameRules.DO_DAYLIGHT_CYCLE).set(true, server);
-        server.getGameRules().get(GameRules.DO_WEATHER_CYCLE).set(true, server);
-        server.getGameRules().get(GameRules.FALL_DAMAGE).set(true, server);
-        server.getGameRules().get(GameRules.RANDOM_TICK_SPEED).set(3, server);
-        server.getGameRules().get(GameRules.SHOW_DEATH_MESSAGES).set(true, server);
-        server.getGameRules().get(GameRules.SPAWN_RADIUS).set(0, server);
-        server.getGameRules().get(GameRules.FALL_DAMAGE).set(true, server);
+        server.setDifficulty(difficulty, true);
+
+        server.getOverworld().setTimeOfDay(0);
+        server.getOverworld().resetWeather();
 
         server.setPvpEnabled(true);
+
+        worldSpawnPos = setupSpawn(world);
 
         for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
             server.getPlayerManager().removeFromOperators(player.getGameProfile());
@@ -1882,8 +1887,8 @@ public class ManhuntGame {
 
             player.networkHandler.sendPacket(new PlaySoundS2CPacket(SoundEvents.BLOCK_NOTE_BLOCK_PLING, SoundCategory.BLOCKS, player.getX(), player.getY(), player.getZ(), 0.1f, 1.5f, 0));
 
-            if (player.isTeamPlayer(server.getScoreboard().getTeam("hunters"))) {
-                if (settings.hunterFreeze != 0) {
+            if (settings.hunterFreeze != 0) {
+                if (player.isTeamPlayer(server.getScoreboard().getTeam("hunters"))) {
                     player.addStatusEffect(new StatusEffectInstance(StatusEffects.BLINDNESS, settings.hunterFreeze * 20, 255, false, true));
                     player.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, settings.hunterFreeze * 20, 255, false, false));
                     player.addStatusEffect(new StatusEffectInstance(StatusEffects.JUMP_BOOST, settings.hunterFreeze * 20, 248, false, false));
@@ -1897,14 +1902,6 @@ public class ManhuntGame {
                 MessageUtil.showTitle(player, "manhunt.title.gamemode", "manhunt.title.start");
             }
         }
-
-        var difficulty = switch (settings.worldDifficulty) {
-            case 2 -> Difficulty.NORMAL;
-            case 3 -> Difficulty.HARD;
-            default -> Difficulty.EASY;
-        };
-
-        server.setDifficulty(difficulty, true);
     }
 
     public static void updateGameMode(ServerPlayerEntity player) {

@@ -17,7 +17,7 @@ import net.minecraft.registry.SimpleRegistry;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.stat.Stats;
+import net.minecraft.world.GameRules;
 import net.minecraft.world.World;
 import net.minecraft.world.dimension.DimensionOptions;
 import net.minecraft.world.level.storage.LevelStorage;
@@ -66,7 +66,24 @@ public class ManhuntWorldManager {
 
         MinecraftServer server = Manhunt.SERVER;
 
-        List<ServerPlayerEntity> players = new ArrayList<>(world.getPlayers());
+        var lobbyWorld = server.getWorld(ManhuntGame.lobbyRegistryKey);
+
+        lobbyWorld.getGameRules().get(GameRules.ANNOUNCE_ADVANCEMENTS).set(false, server);
+        lobbyWorld.getGameRules().get(GameRules.DO_FIRE_TICK).set(false, server);
+        lobbyWorld.getGameRules().get(GameRules.DO_INSOMNIA).set(false, server);
+        lobbyWorld.getGameRules().get(GameRules.DO_MOB_LOOT).set(false, server);
+        lobbyWorld.getGameRules().get(GameRules.DO_MOB_SPAWNING).set(false, server);
+        lobbyWorld.getGameRules().get(GameRules.DO_DAYLIGHT_CYCLE).set(false, server);
+        lobbyWorld.getGameRules().get(GameRules.DO_WEATHER_CYCLE).set(false, server);
+        lobbyWorld.getGameRules().get(GameRules.FALL_DAMAGE).set(false, server);
+        lobbyWorld.getGameRules().get(GameRules.RANDOM_TICK_SPEED).set(0, server);
+        lobbyWorld.getGameRules().get(GameRules.SHOW_DEATH_MESSAGES).set(false, server);
+        lobbyWorld.getGameRules().get(GameRules.SPAWN_RADIUS).set(0, server);
+        lobbyWorld.getGameRules().get(GameRules.FALL_DAMAGE).set(false, server);
+
+        server.setPvpEnabled(false);
+
+        List<ServerPlayerEntity> players = new ArrayList<>(Manhunt.SERVER.getPlayerManager().getPlayerList());
 
         for (ServerPlayerEntity player : players) {
             ManhuntGame.currentRole.putIfAbsent(player.getUuid(), "hunter");
@@ -75,12 +92,7 @@ public class ManhuntWorldManager {
             player.teleport(server.getWorld(ManhuntGame.lobbyRegistryKey), 0, 63, 5.5, PositionFlag.ROT, 0, 0);
             player.clearStatusEffects();
             player.getInventory().clear();
-            player.setFireTicks(0);
             player.setOnFire(false);
-            player.setHealth(20);
-            player.getHungerManager().setFoodLevel(20);
-            player.getHungerManager().setSaturationLevel(5);
-            player.getHungerManager().setExhaustion(0);
             player.setExperienceLevel(0);
             player.setExperiencePoints(0);
             player.clearStatusEffects();
@@ -92,8 +104,6 @@ public class ManhuntWorldManager {
                     player.getAdvancementTracker().revokeCriterion(advancement, criteria);
                 }
             }
-
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.BOAT_ONE_CM));
 
             ManhuntGame.updateGameMode(player);
 

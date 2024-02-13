@@ -14,7 +14,7 @@ public class PingCommand {
         dispatcher.register(CommandManager.literal("ping")
                 .executes(context -> pingLatency(context.getSource(), context.getSource().getPlayer()))
                 .then(CommandManager.argument("player", EntityArgumentType.player())
-                .executes(context -> pingLatency(context.getSource(), EntityArgumentType.getPlayer(context, "player"))))
+                        .executes(context -> pingLatency(context.getSource(), EntityArgumentType.getPlayer(context, "player"))))
         );
     }
 
