@@ -30,6 +30,7 @@ import net.minecraft.network.packet.s2c.play.PositionFlag;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.scoreboard.AbstractTeam;
+import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.CommandManager;
@@ -57,9 +58,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 
 import static manhunt.Manhunt.MOD_ID;
@@ -171,16 +169,18 @@ public class ManhuntGame {
 
         server.setPvpEnabled(false);
 
-        server.getScoreboard().addTeam("players");
+        Scoreboard scoreboard = server.getScoreboard();
 
-        server.getScoreboard().getTeam("players").setCollisionRule(AbstractTeam.CollisionRule.NEVER);
+        scoreboard.addTeam("players");
 
-        server.getScoreboard().addTeam("hunters");
-        server.getScoreboard().addTeam("runners");
+        scoreboard.getTeam("players").setCollisionRule(AbstractTeam.CollisionRule.NEVER);
+
+        scoreboard.addTeam("hunters");
+        scoreboard.addTeam("runners");
 
         if (settings.teamColor) {
-            server.getScoreboard().getTeam("hunters").setColor(Formatting.RED);
-            server.getScoreboard().getTeam("runners").setColor(Formatting.GREEN);
+            scoreboard.getTeam("hunters").setColor(Formatting.RED);
+            scoreboard.getTeam("runners").setColor(Formatting.GREEN);
         }
 
         try {
@@ -330,6 +330,13 @@ public class ManhuntGame {
                 moveToSpawn(server.getWorld(overworldRegistryKey), player);
                 player.removeStatusEffect(StatusEffects.SATURATION);
             }
+        }
+
+        if (gameState == ManhuntState.POSTGAME) {
+            player.getInventory().clear();
+            updateGameMode(player);
+            moveToSpawn(server.getWorld(overworldRegistryKey), player);
+            player.removeStatusEffect(StatusEffects.SATURATION);
         }
     }
 
@@ -485,47 +492,12 @@ public class ManhuntGame {
         return TypedActionResult.pass(itemStack);
     }
 
-    public static void tryUpdatingCompass(ServerPlayerEntity player) {
-        NbtCompound nbt = new NbtCompound();
-        nbt.putBoolean("Tracker", true);
-        nbt.putBoolean("Remove", true);
-        nbt.putBoolean("LodestoneTracked", false);
-        nbt.putString("LodestoneDimension", "manhunt:overworld");
-        nbt.putInt("HideFlags", 1);
-        nbt.put("Info", new NbtCompound());
-        nbt.put("display", new NbtCompound());
-        nbt.getCompound("display").putString("Name", "{\"translate\": \"Tracker\",\"italic\": false,\"color\": \"light_purple\"}");
-
-        ItemStack stack = new ItemStack(Items.COMPASS);
-        stack.setNbt(nbt);
-        stack.addEnchantment(Enchantments.VANISHING_CURSE, 1);
-
-        int slot = player.getInventory().getSlotWithStack(stack);
-
-        ItemStack itemStack = player.getInventory().getStack(slot);
-
-        if (!itemStack.getNbt().contains("Info")) {
-            itemStack.getNbt().put("Info", new NbtCompound());
-        }
-
-        NbtCompound info = itemStack.getNbt().getCompound("Info");
-
-        if (!info.contains("Name", NbtElement.STRING_TYPE) && !allRunners.isEmpty()) {
-            info.putString("Name", allRunners.get(0).getName().getString());
-        }
-
-        ServerPlayerEntity trackedPlayer = Manhunt.SERVER.getPlayerManager().getPlayer(info.getString("Name"));
-
-        if (trackedPlayer != null) {
-            player.playSound(SoundEvents.UI_BUTTON_CLICK.value(), SoundCategory.PLAYERS, 0.1f, 1f);
-            updateCompass(player, itemStack.getNbt(), trackedPlayer);
-        }
-    }
-
     public static void playerRespawn(ServerPlayerEntity oldPlayer, ServerPlayerEntity newPlayer, boolean alive) {
-        if (newPlayer.isTeamPlayer(Manhunt.SERVER.getScoreboard().getTeam("hunters"))) {
-            ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
-            scheduledExecutorService.schedule(() -> tryUpdatingCompass(newPlayer), 1500, TimeUnit.MILLISECONDS);
+        MinecraftServer server = Manhunt.SERVER;
+        Scoreboard scoreboard = server.getScoreboard();
+        if (!newPlayer.isTeamPlayer(scoreboard.getTeam("hunters"))) {
+            scoreboard.clearTeam(newPlayer.getName().getString());
+            scoreboard.addScoreHolderToTeam(newPlayer.getName().getString(), scoreboard.getTeam("hunters"));
         }
     }
 

@@ -14,6 +14,7 @@ import net.minecraft.registry.DynamicRegistryManager;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.SimpleRegistry;
+import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -66,6 +67,8 @@ public class ManhuntWorldManager {
 
         MinecraftServer server = Manhunt.SERVER;
 
+        Scoreboard scoreboard = server.getScoreboard();
+
         var lobbyWorld = server.getWorld(ManhuntGame.lobbyRegistryKey);
 
         lobbyWorld.getGameRules().get(GameRules.ANNOUNCE_ADVANCEMENTS).set(false, server);
@@ -107,16 +110,16 @@ public class ManhuntWorldManager {
 
             ManhuntGame.updateGameMode(player);
 
-            if (player.isTeamPlayer(server.getScoreboard().getTeam("hunters"))) {
-                server.getScoreboard().removeScoreHolderFromTeam(player.getName().getString(), server.getScoreboard().getTeam("hunters"));
+            if (player.isTeamPlayer(scoreboard.getTeam("hunters"))) {
+                scoreboard.removeScoreHolderFromTeam(player.getName().getString(), scoreboard.getTeam("hunters"));
             }
 
-            if (player.isTeamPlayer(server.getScoreboard().getTeam("runners"))) {
-                server.getScoreboard().removeScoreHolderFromTeam(player.getName().getString(), server.getScoreboard().getTeam("runners"));
+            if (player.isTeamPlayer(scoreboard.getTeam("runners"))) {
+                scoreboard.removeScoreHolderFromTeam(player.getName().getString(), scoreboard.getTeam("runners"));
             }
 
-            if (!player.isTeamPlayer(server.getScoreboard().getTeam("players"))) {
-                player.getScoreboard().addScoreHolderToTeam(player.getName().getString(), server.getScoreboard().getTeam("players"));
+            if (!player.isTeamPlayer(scoreboard.getTeam("players"))) {
+                scoreboard.addScoreHolderToTeam(player.getName().getString(), scoreboard.getTeam("players"));
             }
 
             if (ManhuntGame.settings.setRoles == 3) {
