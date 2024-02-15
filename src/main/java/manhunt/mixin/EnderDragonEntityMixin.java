@@ -23,8 +23,8 @@ public abstract class EnderDragonEntityMixin {
     private void runnersWon(CallbackInfo ci) {
         EnderDragonEntity dragon = ((EnderDragonEntity) (Object) this);
         if (dragon.getHealth() == 1.0F) {
-            if (ManhuntGame.settings.gameTitles) {
-                Configs.configHandler.model().settings.gameTitles = false;
+            if (ManhuntGame.settings.winnerTitle) {
+                Configs.configHandler.model().settings.winnerTitle = false;
                 Configs.configHandler.saveToDisk();
                 ManhuntGame.manhuntState(ManhuntState.POSTGAME, dragon.getServer());
                 MinecraftServer server = dragon.getServer();
@@ -40,7 +40,7 @@ public abstract class EnderDragonEntityMixin {
     private void setGameTitles(CallbackInfo ci) {
         EnderDragonEntity dragon = ((EnderDragonEntity) (Object) this);
         if (dragon.ticksSinceDeath == 1) {
-            Configs.configHandler.model().settings.gameTitles = true;
+            Configs.configHandler.model().settings.winnerTitle = true;
             Configs.configHandler.saveToDisk();
         }
     }

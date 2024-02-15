@@ -20,8 +20,8 @@ public class ShowTeamCoordsCommand {
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(CommandManager.literal("showteamcoords")
                 .then(CommandManager.argument("player", EntityArgumentType.player())
-                        .suggests(playersInTeam())
                         .executes(context -> showTeamCoords(context.getSource(), EntityArgumentType.getPlayer(context, "player")))
+                        .suggests(playersInTeam())
                 )
         );
     }

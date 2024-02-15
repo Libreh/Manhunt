@@ -16,6 +16,6 @@ public class ConfigModel {
         public boolean teamColor = true;
         public int worldDifficulty = 1;
         public int borderSize = 59999968;
-        public boolean gameTitles = true;
+        public boolean winnerTitle = true;
     }
 }

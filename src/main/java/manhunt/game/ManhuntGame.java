@@ -94,6 +94,7 @@ public class ManhuntGame {
         PingCommand.register(dispatcher);
         HunterCommand.register(dispatcher);
         RunnerCommand.register(dispatcher);
+        OneRunnerCommand.register(dispatcher);
         StartCommand.register(dispatcher);
         DurationCommand.register(dispatcher);
         TogglePauseCommand.register(dispatcher);
@@ -324,7 +325,7 @@ public class ManhuntGame {
         }
 
         if (gameState == ManhuntState.PLAYING) {
-            if (player.getWorld() == server.getWorld(lobbyRegistryKey)) {
+            if (player.getWorld() == server.getWorld(lobbyRegistryKey) || player.getWorld() == server.getWorld(overworldRegistryKey)) {
                 player.getInventory().clear();
                 updateGameMode(player);
                 moveToSpawn(server.getWorld(overworldRegistryKey), player);
@@ -519,998 +520,24 @@ public class ManhuntGame {
     }
 
     private static void settings(ServerPlayerEntity player) {
-        SimpleGui settings = new SimpleGui(ScreenHandlerType.GENERIC_9X3, player, false);
-        settings.setTitle(MessageUtil.ofVomponent(player, "manhunt.item.settings"));
-        settings.open();
-        List<Text> roleLore = new ArrayList<>();
-        roleLore.add(MessageUtil.ofVomponent(player, "manhunt.lore.role"));
-        settings.setSlot(11, new GuiElementBuilder(Items.WRITABLE_BOOK)
-                .setName(MessageUtil.ofVomponent(player, "manhunt.item.role"))
-                .setLore(roleLore)
-                .setCallback(() -> {
-                    roleSelector(player);
-                    player.playSound(SoundEvents.BLOCK_WOOD_PLACE, SoundCategory.MASTER, 1f, 1f);
-                })
-        );
-        List<Text> gameLore = new ArrayList<>();
-        gameLore.add(MessageUtil.ofVomponent(player, "manhunt.lore.game"));
-        settings.setSlot(15, new GuiElementBuilder(Items.REPEATER)
-                .setName(MessageUtil.ofVomponent(player, "manhunt.item.game"))
-                .setLore(gameLore)
-                .setCallback(() -> {
-                    gameSettings(player);
-                    player.playSound(SoundEvents.BLOCK_REDSTONE_TORCH_BURNOUT, SoundCategory.MASTER, 0.2f, 1f);
-                })
-        );
-    }
-
-    private static void roleSelector(ServerPlayerEntity player) {
-        if (Arrays.stream(Manhunt.SERVER.getPlayerManager().getWhitelistedNames()).anyMatch(Predicate.isEqual(player.getName().getString())) || Arrays.stream(Manhunt.SERVER.getPlayerManager().getWhitelistedNames()).anyMatch(Predicate.isEqual("[" + player.getName().getString() + "]"))) {
-            SimpleGui roleselector = new SimpleGui(ScreenHandlerType.GENERIC_9X6, player, false);
-
-            roleselector.setTitle(MessageUtil.ofVomponent(player, "manhunt.item.role"));
-
-            MinecraftServer server = Manhunt.SERVER;
-
-            if (server.getCurrentPlayerCount() == 1) {
-                changeRoleSelection(player, roleselector, 1, 0);
-            }
-            if (server.getCurrentPlayerCount() == 2) {
-                changeRoleSelection(player, roleselector, 1, 0);
-                changeRoleSelection(player, roleselector, 2, 1);
-            }
-            if (server.getCurrentPlayerCount() == 3) {
-                changeRoleSelection(player, roleselector, 1, 0);
-                changeRoleSelection(player, roleselector, 2, 1);
-                changeRoleSelection(player, roleselector, 3, 2);
-            }
-            if (server.getCurrentPlayerCount() == 4) {
-                changeRoleSelection(player, roleselector, 1, 0);
-                changeRoleSelection(player, roleselector, 2, 1);
-                changeRoleSelection(player, roleselector, 3, 2);
-                changeRoleSelection(player, roleselector, 4, 3);
-            }
-            if (server.getCurrentPlayerCount() == 5) {
-                changeRoleSelection(player, roleselector, 1, 0);
-                changeRoleSelection(player, roleselector, 2, 1);
-                changeRoleSelection(player, roleselector, 3, 2);
-                changeRoleSelection(player, roleselector, 4, 3);
-                changeRoleSelection(player, roleselector, 5, 4);
-            }
-            if (server.getCurrentPlayerCount() == 6) {
-                changeRoleSelection(player, roleselector, 1, 0);
-                changeRoleSelection(player, roleselector, 2, 1);
-                changeRoleSelection(player, roleselector, 3, 2);
-                changeRoleSelection(player, roleselector, 4, 3);
-                changeRoleSelection(player, roleselector, 5, 4);
-                changeRoleSelection(player, roleselector, 6, 5);
-            }
-            if (server.getCurrentPlayerCount() == 7) {
-                changeRoleSelection(player, roleselector, 1, 0);
-                changeRoleSelection(player, roleselector, 2, 1);
-                changeRoleSelection(player, roleselector, 3, 2);
-                changeRoleSelection(player, roleselector, 4, 3);
-                changeRoleSelection(player, roleselector, 5, 4);
-                changeRoleSelection(player, roleselector, 6, 5);
-                changeRoleSelection(player, roleselector, 7, 6);
-            }
-            if (server.getCurrentPlayerCount() == 8) {
-                changeRoleSelection(player, roleselector, 1, 0);
-                changeRoleSelection(player, roleselector, 2, 1);
-                changeRoleSelection(player, roleselector, 3, 2);
-                changeRoleSelection(player, roleselector, 4, 3);
-                changeRoleSelection(player, roleselector, 5, 4);
-                changeRoleSelection(player, roleselector, 6, 5);
-                changeRoleSelection(player, roleselector, 7, 6);
-                changeRoleSelection(player, roleselector, 8, 7);
-            }
-            if (server.getCurrentPlayerCount() == 9) {
-                changeRoleSelection(player, roleselector, 1, 0);
-                changeRoleSelection(player, roleselector, 2, 1);
-                changeRoleSelection(player, roleselector, 3, 2);
-                changeRoleSelection(player, roleselector, 4, 3);
-                changeRoleSelection(player, roleselector, 5, 4);
-                changeRoleSelection(player, roleselector, 6, 5);
-                changeRoleSelection(player, roleselector, 7, 6);
-                changeRoleSelection(player, roleselector, 8, 7);
-                changeRoleSelection(player, roleselector, 9, 10);
-            }
-            if (server.getCurrentPlayerCount() == 10) {
-                changeRoleSelection(player, roleselector, 1, 0);
-                changeRoleSelection(player, roleselector, 2, 1);
-                changeRoleSelection(player, roleselector, 3, 2);
-                changeRoleSelection(player, roleselector, 4, 3);
-                changeRoleSelection(player, roleselector, 5, 4);
-                changeRoleSelection(player, roleselector, 6, 5);
-                changeRoleSelection(player, roleselector, 7, 6);
-                changeRoleSelection(player, roleselector, 8, 7);
-                changeRoleSelection(player, roleselector, 9, 10);
-                changeRoleSelection(player, roleselector, 10, 11);
-            }
-            if (server.getCurrentPlayerCount() == 11) {
-                changeRoleSelection(player, roleselector, 1, 0);
-                changeRoleSelection(player, roleselector, 2, 1);
-                changeRoleSelection(player, roleselector, 3, 2);
-                changeRoleSelection(player, roleselector, 4, 3);
-                changeRoleSelection(player, roleselector, 5, 4);
-                changeRoleSelection(player, roleselector, 6, 5);
-                changeRoleSelection(player, roleselector, 7, 6);
-                changeRoleSelection(player, roleselector, 8, 7);
-                changeRoleSelection(player, roleselector, 9, 10);
-                changeRoleSelection(player, roleselector, 10, 11);
-                changeRoleSelection(player, roleselector, 11, 12);
-            }
-            if (server.getCurrentPlayerCount() == 12) {
-                changeRoleSelection(player, roleselector, 1, 0);
-                changeRoleSelection(player, roleselector, 2, 1);
-                changeRoleSelection(player, roleselector, 3, 2);
-                changeRoleSelection(player, roleselector, 4, 3);
-                changeRoleSelection(player, roleselector, 5, 4);
-                changeRoleSelection(player, roleselector, 6, 5);
-                changeRoleSelection(player, roleselector, 7, 6);
-                changeRoleSelection(player, roleselector, 8, 7);
-                changeRoleSelection(player, roleselector, 9, 10);
-                changeRoleSelection(player, roleselector, 10, 11);
-                changeRoleSelection(player, roleselector, 11, 12);
-                changeRoleSelection(player, roleselector, 12, 13);
-            }
-            if (server.getCurrentPlayerCount() == 13) {
-                changeRoleSelection(player, roleselector, 1, 0);
-                changeRoleSelection(player, roleselector, 2, 1);
-                changeRoleSelection(player, roleselector, 3, 2);
-                changeRoleSelection(player, roleselector, 4, 3);
-                changeRoleSelection(player, roleselector, 5, 4);
-                changeRoleSelection(player, roleselector, 6, 5);
-                changeRoleSelection(player, roleselector, 7, 6);
-                changeRoleSelection(player, roleselector, 8, 7);
-                changeRoleSelection(player, roleselector, 9, 10);
-                changeRoleSelection(player, roleselector, 10, 11);
-                changeRoleSelection(player, roleselector, 11, 12);
-                changeRoleSelection(player, roleselector, 12, 13);
-                changeRoleSelection(player, roleselector, 13, 14);
-            }
-            if (server.getCurrentPlayerCount() == 14) {
-                changeRoleSelection(player, roleselector, 1, 0);
-                changeRoleSelection(player, roleselector, 2, 1);
-                changeRoleSelection(player, roleselector, 3, 2);
-                changeRoleSelection(player, roleselector, 4, 3);
-                changeRoleSelection(player, roleselector, 5, 4);
-                changeRoleSelection(player, roleselector, 6, 5);
-                changeRoleSelection(player, roleselector, 7, 6);
-                changeRoleSelection(player, roleselector, 8, 7);
-                changeRoleSelection(player, roleselector, 9, 10);
-                changeRoleSelection(player, roleselector, 10, 11);
-                changeRoleSelection(player, roleselector, 11, 12);
-                changeRoleSelection(player, roleselector, 12, 13);
-                changeRoleSelection(player, roleselector, 13, 14);
-                changeRoleSelection(player, roleselector, 14, 15);
-            }
-            if (server.getCurrentPlayerCount() == 15) {
-                changeRoleSelection(player, roleselector, 1, 0);
-                changeRoleSelection(player, roleselector, 2, 1);
-                changeRoleSelection(player, roleselector, 3, 2);
-                changeRoleSelection(player, roleselector, 4, 3);
-                changeRoleSelection(player, roleselector, 5, 4);
-                changeRoleSelection(player, roleselector, 6, 5);
-                changeRoleSelection(player, roleselector, 7, 6);
-                changeRoleSelection(player, roleselector, 8, 7);
-                changeRoleSelection(player, roleselector, 9, 10);
-                changeRoleSelection(player, roleselector, 10, 11);
-                changeRoleSelection(player, roleselector, 11, 12);
-                changeRoleSelection(player, roleselector, 12, 13);
-                changeRoleSelection(player, roleselector, 13, 14);
-                changeRoleSelection(player, roleselector, 14, 15);
-                changeRoleSelection(player, roleselector, 15, 16);
-            }
-            if (server.getCurrentPlayerCount() == 16) {
-                changeRoleSelection(player, roleselector, 1, 0);
-                changeRoleSelection(player, roleselector, 2, 1);
-                changeRoleSelection(player, roleselector, 3, 2);
-                changeRoleSelection(player, roleselector, 4, 3);
-                changeRoleSelection(player, roleselector, 5, 4);
-                changeRoleSelection(player, roleselector, 6, 5);
-                changeRoleSelection(player, roleselector, 7, 6);
-                changeRoleSelection(player, roleselector, 8, 7);
-                changeRoleSelection(player, roleselector, 9, 10);
-                changeRoleSelection(player, roleselector, 10, 11);
-                changeRoleSelection(player, roleselector, 11, 12);
-                changeRoleSelection(player, roleselector, 12, 13);
-                changeRoleSelection(player, roleselector, 13, 14);
-                changeRoleSelection(player, roleselector, 14, 15);
-                changeRoleSelection(player, roleselector, 15, 16);
-                changeRoleSelection(player, roleselector, 16, 17);
-            }
-            if (server.getCurrentPlayerCount() == 17) {
-                changeRoleSelection(player, roleselector, 1, 0);
-                changeRoleSelection(player, roleselector, 2, 1);
-                changeRoleSelection(player, roleselector, 3, 2);
-                changeRoleSelection(player, roleselector, 4, 3);
-                changeRoleSelection(player, roleselector, 5, 4);
-                changeRoleSelection(player, roleselector, 6, 5);
-                changeRoleSelection(player, roleselector, 7, 6);
-                changeRoleSelection(player, roleselector, 8, 7);
-                changeRoleSelection(player, roleselector, 9, 10);
-                changeRoleSelection(player, roleselector, 10, 11);
-                changeRoleSelection(player, roleselector, 11, 12);
-                changeRoleSelection(player, roleselector, 12, 13);
-                changeRoleSelection(player, roleselector, 13, 14);
-                changeRoleSelection(player, roleselector, 14, 15);
-                changeRoleSelection(player, roleselector, 15, 16);
-                changeRoleSelection(player, roleselector, 16, 17);
-                changeRoleSelection(player, roleselector, 17, 20);
-            }
-            if (server.getCurrentPlayerCount() == 18) {
-                changeRoleSelection(player, roleselector, 1, 0);
-                changeRoleSelection(player, roleselector, 2, 1);
-                changeRoleSelection(player, roleselector, 3, 2);
-                changeRoleSelection(player, roleselector, 4, 3);
-                changeRoleSelection(player, roleselector, 5, 4);
-                changeRoleSelection(player, roleselector, 6, 5);
-                changeRoleSelection(player, roleselector, 7, 6);
-                changeRoleSelection(player, roleselector, 8, 7);
-                changeRoleSelection(player, roleselector, 9, 10);
-                changeRoleSelection(player, roleselector, 10, 11);
-                changeRoleSelection(player, roleselector, 11, 12);
-                changeRoleSelection(player, roleselector, 12, 13);
-                changeRoleSelection(player, roleselector, 13, 14);
-                changeRoleSelection(player, roleselector, 14, 15);
-                changeRoleSelection(player, roleselector, 15, 16);
-                changeRoleSelection(player, roleselector, 16, 17);
-                changeRoleSelection(player, roleselector, 17, 20);
-                changeRoleSelection(player, roleselector, 18, 21);
-            }
-            if (server.getCurrentPlayerCount() == 19) {
-                changeRoleSelection(player, roleselector, 1, 0);
-                changeRoleSelection(player, roleselector, 2, 1);
-                changeRoleSelection(player, roleselector, 3, 2);
-                changeRoleSelection(player, roleselector, 4, 3);
-                changeRoleSelection(player, roleselector, 5, 4);
-                changeRoleSelection(player, roleselector, 6, 5);
-                changeRoleSelection(player, roleselector, 7, 6);
-                changeRoleSelection(player, roleselector, 8, 7);
-                changeRoleSelection(player, roleselector, 9, 10);
-                changeRoleSelection(player, roleselector, 10, 11);
-                changeRoleSelection(player, roleselector, 11, 12);
-                changeRoleSelection(player, roleselector, 12, 13);
-                changeRoleSelection(player, roleselector, 13, 14);
-                changeRoleSelection(player, roleselector, 14, 15);
-                changeRoleSelection(player, roleselector, 15, 16);
-                changeRoleSelection(player, roleselector, 16, 17);
-                changeRoleSelection(player, roleselector, 17, 20);
-                changeRoleSelection(player, roleselector, 18, 21);
-                changeRoleSelection(player, roleselector, 19, 22);
-            }
-            if (server.getCurrentPlayerCount() == 20) {
-                changeRoleSelection(player, roleselector, 1, 0);
-                changeRoleSelection(player, roleselector, 2, 1);
-                changeRoleSelection(player, roleselector, 3, 2);
-                changeRoleSelection(player, roleselector, 4, 3);
-                changeRoleSelection(player, roleselector, 5, 4);
-                changeRoleSelection(player, roleselector, 6, 5);
-                changeRoleSelection(player, roleselector, 7, 6);
-                changeRoleSelection(player, roleselector, 8, 7);
-                changeRoleSelection(player, roleselector, 9, 10);
-                changeRoleSelection(player, roleselector, 10, 11);
-                changeRoleSelection(player, roleselector, 11, 12);
-                changeRoleSelection(player, roleselector, 12, 13);
-                changeRoleSelection(player, roleselector, 13, 14);
-                changeRoleSelection(player, roleselector, 14, 15);
-                changeRoleSelection(player, roleselector, 15, 16);
-                changeRoleSelection(player, roleselector, 16, 17);
-                changeRoleSelection(player, roleselector, 17, 20);
-                changeRoleSelection(player, roleselector, 18, 21);
-                changeRoleSelection(player, roleselector, 19, 22);
-                changeRoleSelection(player, roleselector, 20, 23);
-            }
-            if (server.getCurrentPlayerCount() == 21) {
-                changeRoleSelection(player, roleselector, 1, 0);
-                changeRoleSelection(player, roleselector, 2, 1);
-                changeRoleSelection(player, roleselector, 3, 2);
-                changeRoleSelection(player, roleselector, 4, 3);
-                changeRoleSelection(player, roleselector, 5, 4);
-                changeRoleSelection(player, roleselector, 6, 5);
-                changeRoleSelection(player, roleselector, 7, 6);
-                changeRoleSelection(player, roleselector, 8, 7);
-                changeRoleSelection(player, roleselector, 9, 10);
-                changeRoleSelection(player, roleselector, 10, 11);
-                changeRoleSelection(player, roleselector, 11, 12);
-                changeRoleSelection(player, roleselector, 12, 13);
-                changeRoleSelection(player, roleselector, 13, 14);
-                changeRoleSelection(player, roleselector, 14, 15);
-                changeRoleSelection(player, roleselector, 15, 16);
-                changeRoleSelection(player, roleselector, 16, 17);
-                changeRoleSelection(player, roleselector, 17, 20);
-                changeRoleSelection(player, roleselector, 18, 21);
-                changeRoleSelection(player, roleselector, 19, 22);
-                changeRoleSelection(player, roleselector, 20, 23);
-                changeRoleSelection(player, roleselector, 21, 24);
-            }
-            if (server.getCurrentPlayerCount() == 22) {
-                changeRoleSelection(player, roleselector, 1, 0);
-                changeRoleSelection(player, roleselector, 2, 1);
-                changeRoleSelection(player, roleselector, 3, 2);
-                changeRoleSelection(player, roleselector, 4, 3);
-                changeRoleSelection(player, roleselector, 5, 4);
-                changeRoleSelection(player, roleselector, 6, 5);
-                changeRoleSelection(player, roleselector, 7, 6);
-                changeRoleSelection(player, roleselector, 8, 7);
-                changeRoleSelection(player, roleselector, 9, 10);
-                changeRoleSelection(player, roleselector, 10, 11);
-                changeRoleSelection(player, roleselector, 11, 12);
-                changeRoleSelection(player, roleselector, 12, 13);
-                changeRoleSelection(player, roleselector, 13, 14);
-                changeRoleSelection(player, roleselector, 14, 15);
-                changeRoleSelection(player, roleselector, 15, 16);
-                changeRoleSelection(player, roleselector, 16, 17);
-                changeRoleSelection(player, roleselector, 17, 20);
-                changeRoleSelection(player, roleselector, 18, 21);
-                changeRoleSelection(player, roleselector, 19, 22);
-                changeRoleSelection(player, roleselector, 20, 23);
-                changeRoleSelection(player, roleselector, 21, 24);
-                changeRoleSelection(player, roleselector, 22, 25);
-            }
-            if (server.getCurrentPlayerCount() == 23) {
-                changeRoleSelection(player, roleselector, 1, 0);
-                changeRoleSelection(player, roleselector, 2, 1);
-                changeRoleSelection(player, roleselector, 3, 2);
-                changeRoleSelection(player, roleselector, 4, 3);
-                changeRoleSelection(player, roleselector, 5, 4);
-                changeRoleSelection(player, roleselector, 6, 5);
-                changeRoleSelection(player, roleselector, 7, 6);
-                changeRoleSelection(player, roleselector, 8, 7);
-                changeRoleSelection(player, roleselector, 9, 10);
-                changeRoleSelection(player, roleselector, 10, 11);
-                changeRoleSelection(player, roleselector, 11, 12);
-                changeRoleSelection(player, roleselector, 12, 13);
-                changeRoleSelection(player, roleselector, 13, 14);
-                changeRoleSelection(player, roleselector, 14, 15);
-                changeRoleSelection(player, roleselector, 15, 16);
-                changeRoleSelection(player, roleselector, 16, 17);
-                changeRoleSelection(player, roleselector, 17, 20);
-                changeRoleSelection(player, roleselector, 18, 21);
-                changeRoleSelection(player, roleselector, 19, 22);
-                changeRoleSelection(player, roleselector, 20, 23);
-                changeRoleSelection(player, roleselector, 21, 24);
-                changeRoleSelection(player, roleselector, 22, 25);
-                changeRoleSelection(player, roleselector, 23, 26);
-            }
-            if (server.getCurrentPlayerCount() == 24) {
-                changeRoleSelection(player, roleselector, 1, 0);
-                changeRoleSelection(player, roleselector, 2, 1);
-                changeRoleSelection(player, roleselector, 3, 2);
-                changeRoleSelection(player, roleselector, 4, 3);
-                changeRoleSelection(player, roleselector, 5, 4);
-                changeRoleSelection(player, roleselector, 6, 5);
-                changeRoleSelection(player, roleselector, 7, 6);
-                changeRoleSelection(player, roleselector, 8, 7);
-                changeRoleSelection(player, roleselector, 9, 10);
-                changeRoleSelection(player, roleselector, 10, 11);
-                changeRoleSelection(player, roleselector, 11, 12);
-                changeRoleSelection(player, roleselector, 12, 13);
-                changeRoleSelection(player, roleselector, 13, 14);
-                changeRoleSelection(player, roleselector, 14, 15);
-                changeRoleSelection(player, roleselector, 15, 16);
-                changeRoleSelection(player, roleselector, 16, 17);
-                changeRoleSelection(player, roleselector, 17, 20);
-                changeRoleSelection(player, roleselector, 18, 21);
-                changeRoleSelection(player, roleselector, 19, 22);
-                changeRoleSelection(player, roleselector, 20, 23);
-                changeRoleSelection(player, roleselector, 21, 24);
-                changeRoleSelection(player, roleselector, 22, 25);
-                changeRoleSelection(player, roleselector, 23, 26);
-            }
-            if (server.getCurrentPlayerCount() == 25) {
-                changeRoleSelection(player, roleselector, 1, 0);
-                changeRoleSelection(player, roleselector, 2, 1);
-                changeRoleSelection(player, roleselector, 3, 2);
-                changeRoleSelection(player, roleselector, 4, 3);
-                changeRoleSelection(player, roleselector, 5, 4);
-                changeRoleSelection(player, roleselector, 6, 5);
-                changeRoleSelection(player, roleselector, 7, 6);
-                changeRoleSelection(player, roleselector, 8, 7);
-                changeRoleSelection(player, roleselector, 9, 10);
-                changeRoleSelection(player, roleselector, 10, 11);
-                changeRoleSelection(player, roleselector, 11, 12);
-                changeRoleSelection(player, roleselector, 12, 13);
-                changeRoleSelection(player, roleselector, 13, 14);
-                changeRoleSelection(player, roleselector, 14, 15);
-                changeRoleSelection(player, roleselector, 15, 16);
-                changeRoleSelection(player, roleselector, 16, 17);
-                changeRoleSelection(player, roleselector, 17, 20);
-                changeRoleSelection(player, roleselector, 18, 21);
-                changeRoleSelection(player, roleselector, 19, 22);
-                changeRoleSelection(player, roleselector, 20, 23);
-                changeRoleSelection(player, roleselector, 21, 24);
-                changeRoleSelection(player, roleselector, 22, 25);
-                changeRoleSelection(player, roleselector, 23, 26);
-                changeRoleSelection(player, roleselector, 24, 27);
-                changeRoleSelection(player, roleselector, 25, 30);
-            }
-            if (server.getCurrentPlayerCount() == 26) {
-                changeRoleSelection(player, roleselector, 1, 0);
-                changeRoleSelection(player, roleselector, 2, 1);
-                changeRoleSelection(player, roleselector, 3, 2);
-                changeRoleSelection(player, roleselector, 4, 3);
-                changeRoleSelection(player, roleselector, 5, 4);
-                changeRoleSelection(player, roleselector, 6, 5);
-                changeRoleSelection(player, roleselector, 7, 6);
-                changeRoleSelection(player, roleselector, 8, 7);
-                changeRoleSelection(player, roleselector, 9, 10);
-                changeRoleSelection(player, roleselector, 10, 11);
-                changeRoleSelection(player, roleselector, 11, 12);
-                changeRoleSelection(player, roleselector, 12, 13);
-                changeRoleSelection(player, roleselector, 13, 14);
-                changeRoleSelection(player, roleselector, 14, 15);
-                changeRoleSelection(player, roleselector, 15, 16);
-                changeRoleSelection(player, roleselector, 16, 17);
-                changeRoleSelection(player, roleselector, 17, 20);
-                changeRoleSelection(player, roleselector, 18, 21);
-                changeRoleSelection(player, roleselector, 19, 22);
-                changeRoleSelection(player, roleselector, 20, 23);
-                changeRoleSelection(player, roleselector, 21, 24);
-                changeRoleSelection(player, roleselector, 22, 25);
-                changeRoleSelection(player, roleselector, 23, 26);
-                changeRoleSelection(player, roleselector, 24, 27);
-                changeRoleSelection(player, roleselector, 25, 30);
-                changeRoleSelection(player, roleselector, 26, 31);
-            }
-            if (server.getCurrentPlayerCount() == 27) {
-                changeRoleSelection(player, roleselector, 1, 0);
-                changeRoleSelection(player, roleselector, 2, 1);
-                changeRoleSelection(player, roleselector, 3, 2);
-                changeRoleSelection(player, roleselector, 4, 3);
-                changeRoleSelection(player, roleselector, 5, 4);
-                changeRoleSelection(player, roleselector, 6, 5);
-                changeRoleSelection(player, roleselector, 7, 6);
-                changeRoleSelection(player, roleselector, 8, 7);
-                changeRoleSelection(player, roleselector, 9, 10);
-                changeRoleSelection(player, roleselector, 10, 11);
-                changeRoleSelection(player, roleselector, 11, 12);
-                changeRoleSelection(player, roleselector, 12, 13);
-                changeRoleSelection(player, roleselector, 13, 14);
-                changeRoleSelection(player, roleselector, 14, 15);
-                changeRoleSelection(player, roleselector, 15, 16);
-                changeRoleSelection(player, roleselector, 16, 17);
-                changeRoleSelection(player, roleselector, 17, 20);
-                changeRoleSelection(player, roleselector, 18, 21);
-                changeRoleSelection(player, roleselector, 19, 22);
-                changeRoleSelection(player, roleselector, 20, 23);
-                changeRoleSelection(player, roleselector, 21, 24);
-                changeRoleSelection(player, roleselector, 22, 25);
-                changeRoleSelection(player, roleselector, 23, 26);
-                changeRoleSelection(player, roleselector, 24, 27);
-                changeRoleSelection(player, roleselector, 25, 30);
-                changeRoleSelection(player, roleselector, 26, 31);
-                changeRoleSelection(player, roleselector, 27, 32);
-            }
-            if (server.getCurrentPlayerCount() == 28) {
-                changeRoleSelection(player, roleselector, 1, 0);
-                changeRoleSelection(player, roleselector, 2, 1);
-                changeRoleSelection(player, roleselector, 3, 2);
-                changeRoleSelection(player, roleselector, 4, 3);
-                changeRoleSelection(player, roleselector, 5, 4);
-                changeRoleSelection(player, roleselector, 6, 5);
-                changeRoleSelection(player, roleselector, 7, 6);
-                changeRoleSelection(player, roleselector, 8, 7);
-                changeRoleSelection(player, roleselector, 9, 10);
-                changeRoleSelection(player, roleselector, 10, 11);
-                changeRoleSelection(player, roleselector, 11, 12);
-                changeRoleSelection(player, roleselector, 12, 13);
-                changeRoleSelection(player, roleselector, 13, 14);
-                changeRoleSelection(player, roleselector, 14, 15);
-                changeRoleSelection(player, roleselector, 15, 16);
-                changeRoleSelection(player, roleselector, 16, 17);
-                changeRoleSelection(player, roleselector, 17, 20);
-                changeRoleSelection(player, roleselector, 18, 21);
-                changeRoleSelection(player, roleselector, 19, 22);
-                changeRoleSelection(player, roleselector, 20, 23);
-                changeRoleSelection(player, roleselector, 21, 24);
-                changeRoleSelection(player, roleselector, 22, 25);
-                changeRoleSelection(player, roleselector, 23, 26);
-                changeRoleSelection(player, roleselector, 24, 27);
-                changeRoleSelection(player, roleselector, 25, 30);
-                changeRoleSelection(player, roleselector, 26, 31);
-                changeRoleSelection(player, roleselector, 27, 32);
-                changeRoleSelection(player, roleselector, 28, 33);
-            }
-            if (server.getCurrentPlayerCount() == 29) {
-                changeRoleSelection(player, roleselector, 1, 0);
-                changeRoleSelection(player, roleselector, 2, 1);
-                changeRoleSelection(player, roleselector, 3, 2);
-                changeRoleSelection(player, roleselector, 4, 3);
-                changeRoleSelection(player, roleselector, 5, 4);
-                changeRoleSelection(player, roleselector, 6, 5);
-                changeRoleSelection(player, roleselector, 7, 6);
-                changeRoleSelection(player, roleselector, 8, 7);
-                changeRoleSelection(player, roleselector, 9, 10);
-                changeRoleSelection(player, roleselector, 10, 11);
-                changeRoleSelection(player, roleselector, 11, 12);
-                changeRoleSelection(player, roleselector, 12, 13);
-                changeRoleSelection(player, roleselector, 13, 14);
-                changeRoleSelection(player, roleselector, 14, 15);
-                changeRoleSelection(player, roleselector, 15, 16);
-                changeRoleSelection(player, roleselector, 16, 17);
-                changeRoleSelection(player, roleselector, 17, 20);
-                changeRoleSelection(player, roleselector, 18, 21);
-                changeRoleSelection(player, roleselector, 19, 22);
-                changeRoleSelection(player, roleselector, 20, 23);
-                changeRoleSelection(player, roleselector, 21, 24);
-                changeRoleSelection(player, roleselector, 22, 25);
-                changeRoleSelection(player, roleselector, 23, 26);
-                changeRoleSelection(player, roleselector, 24, 27);
-                changeRoleSelection(player, roleselector, 25, 30);
-                changeRoleSelection(player, roleselector, 26, 31);
-                changeRoleSelection(player, roleselector, 27, 32);
-                changeRoleSelection(player, roleselector, 28, 33);
-                changeRoleSelection(player, roleselector, 29, 34);
-            }
-            if (server.getCurrentPlayerCount() == 30) {
-                changeRoleSelection(player, roleselector, 1, 0);
-                changeRoleSelection(player, roleselector, 2, 1);
-                changeRoleSelection(player, roleselector, 3, 2);
-                changeRoleSelection(player, roleselector, 4, 3);
-                changeRoleSelection(player, roleselector, 5, 4);
-                changeRoleSelection(player, roleselector, 6, 5);
-                changeRoleSelection(player, roleselector, 7, 6);
-                changeRoleSelection(player, roleselector, 8, 7);
-                changeRoleSelection(player, roleselector, 9, 10);
-                changeRoleSelection(player, roleselector, 10, 11);
-                changeRoleSelection(player, roleselector, 11, 12);
-                changeRoleSelection(player, roleselector, 12, 13);
-                changeRoleSelection(player, roleselector, 13, 14);
-                changeRoleSelection(player, roleselector, 14, 15);
-                changeRoleSelection(player, roleselector, 15, 16);
-                changeRoleSelection(player, roleselector, 16, 17);
-                changeRoleSelection(player, roleselector, 17, 20);
-                changeRoleSelection(player, roleselector, 18, 21);
-                changeRoleSelection(player, roleselector, 19, 22);
-                changeRoleSelection(player, roleselector, 20, 23);
-                changeRoleSelection(player, roleselector, 21, 24);
-                changeRoleSelection(player, roleselector, 22, 25);
-                changeRoleSelection(player, roleselector, 23, 26);
-                changeRoleSelection(player, roleselector, 24, 27);
-                changeRoleSelection(player, roleselector, 25, 30);
-                changeRoleSelection(player, roleselector, 26, 31);
-                changeRoleSelection(player, roleselector, 27, 32);
-                changeRoleSelection(player, roleselector, 28, 33);
-                changeRoleSelection(player, roleselector, 29, 34);
-                changeRoleSelection(player, roleselector, 30, 35);
-            }
-            if (server.getCurrentPlayerCount() == 31) {
-                changeRoleSelection(player, roleselector, 1, 0);
-                changeRoleSelection(player, roleselector, 2, 1);
-                changeRoleSelection(player, roleselector, 3, 2);
-                changeRoleSelection(player, roleselector, 4, 3);
-                changeRoleSelection(player, roleselector, 5, 4);
-                changeRoleSelection(player, roleselector, 6, 5);
-                changeRoleSelection(player, roleselector, 7, 6);
-                changeRoleSelection(player, roleselector, 8, 7);
-                changeRoleSelection(player, roleselector, 9, 10);
-                changeRoleSelection(player, roleselector, 10, 11);
-                changeRoleSelection(player, roleselector, 11, 12);
-                changeRoleSelection(player, roleselector, 12, 13);
-                changeRoleSelection(player, roleselector, 13, 14);
-                changeRoleSelection(player, roleselector, 14, 15);
-                changeRoleSelection(player, roleselector, 15, 16);
-                changeRoleSelection(player, roleselector, 16, 17);
-                changeRoleSelection(player, roleselector, 17, 20);
-                changeRoleSelection(player, roleselector, 18, 21);
-                changeRoleSelection(player, roleselector, 19, 22);
-                changeRoleSelection(player, roleselector, 20, 23);
-                changeRoleSelection(player, roleselector, 21, 24);
-                changeRoleSelection(player, roleselector, 22, 25);
-                changeRoleSelection(player, roleselector, 23, 26);
-                changeRoleSelection(player, roleselector, 24, 27);
-                changeRoleSelection(player, roleselector, 25, 30);
-                changeRoleSelection(player, roleselector, 26, 31);
-                changeRoleSelection(player, roleselector, 27, 32);
-                changeRoleSelection(player, roleselector, 28, 33);
-                changeRoleSelection(player, roleselector, 29, 34);
-                changeRoleSelection(player, roleselector, 30, 35);
-                changeRoleSelection(player, roleselector, 31, 36);
-            }
-            if (server.getCurrentPlayerCount() == 32) {
-                changeRoleSelection(player, roleselector, 1, 0);
-                changeRoleSelection(player, roleselector, 2, 1);
-                changeRoleSelection(player, roleselector, 3, 2);
-                changeRoleSelection(player, roleselector, 4, 3);
-                changeRoleSelection(player, roleselector, 5, 4);
-                changeRoleSelection(player, roleselector, 6, 5);
-                changeRoleSelection(player, roleselector, 7, 6);
-                changeRoleSelection(player, roleselector, 8, 7);
-                changeRoleSelection(player, roleselector, 9, 10);
-                changeRoleSelection(player, roleselector, 10, 11);
-                changeRoleSelection(player, roleselector, 11, 12);
-                changeRoleSelection(player, roleselector, 12, 13);
-                changeRoleSelection(player, roleselector, 13, 14);
-                changeRoleSelection(player, roleselector, 14, 15);
-                changeRoleSelection(player, roleselector, 15, 16);
-                changeRoleSelection(player, roleselector, 16, 17);
-                changeRoleSelection(player, roleselector, 17, 20);
-                changeRoleSelection(player, roleselector, 18, 21);
-                changeRoleSelection(player, roleselector, 19, 22);
-                changeRoleSelection(player, roleselector, 20, 23);
-                changeRoleSelection(player, roleselector, 21, 24);
-                changeRoleSelection(player, roleselector, 22, 25);
-                changeRoleSelection(player, roleselector, 23, 26);
-                changeRoleSelection(player, roleselector, 24, 27);
-                changeRoleSelection(player, roleselector, 25, 30);
-                changeRoleSelection(player, roleselector, 26, 31);
-                changeRoleSelection(player, roleselector, 27, 32);
-                changeRoleSelection(player, roleselector, 28, 33);
-                changeRoleSelection(player, roleselector, 29, 34);
-                changeRoleSelection(player, roleselector, 30, 35);
-                changeRoleSelection(player, roleselector, 31, 36);
-                changeRoleSelection(player, roleselector, 32, 37);
-            }
-            if (server.getCurrentPlayerCount() == 33) {
-                changeRoleSelection(player, roleselector, 1, 0);
-                changeRoleSelection(player, roleselector, 2, 1);
-                changeRoleSelection(player, roleselector, 3, 2);
-                changeRoleSelection(player, roleselector, 4, 3);
-                changeRoleSelection(player, roleselector, 5, 4);
-                changeRoleSelection(player, roleselector, 6, 5);
-                changeRoleSelection(player, roleselector, 7, 6);
-                changeRoleSelection(player, roleselector, 8, 7);
-                changeRoleSelection(player, roleselector, 9, 10);
-                changeRoleSelection(player, roleselector, 10, 11);
-                changeRoleSelection(player, roleselector, 11, 12);
-                changeRoleSelection(player, roleselector, 12, 13);
-                changeRoleSelection(player, roleselector, 13, 14);
-                changeRoleSelection(player, roleselector, 14, 15);
-                changeRoleSelection(player, roleselector, 15, 16);
-                changeRoleSelection(player, roleselector, 16, 17);
-                changeRoleSelection(player, roleselector, 17, 20);
-                changeRoleSelection(player, roleselector, 18, 21);
-                changeRoleSelection(player, roleselector, 19, 22);
-                changeRoleSelection(player, roleselector, 20, 23);
-                changeRoleSelection(player, roleselector, 21, 24);
-                changeRoleSelection(player, roleselector, 22, 25);
-                changeRoleSelection(player, roleselector, 23, 26);
-                changeRoleSelection(player, roleselector, 24, 27);
-                changeRoleSelection(player, roleselector, 25, 30);
-                changeRoleSelection(player, roleselector, 26, 31);
-                changeRoleSelection(player, roleselector, 27, 32);
-                changeRoleSelection(player, roleselector, 28, 33);
-                changeRoleSelection(player, roleselector, 29, 34);
-                changeRoleSelection(player, roleselector, 30, 35);
-                changeRoleSelection(player, roleselector, 31, 36);
-                changeRoleSelection(player, roleselector, 32, 37);
-                changeRoleSelection(player, roleselector, 33, 40);
-            }
-            if (server.getCurrentPlayerCount() == 34) {
-                changeRoleSelection(player, roleselector, 1, 0);
-                changeRoleSelection(player, roleselector, 2, 1);
-                changeRoleSelection(player, roleselector, 3, 2);
-                changeRoleSelection(player, roleselector, 4, 3);
-                changeRoleSelection(player, roleselector, 5, 4);
-                changeRoleSelection(player, roleselector, 6, 5);
-                changeRoleSelection(player, roleselector, 7, 6);
-                changeRoleSelection(player, roleselector, 8, 7);
-                changeRoleSelection(player, roleselector, 9, 10);
-                changeRoleSelection(player, roleselector, 10, 11);
-                changeRoleSelection(player, roleselector, 11, 12);
-                changeRoleSelection(player, roleselector, 12, 13);
-                changeRoleSelection(player, roleselector, 13, 14);
-                changeRoleSelection(player, roleselector, 14, 15);
-                changeRoleSelection(player, roleselector, 15, 16);
-                changeRoleSelection(player, roleselector, 16, 17);
-                changeRoleSelection(player, roleselector, 17, 20);
-                changeRoleSelection(player, roleselector, 18, 21);
-                changeRoleSelection(player, roleselector, 19, 22);
-                changeRoleSelection(player, roleselector, 20, 23);
-                changeRoleSelection(player, roleselector, 21, 24);
-                changeRoleSelection(player, roleselector, 22, 25);
-                changeRoleSelection(player, roleselector, 23, 26);
-                changeRoleSelection(player, roleselector, 24, 27);
-                changeRoleSelection(player, roleselector, 25, 30);
-                changeRoleSelection(player, roleselector, 26, 31);
-                changeRoleSelection(player, roleselector, 27, 32);
-                changeRoleSelection(player, roleselector, 28, 33);
-                changeRoleSelection(player, roleselector, 29, 34);
-                changeRoleSelection(player, roleselector, 30, 35);
-                changeRoleSelection(player, roleselector, 31, 36);
-                changeRoleSelection(player, roleselector, 32, 37);
-                changeRoleSelection(player, roleselector, 33, 40);
-                changeRoleSelection(player, roleselector, 34, 41);
-            }
-            if (server.getCurrentPlayerCount() == 35) {
-                changeRoleSelection(player, roleselector, 1, 0);
-                changeRoleSelection(player, roleselector, 2, 1);
-                changeRoleSelection(player, roleselector, 3, 2);
-                changeRoleSelection(player, roleselector, 4, 3);
-                changeRoleSelection(player, roleselector, 5, 4);
-                changeRoleSelection(player, roleselector, 6, 5);
-                changeRoleSelection(player, roleselector, 7, 6);
-                changeRoleSelection(player, roleselector, 8, 7);
-                changeRoleSelection(player, roleselector, 9, 10);
-                changeRoleSelection(player, roleselector, 10, 11);
-                changeRoleSelection(player, roleselector, 11, 12);
-                changeRoleSelection(player, roleselector, 12, 13);
-                changeRoleSelection(player, roleselector, 13, 14);
-                changeRoleSelection(player, roleselector, 14, 15);
-                changeRoleSelection(player, roleselector, 15, 16);
-                changeRoleSelection(player, roleselector, 16, 17);
-                changeRoleSelection(player, roleselector, 17, 20);
-                changeRoleSelection(player, roleselector, 18, 21);
-                changeRoleSelection(player, roleselector, 19, 22);
-                changeRoleSelection(player, roleselector, 20, 23);
-                changeRoleSelection(player, roleselector, 21, 24);
-                changeRoleSelection(player, roleselector, 22, 25);
-                changeRoleSelection(player, roleselector, 23, 26);
-                changeRoleSelection(player, roleselector, 24, 27);
-                changeRoleSelection(player, roleselector, 25, 30);
-                changeRoleSelection(player, roleselector, 26, 31);
-                changeRoleSelection(player, roleselector, 27, 32);
-                changeRoleSelection(player, roleselector, 28, 33);
-                changeRoleSelection(player, roleselector, 29, 34);
-                changeRoleSelection(player, roleselector, 30, 35);
-                changeRoleSelection(player, roleselector, 31, 36);
-                changeRoleSelection(player, roleselector, 32, 37);
-                changeRoleSelection(player, roleselector, 33, 40);
-                changeRoleSelection(player, roleselector, 34, 41);
-                changeRoleSelection(player, roleselector, 35, 42);
-            }
-            if (server.getCurrentPlayerCount() == 36) {
-                changeRoleSelection(player, roleselector, 1, 0);
-                changeRoleSelection(player, roleselector, 2, 1);
-                changeRoleSelection(player, roleselector, 3, 2);
-                changeRoleSelection(player, roleselector, 4, 3);
-                changeRoleSelection(player, roleselector, 5, 4);
-                changeRoleSelection(player, roleselector, 6, 5);
-                changeRoleSelection(player, roleselector, 7, 6);
-                changeRoleSelection(player, roleselector, 8, 7);
-                changeRoleSelection(player, roleselector, 9, 10);
-                changeRoleSelection(player, roleselector, 10, 11);
-                changeRoleSelection(player, roleselector, 11, 12);
-                changeRoleSelection(player, roleselector, 12, 13);
-                changeRoleSelection(player, roleselector, 13, 14);
-                changeRoleSelection(player, roleselector, 14, 15);
-                changeRoleSelection(player, roleselector, 15, 16);
-                changeRoleSelection(player, roleselector, 16, 17);
-                changeRoleSelection(player, roleselector, 17, 20);
-                changeRoleSelection(player, roleselector, 18, 21);
-                changeRoleSelection(player, roleselector, 19, 22);
-                changeRoleSelection(player, roleselector, 20, 23);
-                changeRoleSelection(player, roleselector, 21, 24);
-                changeRoleSelection(player, roleselector, 22, 25);
-                changeRoleSelection(player, roleselector, 23, 26);
-                changeRoleSelection(player, roleselector, 24, 27);
-                changeRoleSelection(player, roleselector, 25, 30);
-                changeRoleSelection(player, roleselector, 26, 31);
-                changeRoleSelection(player, roleselector, 27, 32);
-                changeRoleSelection(player, roleselector, 28, 33);
-                changeRoleSelection(player, roleselector, 29, 34);
-                changeRoleSelection(player, roleselector, 30, 35);
-                changeRoleSelection(player, roleselector, 31, 36);
-                changeRoleSelection(player, roleselector, 32, 37);
-                changeRoleSelection(player, roleselector, 33, 40);
-                changeRoleSelection(player, roleselector, 34, 41);
-                changeRoleSelection(player, roleselector, 35, 42);
-                changeRoleSelection(player, roleselector, 36, 43);
-            }
-            if (server.getCurrentPlayerCount() == 37) {
-                changeRoleSelection(player, roleselector, 1, 0);
-                changeRoleSelection(player, roleselector, 2, 1);
-                changeRoleSelection(player, roleselector, 3, 2);
-                changeRoleSelection(player, roleselector, 4, 3);
-                changeRoleSelection(player, roleselector, 5, 4);
-                changeRoleSelection(player, roleselector, 6, 5);
-                changeRoleSelection(player, roleselector, 7, 6);
-                changeRoleSelection(player, roleselector, 8, 7);
-                changeRoleSelection(player, roleselector, 9, 10);
-                changeRoleSelection(player, roleselector, 10, 11);
-                changeRoleSelection(player, roleselector, 11, 12);
-                changeRoleSelection(player, roleselector, 12, 13);
-                changeRoleSelection(player, roleselector, 13, 14);
-                changeRoleSelection(player, roleselector, 14, 15);
-                changeRoleSelection(player, roleselector, 15, 16);
-                changeRoleSelection(player, roleselector, 16, 17);
-                changeRoleSelection(player, roleselector, 17, 20);
-                changeRoleSelection(player, roleselector, 18, 21);
-                changeRoleSelection(player, roleselector, 19, 22);
-                changeRoleSelection(player, roleselector, 20, 23);
-                changeRoleSelection(player, roleselector, 21, 24);
-                changeRoleSelection(player, roleselector, 22, 25);
-                changeRoleSelection(player, roleselector, 23, 26);
-                changeRoleSelection(player, roleselector, 24, 27);
-                changeRoleSelection(player, roleselector, 25, 30);
-                changeRoleSelection(player, roleselector, 26, 31);
-                changeRoleSelection(player, roleselector, 27, 32);
-                changeRoleSelection(player, roleselector, 28, 33);
-                changeRoleSelection(player, roleselector, 29, 34);
-                changeRoleSelection(player, roleselector, 30, 35);
-                changeRoleSelection(player, roleselector, 31, 36);
-                changeRoleSelection(player, roleselector, 32, 37);
-                changeRoleSelection(player, roleselector, 33, 40);
-                changeRoleSelection(player, roleselector, 34, 41);
-                changeRoleSelection(player, roleselector, 35, 42);
-                changeRoleSelection(player, roleselector, 36, 43);
-                changeRoleSelection(player, roleselector, 37, 44);
-            }
-            if (server.getCurrentPlayerCount() == 38) {
-                changeRoleSelection(player, roleselector, 1, 0);
-                changeRoleSelection(player, roleselector, 2, 1);
-                changeRoleSelection(player, roleselector, 3, 2);
-                changeRoleSelection(player, roleselector, 4, 3);
-                changeRoleSelection(player, roleselector, 5, 4);
-                changeRoleSelection(player, roleselector, 6, 5);
-                changeRoleSelection(player, roleselector, 7, 6);
-                changeRoleSelection(player, roleselector, 8, 7);
-                changeRoleSelection(player, roleselector, 9, 10);
-                changeRoleSelection(player, roleselector, 10, 11);
-                changeRoleSelection(player, roleselector, 11, 12);
-                changeRoleSelection(player, roleselector, 12, 13);
-                changeRoleSelection(player, roleselector, 13, 14);
-                changeRoleSelection(player, roleselector, 14, 15);
-                changeRoleSelection(player, roleselector, 15, 16);
-                changeRoleSelection(player, roleselector, 16, 17);
-                changeRoleSelection(player, roleselector, 17, 20);
-                changeRoleSelection(player, roleselector, 18, 21);
-                changeRoleSelection(player, roleselector, 19, 22);
-                changeRoleSelection(player, roleselector, 20, 23);
-                changeRoleSelection(player, roleselector, 21, 24);
-                changeRoleSelection(player, roleselector, 22, 25);
-                changeRoleSelection(player, roleselector, 23, 26);
-                changeRoleSelection(player, roleselector, 24, 27);
-                changeRoleSelection(player, roleselector, 25, 30);
-                changeRoleSelection(player, roleselector, 26, 31);
-                changeRoleSelection(player, roleselector, 27, 32);
-                changeRoleSelection(player, roleselector, 28, 33);
-                changeRoleSelection(player, roleselector, 29, 34);
-                changeRoleSelection(player, roleselector, 30, 35);
-                changeRoleSelection(player, roleselector, 31, 36);
-                changeRoleSelection(player, roleselector, 32, 37);
-                changeRoleSelection(player, roleselector, 33, 40);
-                changeRoleSelection(player, roleselector, 34, 41);
-                changeRoleSelection(player, roleselector, 35, 42);
-                changeRoleSelection(player, roleselector, 36, 43);
-                changeRoleSelection(player, roleselector, 37, 44);
-                changeRoleSelection(player, roleselector, 38, 45);
-            }
-            if (server.getCurrentPlayerCount() == 39) {
-                changeRoleSelection(player, roleselector, 1, 0);
-                changeRoleSelection(player, roleselector, 2, 1);
-                changeRoleSelection(player, roleselector, 3, 2);
-                changeRoleSelection(player, roleselector, 4, 3);
-                changeRoleSelection(player, roleselector, 5, 4);
-                changeRoleSelection(player, roleselector, 6, 5);
-                changeRoleSelection(player, roleselector, 7, 6);
-                changeRoleSelection(player, roleselector, 8, 7);
-                changeRoleSelection(player, roleselector, 9, 10);
-                changeRoleSelection(player, roleselector, 10, 11);
-                changeRoleSelection(player, roleselector, 11, 12);
-                changeRoleSelection(player, roleselector, 12, 13);
-                changeRoleSelection(player, roleselector, 13, 14);
-                changeRoleSelection(player, roleselector, 14, 15);
-                changeRoleSelection(player, roleselector, 15, 16);
-                changeRoleSelection(player, roleselector, 16, 17);
-                changeRoleSelection(player, roleselector, 17, 20);
-                changeRoleSelection(player, roleselector, 18, 21);
-                changeRoleSelection(player, roleselector, 19, 22);
-                changeRoleSelection(player, roleselector, 20, 23);
-                changeRoleSelection(player, roleselector, 21, 24);
-                changeRoleSelection(player, roleselector, 22, 25);
-                changeRoleSelection(player, roleselector, 23, 26);
-                changeRoleSelection(player, roleselector, 24, 27);
-                changeRoleSelection(player, roleselector, 25, 30);
-                changeRoleSelection(player, roleselector, 26, 31);
-                changeRoleSelection(player, roleselector, 27, 32);
-                changeRoleSelection(player, roleselector, 28, 33);
-                changeRoleSelection(player, roleselector, 29, 34);
-                changeRoleSelection(player, roleselector, 30, 35);
-                changeRoleSelection(player, roleselector, 31, 36);
-                changeRoleSelection(player, roleselector, 32, 37);
-                changeRoleSelection(player, roleselector, 33, 40);
-                changeRoleSelection(player, roleselector, 34, 41);
-                changeRoleSelection(player, roleselector, 35, 42);
-                changeRoleSelection(player, roleselector, 36, 43);
-                changeRoleSelection(player, roleselector, 37, 44);
-                changeRoleSelection(player, roleselector, 38, 45);
-                changeRoleSelection(player, roleselector, 39, 46);
-            }
-            if (server.getCurrentPlayerCount() == 40) {
-                changeRoleSelection(player, roleselector, 1, 0);
-                changeRoleSelection(player, roleselector, 2, 1);
-                changeRoleSelection(player, roleselector, 3, 2);
-                changeRoleSelection(player, roleselector, 4, 3);
-                changeRoleSelection(player, roleselector, 5, 4);
-                changeRoleSelection(player, roleselector, 6, 5);
-                changeRoleSelection(player, roleselector, 7, 6);
-                changeRoleSelection(player, roleselector, 8, 7);
-                changeRoleSelection(player, roleselector, 9, 10);
-                changeRoleSelection(player, roleselector, 10, 11);
-                changeRoleSelection(player, roleselector, 11, 12);
-                changeRoleSelection(player, roleselector, 12, 13);
-                changeRoleSelection(player, roleselector, 13, 14);
-                changeRoleSelection(player, roleselector, 14, 15);
-                changeRoleSelection(player, roleselector, 15, 16);
-                changeRoleSelection(player, roleselector, 16, 17);
-                changeRoleSelection(player, roleselector, 17, 20);
-                changeRoleSelection(player, roleselector, 18, 21);
-                changeRoleSelection(player, roleselector, 19, 22);
-                changeRoleSelection(player, roleselector, 20, 23);
-                changeRoleSelection(player, roleselector, 21, 24);
-                changeRoleSelection(player, roleselector, 22, 25);
-                changeRoleSelection(player, roleselector, 23, 26);
-                changeRoleSelection(player, roleselector, 24, 27);
-                changeRoleSelection(player, roleselector, 25, 30);
-                changeRoleSelection(player, roleselector, 26, 31);
-                changeRoleSelection(player, roleselector, 27, 32);
-                changeRoleSelection(player, roleselector, 28, 33);
-                changeRoleSelection(player, roleselector, 29, 34);
-                changeRoleSelection(player, roleselector, 30, 35);
-                changeRoleSelection(player, roleselector, 31, 36);
-                changeRoleSelection(player, roleselector, 32, 37);
-                changeRoleSelection(player, roleselector, 33, 40);
-                changeRoleSelection(player, roleselector, 34, 41);
-                changeRoleSelection(player, roleselector, 35, 42);
-                changeRoleSelection(player, roleselector, 36, 43);
-                changeRoleSelection(player, roleselector, 37, 44);
-                changeRoleSelection(player, roleselector, 38, 45);
-                changeRoleSelection(player, roleselector, 39, 46);
-                changeRoleSelection(player, roleselector, 40, 47);
-            }
-            setGoBack(player, roleselector);
-            roleselector.open();
+        if (player.hasPermissionLevel(2) || player.hasPermissionLevel(4)) {
+            SimpleGui settings = new SimpleGui(ScreenHandlerType.GENERIC_9X2, player, false);
+            settings.setTitle(MessageUtil.ofVomponent(player, "manhunt.item.settings"));
+            changeSetting(player, settings, "setRoles", "manhunt.item.setroles", "manhunt.lore.setroles", Items.FLETCHING_TABLE, 0, SoundEvents.ENTITY_VILLAGER_WORK_FLETCHER);
+            changeSetting(player, settings, "hunterFreeze", "manhunt.item.hunterfreeze", "manhunt.lore.hunterfreeze", Items.ICE, 1, SoundEvents.BLOCK_GLASS_BREAK);
+            changeSetting(player, settings, "timeLimit", "manhunt.item.timelimit", "manhunt.lore.timelimit", Items.CLOCK, 2, SoundEvents.ENTITY_FISHING_BOBBER_THROW);
+            changeSetting(player, settings, "compassUpdate", "manhunt.item.compassupdate", "manhunt.lore.compassupdate", Items.COMPASS, 3, SoundEvents.ITEM_LODESTONE_COMPASS_LOCK);
+            changeSetting(player, settings, "showTeamColor", "manhunt.item.showteamcolor", "manhunt.lore.showteamcolor", Items.LEATHER_CHESTPLATE, 4, SoundEvents.ITEM_ARMOR_EQUIP_LEATHER);
+            changeSetting(player, settings, "worldDifficulty", "manhunt.item.worlddifficulty", "manhunt.lore.worlddifficulty", Items.CREEPER_HEAD, 5, SoundEvents.ENTITY_CREEPER_HURT);
+            changeSetting(player, settings, "borderSize", "manhunt.item.bordersize", "manhunt.lore.bordersize", Items.STRUCTURE_VOID, 6, SoundEvents.BLOCK_DEEPSLATE_BREAK);
+            changeSetting(player, settings, "winnerTitle", "manhunt.item.winnertitle", "manhunt.lore.winnertitle", Items.OAK_SIGN, 7, SoundEvents.BLOCK_WOOD_BREAK);
+            settings.open();
         } else {
-            MessageUtil.sendMessage(player, "manhunt.chat.player");
+            MessageUtil.sendMessage(player, "manhunt.chat.leader");
         }
     }
 
-    private static void gameSettings(ServerPlayerEntity player) {
-        if (Arrays.stream(Manhunt.SERVER.getPlayerManager().getWhitelistedNames()).anyMatch(Predicate.isEqual(player.getName().getString())) || Arrays.stream(Manhunt.SERVER.getPlayerManager().getWhitelistedNames()).anyMatch(Predicate.isEqual("[" + player.getName().getString() + "]"))) {
-            SimpleGui gameSettings = new SimpleGui(ScreenHandlerType.GENERIC_9X2, player, false);
-            gameSettings.setTitle(MessageUtil.ofVomponent(player, "manhunt.item.game"));
-            changeGameSetting(player, gameSettings, "setRoles", "manhunt.item.setroles", "manhunt.lore.setroles", Items.FLETCHING_TABLE, 0, SoundEvents.ENTITY_VILLAGER_WORK_FLETCHER);
-            changeGameSetting(player, gameSettings, "hunterFreeze", "manhunt.item.hunterfreeze", "manhunt.lore.hunterfreeze", Items.ICE, 1, SoundEvents.BLOCK_GLASS_BREAK);
-            changeGameSetting(player, gameSettings, "timeLimit", "manhunt.item.timelimit", "manhunt.lore.timelimit", Items.CLOCK, 2, SoundEvents.ENTITY_FISHING_BOBBER_THROW);
-            changeGameSetting(player, gameSettings, "compassUpdate", "manhunt.item.compassupdate", "manhunt.lore.compassupdate", Items.COMPASS, 3, SoundEvents.ITEM_LODESTONE_COMPASS_LOCK);
-            changeGameSetting(player, gameSettings, "showTeamColor", "manhunt.item.showteamcolor", "manhunt.lore.showteamcolor", Items.LEATHER_CHESTPLATE, 4, SoundEvents.ITEM_ARMOR_EQUIP_LEATHER);
-            changeGameSetting(player, gameSettings, "worldDifficulty", "manhunt.item.worlddifficulty", "manhunt.lore.worlddifficulty", Items.CREEPER_HEAD, 5, SoundEvents.ENTITY_CREEPER_HURT);
-            changeGameSetting(player, gameSettings, "borderSize", "manhunt.item.bordersize", "manhunt.lore.bordersize", Items.STRUCTURE_VOID, 6, SoundEvents.BLOCK_DEEPSLATE_BREAK);
-            changeGameSetting(player, gameSettings, "showGameTitles", "manhunt.item.showgametitles", "manhunt.lore.showgametitles", Items.OAK_SIGN, 9, SoundEvents.BLOCK_WOOD_BREAK);
-            setGoBack(player, gameSettings);
-            gameSettings.open();
-        } else {
-            MessageUtil.sendMessage(player, "manhunt.chat.player");
-        }
-    }
-
-    private static void changeRoleSelection(ServerPlayerEntity player, SimpleGui gui, int count, int slot) {
-        if (!player.getItemCooldownManager().isCoolingDown(Items.PLAYER_HEAD)) {
-            MinecraftServer server = Manhunt.SERVER;
-
-            ServerPlayerEntity listPlayer = server.getPlayerManager().getPlayerList().get(count - 1);
-            String value = currentRole.get(listPlayer.getUuid());
-            List<Text> loreList = new ArrayList<>();
-            if (value.equals("hunter")) {
-                loreList.add(Text.literal("Hunter").formatted(Formatting.RED));
-            } else {
-                loreList.add(Text.literal("Runner").formatted(Formatting.GREEN));
-            }
-            gui.setSlot(slot, new GuiElementBuilder(Items.PLAYER_HEAD)
-                    .setSkullOwner(listPlayer.getGameProfile(), server)
-                    .setName(Text.literal(listPlayer.getName().getString()))
-                    .setLore(loreList)
-                    .setCallback(() -> {
-                        if (value.equals("runner")) {
-                            currentRole.put(listPlayer.getUuid(), "hunter");
-                            player.playSound(SoundEvents.UI_BUTTON_CLICK.value(), SoundCategory.MASTER, 1f, 0.5f);
-                            MessageUtil.sendBroadcast("manhunt.chat.role.hunter", listPlayer.getName().getString());
-                        } else {
-                            currentRole.put(listPlayer.getUuid(), "runner");
-                            player.playSound(SoundEvents.UI_BUTTON_CLICK.value(), SoundCategory.MASTER, 1f, 1f);
-                            MessageUtil.sendBroadcast("manhunt.chat.role.runner", listPlayer.getName().getString());
-                        }
-                        changeRoleSelection(player, gui, count, slot);
-                        player.getItemCooldownManager().set(Items.PLAYER_HEAD, 10);
-                    })
-            );
-        }
-    }
-
-    private static void changeGameSetting(ServerPlayerEntity player, SimpleGui gui, String setting, String name, String lore, Item item, int slot, SoundEvent sound) {
+    private static void changeSetting(ServerPlayerEntity player, SimpleGui gui, String setting, String name, String lore, Item item, int slot, SoundEvent sound) {
         if (!player.getItemCooldownManager().isCoolingDown(item)) {
             MinecraftServer server = Manhunt.SERVER;
 
@@ -1554,7 +581,7 @@ public class ManhuntGame {
                                         player.playSound(sound, SoundCategory.MASTER, 1f, 0.5f);
                                     }
                                 }
-                                changeGameSetting(player, gui, setting, name, lore, item, slot, sound);
+                                changeSetting(player, gui, setting, name, lore, item, slot, sound);
                                 player.getItemCooldownManager().set(item, 10);
                             }
                         })
@@ -1623,17 +650,17 @@ public class ManhuntGame {
                                                             Configs.configHandler.saveToDisk();
                                                             if (settings.borderSize == 0 || settings.borderSize >= 59999968) {
                                                                 settings.borderSize = 59999968;
-                                                                MessageUtil.sendBroadcast("manhunt.chat.game.red", "Time Limit", settings.borderSize + " blocks (maximum)");
+                                                                MessageUtil.sendBroadcast("manhunt.chat.game.red", "Border Size", settings.borderSize + " blocks (maximum)");
                                                                 player.playSound(sound, SoundCategory.MASTER, 1f, 1f);
                                                             } else {
-                                                                MessageUtil.sendBroadcast("manhunt.chat.game.green", "Time Limit", settings.borderSize + " blocks");
+                                                                MessageUtil.sendBroadcast("manhunt.chat.game.green", "Border Size", settings.borderSize + " blocks");
                                                                 player.playSound(sound, SoundCategory.MASTER, 1f, 1f);
                                                             }
                                                         }
                                                     } catch (NumberFormatException e) {
                                                         MessageUtil.sendMessage(player, "manhunt.chat.invalid");
                                                     }
-                                                    gameSettings(player);
+                                                    settings(player);
                                                     player.getItemCooldownManager().set(item, 10);
                                                 })
                                         );
@@ -1671,7 +698,7 @@ public class ManhuntGame {
                                     MessageUtil.sendBroadcast("manhunt.chat.game.green", "Compass Update", "Automatic");
                                     player.playSound(sound, SoundCategory.MASTER, 1f, 1f);
                                 }
-                                changeGameSetting(player, gui, setting, name, lore, item, slot, sound);
+                                changeSetting(player, gui, setting, name, lore, item, slot, sound);
                                 player.getItemCooldownManager().set(item, 10);
                                 Configs.configHandler.saveToDisk();
                             }
@@ -1702,7 +729,7 @@ public class ManhuntGame {
                                     MessageUtil.sendBroadcast("manhunt.chat.game.green", "Team Color", "Show");
                                     player.playSound(sound, SoundCategory.MASTER, 1f, 1f);
                                 }
-                                changeGameSetting(player, gui, setting, name, lore, item, slot, sound);
+                                changeSetting(player, gui, setting, name, lore, item, slot, sound);
                                 player.getItemCooldownManager().set(item, 10);
                                 Configs.configHandler.saveToDisk();
                             }
@@ -1739,15 +766,15 @@ public class ManhuntGame {
                                     MessageUtil.sendBroadcast("manhunt.chat.game.green", "World Difficulty", "Easy");
                                     player.playSound(sound, SoundCategory.MASTER, 1f, 1.2f);
                                 }
-                                changeGameSetting(player, gui, setting, name, lore, item, slot, sound);
+                                changeSetting(player, gui, setting, name, lore, item, slot, sound);
                                 player.getItemCooldownManager().set(item, 10);
                                 Configs.configHandler.saveToDisk();
                             }
                         })
                 );
             }
-            if (setting.equals("showGameTitles")) {
-                if (settings.gameTitles) {
+            if (setting.equals("winnerTitle")) {
+                if (settings.winnerTitle) {
                     loreList.add(Text.literal("Show").formatted(Formatting.GREEN));
                 } else {
                     loreList.add(Text.literal("Hide").formatted(Formatting.RED));
@@ -1758,18 +785,18 @@ public class ManhuntGame {
                         .setLore(loreList)
                         .setCallback(() -> {
                             if (!player.getItemCooldownManager().isCoolingDown(item)) {
-                                if (settings.gameTitles) {
-                                    Configs.configHandler.model().settings.gameTitles = false;
+                                if (settings.winnerTitle) {
+                                    Configs.configHandler.model().settings.winnerTitle = false;
                                     Configs.configHandler.saveToDisk();
-                                    MessageUtil.sendBroadcast("manhunt.chat.game.red", "Game Titles", "Hide");
+                                    MessageUtil.sendBroadcast("manhunt.chat.game.red", "Winner Title", "Hide");
                                     player.playSound(sound, SoundCategory.MASTER, 1f, 0.5f);
                                 } else {
-                                    Configs.configHandler.model().settings.gameTitles = true;
+                                    Configs.configHandler.model().settings.winnerTitle = true;
                                     Configs.configHandler.saveToDisk();
-                                    MessageUtil.sendBroadcast("manhunt.chat.game.green", "Game Titles", "Show");
+                                    MessageUtil.sendBroadcast("manhunt.chat.game.green", "Winner Title", "Show");
                                     player.playSound(sound, SoundCategory.MASTER, 1f, 1f);
                                 }
-                                changeGameSetting(player, gui, setting, name, lore, item, slot, sound);
+                                changeSetting(player, gui, setting, name, lore, item, slot, sound);
                                 player.getItemCooldownManager().set(item, 10);
                                 Configs.configHandler.saveToDisk();
                             }
@@ -1777,16 +804,6 @@ public class ManhuntGame {
                 );
             }
         }
-    }
-
-    private static void setGoBack(ServerPlayerEntity player, SimpleGui gui) {
-        gui.setSlot(8, new GuiElementBuilder(Items.MAGENTA_GLAZED_TERRACOTTA)
-                .setName(MessageUtil.ofVomponent(player, "manhunt.item.back"))
-                .setCallback((index, type, action) -> {
-                    player.playSound(SoundEvents.BLOCK_STONE_BREAK, SoundCategory.MASTER, 1f, 1f);
-                    settings(player);
-                })
-        );
     }
 
     public static ManhuntState gameState;
@@ -1798,7 +815,6 @@ public class ManhuntGame {
 
     public static void startGame(MinecraftServer server) {
         server.setFlightEnabled(true);
-        server.getPlayerManager().setWhitelistEnabled(false);
 
         manhuntState(ManhuntState.PLAYING, server);
 
@@ -1870,7 +886,7 @@ public class ManhuntGame {
                 }
             }
 
-            if (settings.gameTitles) {
+            if (settings.winnerTitle) {
                 MessageUtil.showTitle(player, "manhunt.title.gamemode", "manhunt.title.start");
             }
         }
@@ -1944,7 +960,7 @@ public class ManhuntGame {
             BlockPos blockPos2 = findOverworldSpawn(world, blockPos.getX() + r - i, blockPos.getZ() + s - i);
             if (blockPos2 == null) continue;
             player.teleport(world, blockPos2.getX(), blockPos2.getY(), blockPos2.getZ(), 0.0F, 0.0F);
-            player.setSpawnPoint(world.getRegistryKey(), blockPos2, 0.0F, true, false);
+            player.setSpawnPoint(world.getRegistryKey(), worldSpawnPos, 0.0F, true, false);
             if (!world.isSpaceEmpty(player)) {
                 continue;
             }

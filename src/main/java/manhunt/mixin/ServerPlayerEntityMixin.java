@@ -99,7 +99,7 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity {
 
         if (this.getScoreboardTeam() != null) {
             if (this.getScoreboardTeam().isEqual(scoreboard.getTeam("runners"))) {
-                if (ManhuntGame.settings.gameTitles && server.getScoreboard().getTeam("runners").getPlayerList().isEmpty()) {
+                if (ManhuntGame.settings.winnerTitle && server.getScoreboard().getTeam("runners").getPlayerList().size() == 1) {
                     ManhuntGame.manhuntState(ManhuntState.POSTGAME, server);
                     for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
                         ManhuntGame.updateGameMode(player);

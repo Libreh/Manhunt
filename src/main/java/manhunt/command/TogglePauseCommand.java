@@ -16,11 +16,9 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 
-import java.util.Arrays;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Predicate;
 
 public class TogglePauseCommand {
 
@@ -31,7 +29,7 @@ public class TogglePauseCommand {
     }
 
     private static int togglePause(ServerCommandSource source) {
-        if (Arrays.stream(Manhunt.SERVER.getPlayerManager().getWhitelistedNames()).anyMatch(Predicate.isEqual(source.getName()))) {
+        if (source.hasPermissionLevel(2) || source.hasPermissionLevel(3)) {
             if (ManhuntGame.gameState == ManhuntState.PLAYING) {
                 MinecraftServer server = Manhunt.SERVER;
 
@@ -68,7 +66,7 @@ public class TogglePauseCommand {
                 source.sendFeedback(() -> MessageUtil.ofVomponent(source.getPlayer(), "manhunt.chat.pregame"), false);
             }
         } else {
-            source.sendFeedback(() -> MessageUtil.ofVomponent(source.getPlayer(), "manhunt.chat.player"), false);
+            source.sendFeedback(() -> MessageUtil.ofVomponent(source.getPlayer(), "manhunt.chat.leader"), false);
         }
 
         return Command.SINGLE_SUCCESS;
