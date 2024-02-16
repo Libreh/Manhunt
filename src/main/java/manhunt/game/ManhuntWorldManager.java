@@ -96,6 +96,10 @@ public class ManhuntWorldManager {
             player.clearStatusEffects();
             player.getInventory().clear();
             player.setOnFire(false);
+            player.setHealth(20);
+            player.getHungerManager().setFoodLevel(20);
+            player.getHungerManager().setSaturationLevel(5);
+            player.getHungerManager().setExhaustion(0);
             player.setExperienceLevel(0);
             player.setExperiencePoints(0);
             player.clearStatusEffects();
