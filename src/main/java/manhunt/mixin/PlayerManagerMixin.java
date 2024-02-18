@@ -22,7 +22,6 @@ import static manhunt.game.ManhuntState.PREGAME;
 
 @Mixin(PlayerManager.class)
 public abstract class PlayerManagerMixin {
-
     public PlayerManagerMixin() {
         super();
     }

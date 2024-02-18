@@ -19,7 +19,7 @@ public class StartCommand {
     }
 
     private static int startCommand(ServerCommandSource source) {
-        if (source.hasPermissionLevel(2) || source.hasPermissionLevel(3)) {
+        if (source.hasPermissionLevel(1) || source.hasPermissionLevel(2) || source.hasPermissionLevel(3) || source.hasPermissionLevel(4)) {
             if (ManhuntGame.gameState == ManhuntState.PREGAME) {
                 if (Collections.frequency(ManhuntGame.currentRole.values(), "runner") == 0) {
                     source.sendFeedback(() -> MessageUtil.ofVomponent(source.getPlayer(), "manhunt.chat.minimum"), false);

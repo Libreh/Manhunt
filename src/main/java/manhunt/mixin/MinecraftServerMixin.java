@@ -20,7 +20,7 @@ import static manhunt.game.ManhuntGame.isPaused;
 // Thanks to https://github.com/sakurawald/fuji-fabric
 
 @Mixin(MinecraftServer.class)
-public abstract class MinecraftServerMixin {
+public class MinecraftServerMixin {
 
     @Inject(method = "<init>", at = @At("RETURN"))
     private void manhunt$init(CallbackInfo ci) {

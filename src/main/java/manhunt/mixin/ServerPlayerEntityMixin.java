@@ -1,12 +1,10 @@
 package manhunt.mixin;
 
-import com.mojang.authlib.GameProfile;
 import manhunt.game.ManhuntGame;
 import manhunt.game.ManhuntState;
 import manhunt.util.MessageUtil;
 import net.minecraft.enchantment.Enchantments;
 import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
@@ -18,8 +16,6 @@ import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -32,26 +28,22 @@ import java.util.Objects;
 // Thanks to https://github.com/Ivan-Khar/manhunt-fabricated
 
 @Mixin(ServerPlayerEntity.class)
-public abstract class ServerPlayerEntityMixin extends PlayerEntity {
-
+public class ServerPlayerEntityMixin {
     @Final
     @Shadow
     public MinecraftServer server;
     @Shadow
     public ServerPlayNetworkHandler networkHandler;
 
-    public ServerPlayerEntityMixin(World world, BlockPos pos, float yaw, GameProfile gameProfile) {
-        super(world, pos, yaw, gameProfile);
-    }
-
     private long lastDelay = System.currentTimeMillis();
     private static boolean holding;
+    private ServerPlayerEntity player = (ServerPlayerEntity) (Object) this;
 
     @Inject(method = "tick", at = @At("HEAD"))
     public void tick(CallbackInfo ci) {
         if (ManhuntGame.gameState == ManhuntState.PLAYING) {
-            if (this.isTeamPlayer(server.getScoreboard().getTeam("hunters")) && this.isAlive()) {
-                if (!hasTracker(server.getPlayerManager().getPlayer(this.getName().getString()))) {
+            if (player.isTeamPlayer(server.getScoreboard().getTeam("hunters")) && player.isAlive()) {
+                if (!hasTracker(server.getPlayerManager().getPlayer(player.getName().getString()))) {
                     NbtCompound nbt = new NbtCompound();
                     nbt.putBoolean("Tracker", true);
                     nbt.putBoolean("Remove", true);
@@ -66,9 +58,9 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity {
                     stack.setNbt(nbt);
                     stack.addEnchantment(Enchantments.VANISHING_CURSE, 1);
 
-                    this.giveItemStack(stack);
+                    player.giveItemStack(stack);
                 } else if (ManhuntGame.settings.compassUpdate && System.currentTimeMillis() - lastDelay > ((long) 500)) {
-                    for (ItemStack item : this.getInventory().main) {
+                    for (ItemStack item : player.getInventory().main) {
                         if (item.getItem().equals(Items.COMPASS) && item.getNbt() != null && item.getNbt().getBoolean("Tracker")) {
                             if (!item.getNbt().contains("Info")) {
                                 item.getNbt().put("Info", new NbtCompound());
@@ -83,7 +75,7 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity {
                             ServerPlayerEntity trackedPlayer = server.getPlayerManager().getPlayer(item.getNbt().getCompound("Info").getString("Name"));
 
                             if (trackedPlayer != null) {
-                                updateCompass(server.getPlayerManager().getPlayer(this.getName().getString()), item.getNbt(), trackedPlayer);
+                                updateCompass(server.getPlayerManager().getPlayer(player.getName().getString()), item.getNbt(), trackedPlayer);
                             }
                         }
                     }
@@ -97,8 +89,8 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity {
     public void onDeath(DamageSource source, CallbackInfo ci) {
         Scoreboard scoreboard = server.getScoreboard();
 
-        if (this.getScoreboardTeam() != null) {
-            if (this.getScoreboardTeam().isEqual(scoreboard.getTeam("runners"))) {
+        if (player.getScoreboardTeam() != null) {
+            if (player.getScoreboardTeam().isEqual(scoreboard.getTeam("runners"))) {
                 if (ManhuntGame.settings.winnerTitle && server.getScoreboard().getTeam("runners").getPlayerList().size() == 1) {
                     ManhuntGame.manhuntState(ManhuntState.POSTGAME, server);
                     for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {

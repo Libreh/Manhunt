@@ -13,15 +13,25 @@ public class HunterCommand {
 
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(CommandManager.literal("hunter")
-                .executes(context -> setHunter(context.getSource(), context.getSource().getPlayer()))
+                .executes(context -> setOneselfHunter(context.getSource()))
                 .then(CommandManager.argument("player", EntityArgumentType.player())
-                        .executes(context -> setHunter(context.getSource(), EntityArgumentType.getPlayer(context, "player")))
+                        .executes(context -> setSomeoneHunter(context.getSource(), EntityArgumentType.getPlayer(context, "player")))
                 )
         );
     }
 
-    private static int setHunter(ServerCommandSource source, ServerPlayerEntity player) {
-        if (source.hasPermissionLevel(2) || source.hasPermissionLevel(3)) {
+    private static int setOneselfHunter(ServerCommandSource source) {
+        ServerPlayerEntity player = source.getPlayer();
+
+        ManhuntGame.currentRole.put(player.getUuid(), "hunter");
+
+        MessageUtil.sendBroadcast("manhunt.chat.role.hunter", player.getName().getString());
+
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private static int setSomeoneHunter(ServerCommandSource source, ServerPlayerEntity player) {
+        if (source.hasPermissionLevel(1) || source.hasPermissionLevel(2) || source.hasPermissionLevel(3) || source.hasPermissionLevel(4)) {
             ManhuntGame.currentRole.put(player.getUuid(), "hunter");
 
             MessageUtil.sendBroadcast("manhunt.chat.role.hunter", player.getName().getString());

@@ -17,7 +17,7 @@ public class ResetCommand {
     }
 
     private static int resetCommand(ServerCommandSource source) {
-        if (source.hasPermissionLevel(2) || source.hasPermissionLevel(3)) {
+        if (source.hasPermissionLevel(1) || source.hasPermissionLevel(2) || source.hasPermissionLevel(3) || source.hasPermissionLevel(4)) {
             if (!(ManhuntGame.gameState == ManhuntState.PREGAME)) {
                 ManhuntGame.resetGame(source);
             } else {

@@ -32,10 +32,6 @@ public class MessageUtil {
     private static final String DEFAULT_LANG = "en_us";
     private static final MiniMessage miniMessageParser = MiniMessage.builder().build();
 
-    static {
-        copyLanguageFiles();
-    }
-
     public static void copyLanguageFiles() {
         new ResourceConfigHandler("lang/en_us.json").loadFromDisk();
     }

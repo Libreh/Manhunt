@@ -54,12 +54,14 @@ import net.minecraft.util.math.random.Random;
 import net.minecraft.util.math.random.RandomSeed;
 import net.minecraft.world.*;
 import net.minecraft.world.chunk.WorldChunk;
+import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.*;
 import java.util.function.Predicate;
 
+import static manhunt.Manhunt.CONFIG_PATH;
 import static manhunt.Manhunt.MOD_ID;
 
 public class ManhuntGame {
@@ -118,7 +120,7 @@ public class ManhuntGame {
         lobbyWorld.getChunkManager().addTicket(ChunkTicketType.START, new ChunkPos(16, 16), 16, Unit.INSTANCE);
         lobbyWorld.getChunkManager().addTicket(ChunkTicketType.START, new ChunkPos(16, 0), 16, Unit.INSTANCE);
         lobbyWorld.getChunkManager().addTicket(ChunkTicketType.START, new ChunkPos(0, 16), 16, Unit.INSTANCE);
-        placeStructure(lobbyWorld, new BlockPos(-8, 37, -8), lobbyIcebergNbt);
+        placeStructure(lobbyWorld, new BlockPos(-8, 41, -8), lobbyIcebergNbt);
     }
 
     // Thanks to https://gitlab.com/horrific-tweaks/bingo for the placeStructure method
@@ -137,6 +139,13 @@ public class ManhuntGame {
     }
 
     public static void serverStart(MinecraftServer server) {
+        try {
+            FileUtils.deleteDirectory(CONFIG_PATH.resolve("lang").toFile());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        MessageUtil.copyLanguageFiles();
+
         Configs.configHandler.model().settings.worldSeed = RandomSeed.getSeed();
         Configs.configHandler.saveToDisk();
 
@@ -250,6 +259,39 @@ public class ManhuntGame {
 
                     player.getInventory().setStack(8, itemStack);
                 }
+
+                if (player.getWorld() == server.getOverworld()) {
+                    player.teleport(server.getWorld(lobbyRegistryKey), 0, 63, 5.5, PositionFlag.ROT, 0, 0);
+                    player.clearStatusEffects();
+                    player.getInventory().clear();
+                    player.setFireTicks(0);
+                    player.setOnFire(false);
+                    player.setHealth(20);
+                    player.getHungerManager().setFoodLevel(20);
+                    player.getHungerManager().setSaturationLevel(5);
+                    player.getHungerManager().setExhaustion(0);
+                    player.setExperienceLevel(0);
+                    player.setExperiencePoints(0);
+                    player.clearStatusEffects();
+                    player.addStatusEffect(new StatusEffectInstance(StatusEffects.SATURATION, StatusEffectInstance.INFINITE, 255, false, false, false));
+
+                    for (AdvancementEntry advancement : server.getAdvancementLoader().getAdvancements()) {
+                        AdvancementProgress progress = player.getAdvancementTracker().getProgress(advancement);
+                        for (String criteria : progress.getObtainedCriteria()) {
+                            player.getAdvancementTracker().revokeCriterion(advancement, criteria);
+                        }
+                    }
+
+                    updateGameMode(player);
+
+                    if (!player.isTeamPlayer(server.getScoreboard().getTeam("players"))) {
+                        player.getScoreboard().addScoreHolderToTeam(player.getName().getString(), server.getScoreboard().getTeam("players"));
+                    }
+
+                    if (settings.setRoles == 3) {
+                        currentRole.put(player.getUuid(), "runner");
+                    }
+                }
             }
         }
 
@@ -300,6 +342,12 @@ public class ManhuntGame {
             player.teleport(server.getWorld(lobbyRegistryKey), 0, 63, 5.5, PositionFlag.ROT, 0, 0);
             player.clearStatusEffects();
             player.getInventory().clear();
+            player.setFireTicks(0);
+            player.setOnFire(false);
+            player.setHealth(20);
+            player.getHungerManager().setFoodLevel(20);
+            player.getHungerManager().setSaturationLevel(5);
+            player.getHungerManager().setExhaustion(0);
             player.setExperienceLevel(0);
             player.setExperiencePoints(0);
             player.clearStatusEffects();
@@ -521,7 +569,7 @@ public class ManhuntGame {
     }
 
     private static void settings(ServerPlayerEntity player) {
-        if (player.hasPermissionLevel(2) || player.hasPermissionLevel(3)) {
+        if (player.hasPermissionLevel(1) || player.hasPermissionLevel(2) || player.hasPermissionLevel(3) || player.hasPermissionLevel(4)) {
             SimpleGui settings = new SimpleGui(ScreenHandlerType.GENERIC_9X2, player, false);
             settings.setTitle(MessageUtil.ofVomponent(player, "manhunt.item.settings"));
             changeSetting(player, settings, "setRoles", "manhunt.item.setroles", "manhunt.lore.setroles", Items.FLETCHING_TABLE, 0, SoundEvents.ENTITY_VILLAGER_WORK_FLETCHER);

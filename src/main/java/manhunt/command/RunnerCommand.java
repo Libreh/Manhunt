@@ -13,15 +13,25 @@ public class RunnerCommand {
 
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(CommandManager.literal("runner")
-                .executes(context -> setRunner(context.getSource(), context.getSource().getPlayer()))
+                .executes(context -> setOneselfRunner(context.getSource()))
                 .then(CommandManager.argument("player", EntityArgumentType.player())
-                        .executes(context -> setRunner(context.getSource(), EntityArgumentType.getPlayer(context, "player")))
+                        .executes(context -> setSomeoneRunner(context.getSource(), EntityArgumentType.getPlayer(context, "player")))
                 )
         );
     }
 
-    private static int setRunner(ServerCommandSource source, ServerPlayerEntity player) {
-        if (source.hasPermissionLevel(2) || source.hasPermissionLevel(3)) {
+    private static int setOneselfRunner(ServerCommandSource source) {
+        ServerPlayerEntity player = source.getPlayer();
+
+        ManhuntGame.currentRole.put(player.getUuid(), "runner");
+
+        MessageUtil.sendBroadcast("manhunt.chat.role.runner", player.getName().getString());
+
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private static int setSomeoneRunner(ServerCommandSource source, ServerPlayerEntity player) {
+        if (source.hasPermissionLevel(1) || source.hasPermissionLevel(2) || source.hasPermissionLevel(3) || source.hasPermissionLevel(4)) {
             ManhuntGame.currentRole.put(player.getUuid(), "runner");
 
             MessageUtil.sendBroadcast("manhunt.chat.role.runner", player.getName().getString());

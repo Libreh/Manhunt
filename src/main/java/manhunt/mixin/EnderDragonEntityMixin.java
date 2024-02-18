@@ -1,6 +1,5 @@
 package manhunt.mixin;
 
-import manhunt.config.Configs;
 import manhunt.game.ManhuntGame;
 import manhunt.game.ManhuntState;
 import manhunt.util.MessageUtil;
@@ -24,24 +23,15 @@ public abstract class EnderDragonEntityMixin {
         EnderDragonEntity dragon = ((EnderDragonEntity) (Object) this);
         if (dragon.getHealth() == 1.0F) {
             if (ManhuntGame.settings.winnerTitle) {
-                Configs.configHandler.model().settings.winnerTitle = false;
-                Configs.configHandler.saveToDisk();
+                dragon.setHealth(0.0F);
                 ManhuntGame.manhuntState(ManhuntState.POSTGAME, dragon.getServer());
                 MinecraftServer server = dragon.getServer();
                 for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
                     MessageUtil.showTitle(player, "manhunt.title.runners", "manhunt.title.dragon");
                     player.playSound(SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, SoundCategory.PLAYERS, 0.2f, 2f);
+                    server.getScoreboard().clearTeam(player.getName().getString());
                 }
             }
-        }
-    }
-
-    @Inject(method = "updatePostDeath", at = @At("TAIL"))
-    private void setGameTitles(CallbackInfo ci) {
-        EnderDragonEntity dragon = ((EnderDragonEntity) (Object) this);
-        if (dragon.ticksSinceDeath == 1) {
-            Configs.configHandler.model().settings.winnerTitle = true;
-            Configs.configHandler.saveToDisk();
         }
     }
 }

@@ -25,7 +25,6 @@ public class ResourceConfigHandler extends ConfigHandler<JsonElement> {
     }
 
     public void loadFromDisk() {
-        // Does the file exist?
         try {
             if (!file.exists()) {
                 saveToDisk();

@@ -22,7 +22,7 @@ public class OneRunnerCommand {
     }
 
     private static int setOneRunnerAndAllHunters(ServerCommandSource source, ServerPlayerEntity player) {
-        if (source.hasPermissionLevel(2) || source.hasPermissionLevel(3)) {
+        if (source.hasPermissionLevel(1) || source.hasPermissionLevel(2) || source.hasPermissionLevel(3) || source.hasPermissionLevel(4)) {
             ManhuntGame.currentRole.put(player.getUuid(), "runner");
 
             for (ServerPlayerEntity serverPlayer : Manhunt.SERVER.getPlayerManager().getPlayerList()) {
