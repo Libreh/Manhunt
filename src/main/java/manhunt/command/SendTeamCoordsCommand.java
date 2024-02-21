@@ -10,6 +10,7 @@ import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.server.network.ServerPlayerEntity;
 
 public class SendTeamCoordsCommand {
 
@@ -23,15 +24,14 @@ public class SendTeamCoordsCommand {
         if (ManhuntGame.gameState == ManhuntState.PLAYING) {
             MinecraftServer server = Manhunt.SERVER;
             Scoreboard scoreboard = server.getScoreboard();
+            ServerPlayerEntity player = source.getPlayer();
 
-            if (source.getPlayer().getScoreboardTeam().isEqual(scoreboard.getTeam("hunters"))) {
-                for (String playerName : scoreboard.getTeam("hunters").getPlayerList()) {
-                    MessageUtil.sendMessage(server.getPlayerManager().getPlayer(playerName), "manhunt.chat.huntercoords", source.getPlayer().getName().getString(), (int) source.getPlayer().getX(), (int) source.getPlayer().getY(), (int) source.getPlayer().getZ());
-                }
+            if (player.isTeamPlayer(scoreboard.getTeam("hunters"))) {
+                MessageUtil.sendMessage(player, "manhunt.chat.sendhuntercoords", player.getName().getString(), (int) player.getX(), (int) player.getY(), (int) player.getZ());
+                MessageUtil.sendMessageToTeam("hunters", "manhunt.chat.huntercoords", player.getName().getString(), (int) player.getX(), (int) player.getY(), (int) player.getZ());
             } else {
-                for (String playerName : scoreboard.getTeam("runners").getPlayerList()) {
-                    MessageUtil.sendMessage(server.getPlayerManager().getPlayer(playerName), "manhunt.chat.runnercoords", source.getPlayer().getName().getString(), (int) source.getPlayer().getX(), (int) source.getPlayer().getY(), (int) source.getPlayer().getZ());
-                }
+                MessageUtil.sendMessage(player, "manhunt.chat.sendhrunnercoords", player.getName().getString(), (int) player.getX(), (int) player.getY(), (int) player.getZ());
+                MessageUtil.sendMessageToTeam("runners", "manhunt.chat.runnercoords", player.getName().getString(), (int) player.getX(), (int) player.getY(), (int) player.getZ());
             }
         } else {
             source.sendFeedback(() -> MessageUtil.ofVomponent(source.getPlayer(), "manhunt.chat.pregame"), false);

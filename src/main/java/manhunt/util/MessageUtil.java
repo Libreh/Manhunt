@@ -10,6 +10,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.kyori.adventure.title.Title;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
@@ -127,6 +128,15 @@ public class MessageUtil {
 
     public static void sendMessage(Audience audience, String key, Object... args) {
         audience.sendMessage(ofComponent(audience, key, args));
+    }
+
+    public static void sendMessageToTeam(String team, String key, Object... args) {
+        MinecraftServer server = Manhunt.SERVER;
+        for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+            if (player.isTeamPlayer(server.getScoreboard().getTeam(team))) {
+                sendMessage(player, key, args);
+            }
+        }
     }
 
     public static void sendActionBar(Audience audience, String key, Object... args) {

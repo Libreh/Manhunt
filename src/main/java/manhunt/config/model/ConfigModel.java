@@ -10,8 +10,8 @@ public class ConfigModel {
     public class Settings {
         public long worldSeed = 0;
         public int setRoles = 1;
-        public int hunterFreeze = 10;
-        public int timeLimit = 180;
+        public int hunterFreeze = 0;
+        public int timeLimit = 0;
         public boolean compassUpdate = true;
         public boolean teamColor = true;
         public int worldDifficulty = 1;

@@ -54,11 +54,11 @@ public class ServerPlayerEntityMixin {
                     nbt.put("display", new NbtCompound());
                     nbt.getCompound("display").putString("Name", "{\"translate\": \"Tracker\",\"italic\": false,\"color\": \"light_purple\"}");
 
-                    ItemStack stack = new ItemStack(Items.COMPASS);
-                    stack.setNbt(nbt);
-                    stack.addEnchantment(Enchantments.VANISHING_CURSE, 1);
+                    ItemStack tracker = new ItemStack(Items.COMPASS);
+                    tracker.setNbt(nbt);
+                    tracker.addEnchantment(Enchantments.VANISHING_CURSE, 1);
 
-                    player.giveItemStack(stack);
+                    player.giveItemStack(tracker);
                 } else if (ManhuntGame.settings.compassUpdate && System.currentTimeMillis() - lastDelay > ((long) 500)) {
                     for (ItemStack item : player.getInventory().main) {
                         if (item.getItem().equals(Items.COMPASS) && item.getNbt() != null && item.getNbt().getBoolean("Tracker")) {

@@ -212,10 +212,10 @@ public class ManhuntGame {
                     nbt.put("display", new NbtCompound());
                     nbt.getCompound("display").putString("Name", "{\"translate\": \"Unready\",\"italic\": false,\"color\": \"red\"}");
 
-                    ItemStack itemStack = new ItemStack(Items.RED_CONCRETE);
-                    itemStack.setNbt(nbt);
+                    ItemStack notReady = new ItemStack(Items.RED_CONCRETE);
+                    notReady.setNbt(nbt);
 
-                    player.getInventory().setStack(0, itemStack);
+                    player.getInventory().setStack(0, notReady);
                 }
 
                 if (hasItem(Items.RECOVERY_COMPASS, player, "Hunter") && settings.setRoles == 1) {
@@ -226,10 +226,10 @@ public class ManhuntGame {
                     nbt.put("display", new NbtCompound());
                     nbt.getCompound("display").putString("Name", "{\"translate\": \"Hunter\",\"italic\": false,\"color\": \"aqua\"}");
 
-                    ItemStack itemStack = new ItemStack(Items.RECOVERY_COMPASS);
-                    itemStack.setNbt(nbt);
+                    ItemStack chooseHunter = new ItemStack(Items.RECOVERY_COMPASS);
+                    chooseHunter.setNbt(nbt);
 
-                    player.getInventory().setStack(3, itemStack);
+                    player.getInventory().setStack(3, chooseHunter);
                 }
 
                 if (hasItem(Items.CLOCK, player, "Runner") && settings.setRoles == 1) {
@@ -240,10 +240,10 @@ public class ManhuntGame {
                     nbt.put("display", new NbtCompound());
                     nbt.getCompound("display").putString("Name", "{\"translate\": \"Runner\",\"italic\": false,\"color\": \"gold\"}");
 
-                    ItemStack itemStack = new ItemStack(Items.CLOCK);
-                    itemStack.setNbt(nbt);
+                    ItemStack chooseRunner = new ItemStack(Items.CLOCK);
+                    chooseRunner.setNbt(nbt);
 
-                    player.getInventory().setStack(5, itemStack);
+                    player.getInventory().setStack(5, chooseRunner);
                 }
 
                 if (hasItem(Items.COMPARATOR, player, "Settings")) {
@@ -254,10 +254,10 @@ public class ManhuntGame {
                     nbt.put("display", new NbtCompound());
                     nbt.getCompound("display").putString("Name", "{\"translate\": \"Settings\",\"italic\": false,\"color\": \"white\"}");
 
-                    ItemStack itemStack = new ItemStack(Items.COMPARATOR);
-                    itemStack.setNbt(nbt);
+                    ItemStack changeSettings = new ItemStack(Items.COMPARATOR);
+                    changeSettings.setNbt(nbt);
 
-                    player.getInventory().setStack(8, itemStack);
+                    player.getInventory().setStack(8, changeSettings);
                 }
 
                 if (player.getWorld() == server.getOverworld()) {
@@ -310,10 +310,10 @@ public class ManhuntGame {
 
     public static void worldTick(ServerWorld world) {
         if (gameState == ManhuntState.PLAYING) {
-            allPlayers = Manhunt.SERVER.getPlayerManager().getPlayerList();
-            allRunners = new LinkedList<>();
-            
             MinecraftServer server = Manhunt.SERVER;
+
+            allPlayers = server.getPlayerManager().getPlayerList();
+            allRunners = new LinkedList<>();
 
             for (ServerPlayerEntity player : allPlayers) {
                 if (player != null) {

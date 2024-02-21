@@ -11,13 +11,15 @@
 		"EndGatewayBlockEntityMixin",
 		"EndPortalBlockMixin",
 		"EntityMixin",
+		"ExplosionMixin",
 		"LivingEntityMixin",
 		"MinecraftServerMixin",
 		"PlayerEntityMixin",
 		"PlayerManagerMixin",
 		"ServerPlayerEntityMixin",
 		"ServerWorldMixin",
-		"SimpleRegistryMixin"
+		"SimpleRegistryMixin",
+		"WorldMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

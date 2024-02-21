@@ -40,6 +40,8 @@
   "manhunt.chat.property.yellow": "<aqua>%s</aqua> <gray>is set to</gray> <yellow>%s</yellow>",
   "manhunt.chat.unpaused": "<yellow>Game has been</yellow> <gold>UNPAUSED</gold>",
   "manhunt.chat.paused": "<yellow>Game has been</yellow> <gold>PAUSED</gold>",
+  "manhunt.chat.sendhuntercoords": "-> <red>[hunters]</red> <<red>%s</red>> X %s Y %s Z %s",
+  "manhunt.chat.sendrunnercoords": "-> <green>[runners]</green> <<green>%s</green>> X %s Y %s Z %s",
   "manhunt.chat.huntercoords": "-> <red>[hunters]</red> <<red>%s</red>> X %s Y %s Z %s",
   "manhunt.chat.runnercoords": "-> <green>[runners]</green> <<green>%s</green>> X %s Y %s Z %s",
   "manhunt.chat.duration": "<gray>Duration:</gray> %s:%s:%s",

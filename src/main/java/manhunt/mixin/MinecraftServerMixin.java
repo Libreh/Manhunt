@@ -29,6 +29,8 @@ public class MinecraftServerMixin {
         Manhunt.SERVER = server;
     }
 
+    // Thanks to https://git.sr.ht/~arm32x/tick-stasis for beforeTick mixin
+
     @Inject(method = "tick(Ljava/util/function/BooleanSupplier;)V", at = @At("HEAD"), cancellable = true)
     private void manhunt$beforeTick(BooleanSupplier shouldKeepTicking, CallbackInfo ci) {
         MinecraftServer server = (MinecraftServer) (Object) this;

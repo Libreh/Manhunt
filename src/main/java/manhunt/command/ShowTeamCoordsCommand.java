@@ -50,13 +50,9 @@ public class ShowTeamCoordsCommand {
                 Scoreboard scoreboard = server.getScoreboard();
 
                 if (source.getPlayer().getScoreboardTeam().isEqual(scoreboard.getTeam("hunters"))) {
-                    if (player.isTeamPlayer(scoreboard.getTeam("hunters"))) {
-                        MessageUtil.sendMessage(source.getPlayer(), "manhunt.chat.huntercoords", player.getName().getString(), (int) player.getX(), (int) player.getY(), (int) player.getZ());
-                    }
+                    MessageUtil.sendMessage(source.getPlayer(), "manhunt.chat.huntercoords", player.getName().getString(), (int) player.getX(), (int) player.getY(), (int) player.getZ());
                 } else {
-                    if (player.isTeamPlayer(scoreboard.getTeam("runners"))) {
-                        MessageUtil.sendMessage(source.getPlayer(), "manhunt.chat.runnercoords", player.getName().getString(), (int) player.getX(), (int) player.getY(), (int) player.getZ());
-                    }
+                    MessageUtil.sendMessage(source.getPlayer(), "manhunt.chat.runnercoords", player.getName().getString(), (int) player.getX(), (int) player.getY(), (int) player.getZ());
                 }
             } else {
                 source.sendFeedback(() -> MessageUtil.ofVomponent(source.getPlayer(), "manhunt.chat.pregame"), false);
