@@ -102,6 +102,7 @@ public class ManhuntWorldManager {
             player.getHungerManager().setExhaustion(0);
             player.setExperienceLevel(0);
             player.setExperiencePoints(0);
+            player.setScore(0);
             player.clearStatusEffects();
             player.addStatusEffect(new StatusEffectInstance(StatusEffects.SATURATION, StatusEffectInstance.INFINITE, 255, false, false, false));
 

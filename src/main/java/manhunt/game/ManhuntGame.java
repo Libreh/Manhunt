@@ -260,39 +260,6 @@ public class ManhuntGame {
 
                     player.getInventory().setStack(8, changeSettings);
                 }
-
-                if (player.getWorld() == server.getOverworld()) {
-                    player.teleport(server.getWorld(lobbyRegistryKey), 0, 63, 5.5, PositionFlag.ROT, 0, 0);
-                    player.clearStatusEffects();
-                    player.getInventory().clear();
-                    player.setFireTicks(0);
-                    player.setOnFire(false);
-                    player.setHealth(20);
-                    player.getHungerManager().setFoodLevel(20);
-                    player.getHungerManager().setSaturationLevel(5);
-                    player.getHungerManager().setExhaustion(0);
-                    player.setExperienceLevel(0);
-                    player.setExperiencePoints(0);
-                    player.clearStatusEffects();
-                    player.addStatusEffect(new StatusEffectInstance(StatusEffects.SATURATION, StatusEffectInstance.INFINITE, 255, false, false, false));
-
-                    for (AdvancementEntry advancement : server.getAdvancementLoader().getAdvancements()) {
-                        AdvancementProgress progress = player.getAdvancementTracker().getProgress(advancement);
-                        for (String criteria : progress.getObtainedCriteria()) {
-                            player.getAdvancementTracker().revokeCriterion(advancement, criteria);
-                        }
-                    }
-
-                    updateGameMode(player);
-
-                    if (!player.isTeamPlayer(server.getScoreboard().getTeam("players"))) {
-                        player.getScoreboard().addScoreHolderToTeam(player.getName().getString(), server.getScoreboard().getTeam("players"));
-                    }
-
-                    if (settings.setRoles == 3) {
-                        currentRole.put(player.getUuid(), "runner");
-                    }
-                }
             }
         }
 
@@ -322,10 +289,10 @@ public class ManhuntGame {
                         allRunners.add(player);
                     }
                     if (!player.isTeamPlayer(server.getScoreboard().getTeam("hunters")) && !player.isTeamPlayer(server.getScoreboard().getTeam("runners"))) {
-                        if (currentRole.get(player.getUuid()).equals("hunter")) {
-                            server.getScoreboard().addScoreHolderToTeam(player.getName().getString(), player.getScoreboard().getTeam("hunters"));
-                        } else {
+                        if (currentRole.get(player.getUuid()).equals("runner")) {
                             server.getScoreboard().addScoreHolderToTeam(player.getName().getString(), player.getScoreboard().getTeam("runners"));
+                        } else {
+                            server.getScoreboard().addScoreHolderToTeam(player.getName().getString(), player.getScoreboard().getTeam("hunters"));
                         }
                     }
                 }
@@ -852,6 +819,8 @@ public class ManhuntGame {
 
         for (ServerWorld serverWorld : server.getWorlds()) {
             ((ServerWorldInterface) serverWorld).getWorldProperties().setTime(0);
+            serverWorld.setTimeOfDay(0);
+            serverWorld.resetWeather();
         }
 
         world.getGameRules().get(GameRules.ANNOUNCE_ADVANCEMENTS).set(true, server);
@@ -875,9 +844,6 @@ public class ManhuntGame {
 
         server.setDifficulty(difficulty, true);
 
-        server.getOverworld().setTimeOfDay(0);
-        server.getOverworld().resetWeather();
-
         server.setPvpEnabled(true);
 
         worldSpawnPos = setupSpawn(world);
@@ -893,15 +859,6 @@ public class ManhuntGame {
             player.getHungerManager().setFoodLevel(20);
             player.getHungerManager().setSaturationLevel(5);
             player.getHungerManager().setExhaustion(0);
-            player.setExperienceLevel(0);
-            player.setExperiencePoints(0);
-
-            for (AdvancementEntry advancement : server.getAdvancementLoader().getAdvancements()) {
-                AdvancementProgress progress = player.getAdvancementTracker().getProgress(advancement);
-                for (String criteria : progress.getObtainedCriteria()) {
-                    player.getAdvancementTracker().revokeCriterion(advancement, criteria);
-                }
-            }
 
             player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.BOAT_ONE_CM));
             player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.ANIMALS_BRED));
@@ -984,8 +941,6 @@ public class ManhuntGame {
             Stats.KILLED.forEach(stat -> player.resetStat(stat.getType().getOrCreateStat(stat.getValue())));
             Stats.KILLED_BY.forEach(stat -> player.resetStat(stat.getType().getOrCreateStat(stat.getValue())));
             Stats.CUSTOM.forEach(stat -> player.resetStat(stat.getType().getOrCreateStat(stat.getValue())));
-
-            updateGameMode(player);
 
             player.networkHandler.sendPacket(new PlaySoundS2CPacket(SoundEvents.BLOCK_NOTE_BLOCK_PLING, SoundCategory.BLOCKS, player.getX(), player.getY(), player.getZ(), 0.1f, 1.5f, 0));
 
