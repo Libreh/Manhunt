@@ -9,6 +9,7 @@ import manhunt.command.*;
 import manhunt.config.Configs;
 import manhunt.config.model.ConfigModel;
 import manhunt.mixin.MinecraftServerAccessInterface;
+import manhunt.mixin.ServerWorldInterface;
 import manhunt.util.MessageUtil;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.minecraft.advancement.AdvancementEntry;
@@ -309,7 +310,7 @@ public class ManhuntGame {
     }
 
     public static void worldTick(ServerWorld world) {
-        if (gameState == ManhuntState.PLAYING) {
+        if (gameState == ManhuntState.PLAYING && world.getRegistryKey().getValue().getNamespace().equals("manhunt")) {
             MinecraftServer server = Manhunt.SERVER;
 
             allPlayers = server.getPlayerManager().getPlayerList();
@@ -359,8 +360,6 @@ public class ManhuntGame {
                     player.getAdvancementTracker().revokeCriterion(advancement, criteria);
                 }
             }
-
-            //player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.BOAT_ONE_CM));
 
             updateGameMode(player);
 
@@ -851,6 +850,10 @@ public class ManhuntGame {
 
         var world = server.getWorld(overworldRegistryKey);
 
+        for (ServerWorld serverWorld : server.getWorlds()) {
+            ((ServerWorldInterface) serverWorld).getWorldProperties().setTime(0);
+        }
+
         world.getGameRules().get(GameRules.ANNOUNCE_ADVANCEMENTS).set(true, server);
         world.getGameRules().get(GameRules.DO_FIRE_TICK).set(true, server);
         world.getGameRules().get(GameRules.DO_INSOMNIA).set(true, server);
@@ -901,6 +904,86 @@ public class ManhuntGame {
             }
 
             player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.BOAT_ONE_CM));
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.ANIMALS_BRED));
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.AVIATE_ONE_CM));
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.BELL_RING));
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.CLEAN_ARMOR));
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.CLEAN_BANNER));
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.CLEAN_SHULKER_BOX));
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.CLIMB_ONE_CM));
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.CROUCH_ONE_CM));
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.DAMAGE_ABSORBED));
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.DAMAGE_BLOCKED_BY_SHIELD));
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.DAMAGE_DEALT));
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.DAMAGE_DEALT_ABSORBED));
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.DAMAGE_DEALT_RESISTED));
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.DAMAGE_TAKEN));
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.DEATHS));
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.DROP));
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.EAT_CAKE_SLICE));
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.ENCHANT_ITEM));
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.FALL_ONE_CM));
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.FILL_CAULDRON));
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.FISH_CAUGHT));
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.FLY_ONE_CM));
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.HORSE_ONE_CM));
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.INSPECT_DISPENSER));
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.INSPECT_DROPPER));
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.INSPECT_HOPPER));
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.INTERACT_WITH_ANVIL));
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.INTERACT_WITH_BEACON));
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.INTERACT_WITH_BREWINGSTAND));
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.INTERACT_WITH_BLAST_FURNACE));
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.INTERACT_WITH_CAMPFIRE));
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.INTERACT_WITH_CARTOGRAPHY_TABLE));
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.INTERACT_WITH_CRAFTING_TABLE));
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.INTERACT_WITH_FURNACE));
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.INTERACT_WITH_GRINDSTONE));
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.INTERACT_WITH_LECTERN));
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.INTERACT_WITH_LOOM));
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.INTERACT_WITH_SMITHING_TABLE));
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.INTERACT_WITH_SMOKER));
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.INTERACT_WITH_STONECUTTER));
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.JUMP));
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.LEAVE_GAME));
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.MINECART_ONE_CM));
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.MOB_KILLS));
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.OPEN_BARREL));
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.OPEN_CHEST));
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.OPEN_ENDERCHEST));
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.OPEN_SHULKER_BOX));
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.PIG_ONE_CM));
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.PLAY_NOTEBLOCK));
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.PLAY_RECORD));
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.PLAY_TIME));
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.PLAYER_KILLS));
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.POT_FLOWER));
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.RAID_TRIGGER));
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.RAID_WIN));
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.SLEEP_IN_BED));
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.SNEAK_TIME));
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.SPRINT_ONE_CM));
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.STRIDER_ONE_CM));
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.SWIM_ONE_CM));
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.TALKED_TO_VILLAGER));
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.TARGET_HIT));
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.TIME_SINCE_DEATH));
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.TIME_SINCE_REST));
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.TOTAL_WORLD_TIME));
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.TRADED_WITH_VILLAGER));
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.TRIGGER_TRAPPED_CHEST));
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.WALK_ON_WATER_ONE_CM));
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.WALK_ONE_CM));
+            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.WALK_UNDER_WATER_ONE_CM));
+            Stats.MINED.forEach(stat -> player.resetStat(stat.getType().getOrCreateStat(stat.getValue())));
+            Stats.CRAFTED.forEach(stat -> player.resetStat(stat.getType().getOrCreateStat(stat.getValue())));
+            Stats.USED.forEach(stat -> player.resetStat(stat.getType().getOrCreateStat(stat.getValue())));
+            Stats.BROKEN.forEach(stat -> player.resetStat(stat.getType().getOrCreateStat(stat.getValue())));
+            Stats.PICKED_UP.forEach(stat -> player.resetStat(stat.getType().getOrCreateStat(stat.getValue())));
+            Stats.DROPPED.forEach(stat -> player.resetStat(stat.getType().getOrCreateStat(stat.getValue())));
+            Stats.KILLED.forEach(stat -> player.resetStat(stat.getType().getOrCreateStat(stat.getValue())));
+            Stats.KILLED_BY.forEach(stat -> player.resetStat(stat.getType().getOrCreateStat(stat.getValue())));
+            Stats.CUSTOM.forEach(stat -> player.resetStat(stat.getType().getOrCreateStat(stat.getValue())));
 
             updateGameMode(player);
 

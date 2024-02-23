@@ -17,7 +17,7 @@ public class DurationCommand {
     }
 
     private static int showDuration(ServerCommandSource source) {
-        if (source.getWorld() != Manhunt.SERVER.getWorld(ManhuntGame.lobbyRegistryKey)) {
+        if (source.getWorld() != Manhunt.SERVER.getWorld(ManhuntGame.lobbyRegistryKey) && source.getWorld().getRegistryKey().getValue().getNamespace().equals("manhunt")) {
             String hoursString;
             int hours = (int) Math.floor((double) source.getWorld().getTime() % (20 * 60 * 60 * 24) / (20 * 60 * 60));
             if (hours <= 9) {

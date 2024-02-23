@@ -9,13 +9,8 @@ import org.jetbrains.annotations.ApiStatus;
 @ApiStatus.Internal
 public interface SimpleRegistryInterface<T> {
     @SuppressWarnings("unchecked")
-    static <T> boolean remove(SimpleRegistry<T> registry, Identifier key) {
-        return ((SimpleRegistryInterface<T>) registry).manhunt$remove(key);
-    }
-
-    @SuppressWarnings("unchecked")
-    static <T> boolean remove(SimpleRegistry<T> registry, T value) {
-        return ((SimpleRegistryInterface<T>) registry).manhunt$remove(value);
+    static <T> void remove(SimpleRegistry<T> registry, Identifier key) {
+        ((SimpleRegistryInterface<T>) registry).manhunt$remove(key);
     }
 
     boolean manhunt$remove(T value);
