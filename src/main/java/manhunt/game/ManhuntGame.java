@@ -11,7 +11,6 @@ import manhunt.config.model.ConfigModel;
 import manhunt.mixin.MinecraftServerAccessInterface;
 import manhunt.mixin.ServerWorldInterface;
 import manhunt.util.MessageUtil;
-import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.minecraft.advancement.AdvancementEntry;
 import net.minecraft.advancement.AdvancementProgress;
 import net.minecraft.block.Block;
@@ -75,7 +74,6 @@ public class ManhuntGame {
     public static RegistryKey<World> theNetherRegistryKey = RegistryKey.of(RegistryKeys.WORLD, THE_NETHER_ID);
     public static RegistryKey<World> theEndRegistryKey = RegistryKey.of(RegistryKeys.WORLD, THE_END_ID);
     public static final ConfigModel.Settings settings = Configs.configHandler.model().settings;
-    public static List<ServerPlayerEntity> allPlayers;
     public static List<ServerPlayerEntity> allRunners;
     public static HashMap<UUID, Boolean> isReady = new HashMap<>();
     public static HashMap<UUID, String> currentRole = new HashMap<>();
@@ -264,6 +262,17 @@ public class ManhuntGame {
         }
 
         if (gameState == ManhuntState.PLAYING) {
+            for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+                if (player != null) {
+                    if (player.getWorld().getRegistryKey().getValue().getNamespace().equals("manhunt")) {
+                        allRunners = new LinkedList<>();
+
+                        if (player.isTeamPlayer(player.getScoreboard().getTeam("runners"))) {
+                            allRunners.add(player);
+                        }
+                    }
+                }
+            }
             if (settings.timeLimit != 0) {
                 if (server.getWorld(overworldRegistryKey).getTime() % (20 * 60 * 60) / (20 * 60) >= settings.timeLimit) {
                     manhuntState(ManhuntState.POSTGAME, server);
@@ -276,34 +285,10 @@ public class ManhuntGame {
         }
     }
 
-    public static void worldTick(ServerWorld world) {
-        if (gameState == ManhuntState.PLAYING && world.getRegistryKey().getValue().getNamespace().equals("manhunt")) {
-            MinecraftServer server = Manhunt.SERVER;
-
-            allPlayers = server.getPlayerManager().getPlayerList();
-            allRunners = new LinkedList<>();
-
-            for (ServerPlayerEntity player : allPlayers) {
-                if (player != null) {
-                    if (player.isTeamPlayer(server.getScoreboard().getTeam("runners"))) {
-                        allRunners.add(player);
-                    }
-                    if (!player.isTeamPlayer(server.getScoreboard().getTeam("hunters")) && !player.isTeamPlayer(server.getScoreboard().getTeam("runners"))) {
-                        if (currentRole.get(player.getUuid()).equals("runner")) {
-                            server.getScoreboard().addScoreHolderToTeam(player.getName().getString(), player.getScoreboard().getTeam("runners"));
-                        } else {
-                            server.getScoreboard().addScoreHolderToTeam(player.getName().getString(), player.getScoreboard().getTeam("hunters"));
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    public static void playerJoin(ServerPlayNetworkHandler handler, PacketSender sender, MinecraftServer server) {
+    public static void playerJoin(ServerPlayNetworkHandler handler, MinecraftServer server) {
         ServerPlayerEntity player = handler.getPlayer();
 
-        currentRole.put(player.getUuid(), "hunter");
+        currentRole.putIfAbsent(player.getUuid(), "hunter");
 
         if (gameState == ManhuntState.PREGAME) {
             server.getPlayerManager().removeFromOperators(player.getGameProfile());
@@ -330,8 +315,8 @@ public class ManhuntGame {
 
             updateGameMode(player);
 
-            if (!player.isTeamPlayer(server.getScoreboard().getTeam("players"))) {
-                player.getScoreboard().addScoreHolderToTeam(player.getName().getString(), server.getScoreboard().getTeam("players"));
+            if (!player.isTeamPlayer(player.getScoreboard().getTeam("players"))) {
+                player.getScoreboard().addScoreHolderToTeam(player.getName().getString(), player.getScoreboard().getTeam("players"));
             }
 
             if (settings.setRoles == 3) {
@@ -346,6 +331,15 @@ public class ManhuntGame {
                 moveToSpawn(server.getWorld(overworldRegistryKey), player);
                 player.removeStatusEffect(StatusEffects.SATURATION);
             }
+
+            if (!player.isTeamPlayer(player.getScoreboard().getTeam("hunters")) && !player.isTeamPlayer(player.getScoreboard().getTeam("runners"))) {
+                if (currentRole.get(player.getUuid()).equals("hunter")) {
+                    player.getScoreboard().addScoreHolderToTeam(player.getName().getString(), player.getScoreboard().getTeam("hunters"));
+                } else {
+                    player.getScoreboard().addScoreHolderToTeam(player.getName().getString(), player.getScoreboard().getTeam("runners"));
+                }
+                player.getScoreboard().addScoreHolderToTeam(player.getName().getString(), player.getScoreboard().getTeam("hunters"));
+            }
         }
 
         if (gameState == ManhuntState.POSTGAME) {
@@ -356,15 +350,15 @@ public class ManhuntGame {
         }
     }
 
-    public static void playerDisconnect(ServerPlayNetworkHandler handler, MinecraftServer server) {
+    public static void playerDisconnect(ServerPlayNetworkHandler handler) {
         allRunners.removeIf(Predicate.isEqual(handler.getPlayer()));
     }
 
-    public static TypedActionResult<ItemStack> useItem(PlayerEntity player, World world, Hand hand) {
+    public static TypedActionResult<ItemStack> useItem(PlayerEntity player, Hand hand) {
         var itemStack = player.getStackInHand(hand);
 
         if (gameState == ManhuntState.PREGAME) {
-            MinecraftServer server = Manhunt.SERVER;
+            MinecraftServer server = player.getServer();
 
             if (!player.getItemCooldownManager().isCoolingDown(itemStack.getItem())) {
                 if (itemStack.getItem() == Items.RED_CONCRETE && itemStack.getNbt().getBoolean("NotReady")) {
@@ -484,7 +478,7 @@ public class ManhuntGame {
         }
 
         if (gameState == ManhuntState.PLAYING) {
-            if (!settings.compassUpdate && itemStack.getNbt() != null && itemStack.getNbt().getBoolean("Tracker") && !player.isSpectator() && player.isTeamPlayer(Manhunt.SERVER.getScoreboard().getTeam("hunters")) && !player.getItemCooldownManager().isCoolingDown(itemStack.getItem())) {
+            if (!settings.compassUpdate && itemStack.getNbt() != null && itemStack.getNbt().getBoolean("Tracker") && !player.isSpectator() && player.isTeamPlayer(player.getScoreboard().getTeam("hunters")) && !player.getItemCooldownManager().isCoolingDown(itemStack.getItem())) {
                 player.getItemCooldownManager().set(itemStack.getItem(), 10);
                 if (!itemStack.getNbt().contains("Info")) {
                     itemStack.getNbt().put("Info", new NbtCompound());
@@ -496,7 +490,7 @@ public class ManhuntGame {
                     info.putString("Name", allRunners.get(0).getName().getString());
                 }
 
-                ServerPlayerEntity trackedPlayer = Manhunt.SERVER.getPlayerManager().getPlayer(info.getString("Name"));
+                ServerPlayerEntity trackedPlayer = player.getServer().getPlayerManager().getPlayer(info.getString("Name"));
 
                 if (trackedPlayer != null) {
                     player.playSound(SoundEvents.UI_BUTTON_CLICK.value(), SoundCategory.PLAYERS, 0.1f, 1f);
@@ -508,9 +502,8 @@ public class ManhuntGame {
         return TypedActionResult.pass(itemStack);
     }
 
-    public static void playerRespawn(ServerPlayerEntity oldPlayer, ServerPlayerEntity newPlayer, boolean alive) {
-        MinecraftServer server = Manhunt.SERVER;
-        Scoreboard scoreboard = server.getScoreboard();
+    public static void playerRespawn(ServerPlayerEntity newPlayer) {
+        Scoreboard scoreboard = newPlayer.getScoreboard();
         if (!newPlayer.isTeamPlayer(scoreboard.getTeam("hunters"))) {
             scoreboard.clearTeam(newPlayer.getName().getString());
             scoreboard.addScoreHolderToTeam(newPlayer.getName().getString(), scoreboard.getTeam("hunters"));
@@ -553,7 +546,7 @@ public class ManhuntGame {
     }
 
     private static void changeSetting(ServerPlayerEntity player, SimpleGui gui, String setting, String name, String lore, Item item, int slot, SoundEvent sound) {
-        MinecraftServer server = Manhunt.SERVER;
+        MinecraftServer server = player.getServer();
 
         List<Text> loreList = new ArrayList<>();
         loreList.add(MessageUtil.ofVomponent(player, lore));
@@ -849,17 +842,6 @@ public class ManhuntGame {
         worldSpawnPos = setupSpawn(world);
 
         for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
-            server.getPlayerManager().removeFromOperators(player.getGameProfile());
-            moveToSpawn(world, player);
-            player.clearStatusEffects();
-            player.getInventory().clear();
-            player.setFireTicks(0);
-            player.setOnFire(false);
-            player.setHealth(20);
-            player.getHungerManager().setFoodLevel(20);
-            player.getHungerManager().setSaturationLevel(5);
-            player.getHungerManager().setExhaustion(0);
-
             player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.BOAT_ONE_CM));
             player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.ANIMALS_BRED));
             player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.AVIATE_ONE_CM));
@@ -942,10 +924,27 @@ public class ManhuntGame {
             Stats.KILLED_BY.forEach(stat -> player.resetStat(stat.getType().getOrCreateStat(stat.getValue())));
             Stats.CUSTOM.forEach(stat -> player.resetStat(stat.getType().getOrCreateStat(stat.getValue())));
 
+            server.getPlayerManager().removeFromOperators(player.getGameProfile());
+            moveToSpawn(world, player);
+            player.clearStatusEffects();
+            player.getInventory().clear();
+            player.setFireTicks(0);
+            player.setOnFire(false);
+            player.setHealth(20);
+            player.getHungerManager().setFoodLevel(20);
+            player.getHungerManager().setSaturationLevel(5);
+            player.getHungerManager().setExhaustion(0);
+
+            updateGameMode(player);
+
+            if (currentRole.get(player.getUuid()).equals("hunter")) {
+                player.getScoreboard().addScoreHolderToTeam(player.getName().getString(), player.getScoreboard().getTeam("hunters"));
+            }
+
             player.networkHandler.sendPacket(new PlaySoundS2CPacket(SoundEvents.BLOCK_NOTE_BLOCK_PLING, SoundCategory.BLOCKS, player.getX(), player.getY(), player.getZ(), 0.1f, 1.5f, 0));
 
             if (settings.hunterFreeze != 0) {
-                if (player.isTeamPlayer(server.getScoreboard().getTeam("hunters"))) {
+                if (player.isTeamPlayer(player.getScoreboard().getTeam("hunters"))) {
                     player.addStatusEffect(new StatusEffectInstance(StatusEffects.BLINDNESS, settings.hunterFreeze * 20, 255, false, true));
                     player.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, settings.hunterFreeze * 20, 255, false, false));
                     player.addStatusEffect(new StatusEffectInstance(StatusEffects.JUMP_BOOST, settings.hunterFreeze * 20, 248, false, false));
@@ -1000,9 +999,9 @@ public class ManhuntGame {
     }
 
     public static void resetGame(ServerCommandSource source) {
-        manhuntState(ManhuntState.PREGAME, Manhunt.SERVER);
+        manhuntState(ManhuntState.PREGAME, source.getServer());
 
-        new ManhuntWorldModule().resetWorlds(Manhunt.SERVER);
+        new ManhuntWorldModule().resetWorlds(source.getServer());
     }
 
     public static void unloadWorld(MinecraftServer server, ServerWorld world) {
@@ -1092,7 +1091,7 @@ public class ManhuntGame {
     }
 
     public static void showSettings(ServerPlayerEntity player) {
-        MinecraftServer server = Manhunt.SERVER;
+        MinecraftServer server = player.getServer();
 
         if (settings.setRoles == 1) {
             MessageUtil.sendMessage(player, "manhunt.chat.setting.green", "Set Roles", "Free Select");

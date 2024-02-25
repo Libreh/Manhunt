@@ -1,7 +1,6 @@
 package manhunt.game;
 
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
-import manhunt.Manhunt;
 import manhunt.mixin.MinecraftServerAccessInterface;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
@@ -27,6 +26,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 // Thanks to https://github.com/sakurawald/fuji-fabric
 
@@ -38,7 +38,7 @@ public class ManhuntWorldManager {
     }
 
     public static void enqueueWorldDeletion(ServerWorld world) {
-        MinecraftServer server = Manhunt.SERVER;
+        MinecraftServer server = world.getServer();
         server.submit(() -> {
             deletionQueue.add(world);
         });
@@ -65,9 +65,9 @@ public class ManhuntWorldManager {
             return;
         }
 
-        MinecraftServer server = Manhunt.SERVER;
+        MinecraftServer server = world.getServer();
 
-        Scoreboard scoreboard = server.getScoreboard();
+        Scoreboard scoreboard = world.getScoreboard();
 
         var lobbyWorld = server.getWorld(ManhuntGame.lobbyRegistryKey);
 
@@ -86,7 +86,13 @@ public class ManhuntWorldManager {
 
         server.setPvpEnabled(false);
 
-        List<ServerPlayerEntity> players = new ArrayList<>(Manhunt.SERVER.getPlayerManager().getPlayerList());
+        List<ServerPlayerEntity> players = new ArrayList<>(world.getServer().getPlayerManager().getPlayerList());
+
+        for (UUID uuid : ManhuntGame.currentRole.keySet()) {
+            if (server.getPlayerManager().getPlayer(uuid).isDisconnected()) {
+                ManhuntGame.currentRole.remove(uuid);
+            }
+        }
 
         for (ServerPlayerEntity player : players) {
             ManhuntGame.currentRole.putIfAbsent(player.getUuid(), "hunter");

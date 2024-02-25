@@ -2,7 +2,6 @@ package manhunt.command;
 
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
-import manhunt.Manhunt;
 import manhunt.game.ManhuntGame;
 import manhunt.util.MessageUtil;
 import net.minecraft.command.argument.EntityArgumentType;
@@ -25,7 +24,7 @@ public class OneRunnerCommand {
         if (source.hasPermissionLevel(1) || source.hasPermissionLevel(2) || source.hasPermissionLevel(3) || source.hasPermissionLevel(4)) {
             ManhuntGame.currentRole.put(player.getUuid(), "runner");
 
-            for (ServerPlayerEntity serverPlayer : Manhunt.SERVER.getPlayerManager().getPlayerList()) {
+            for (ServerPlayerEntity serverPlayer : player.getServer().getPlayerManager().getPlayerList()) {
                 if (serverPlayer.getUuid() != player.getUuid()) {
                     ManhuntGame.currentRole.put(serverPlayer.getUuid(), "hunter");
                 }

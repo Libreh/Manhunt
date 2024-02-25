@@ -1,12 +1,10 @@
 package manhunt.mixin;
 
-import manhunt.Manhunt;
 import manhunt.game.ManhuntGame;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtDouble;
 import net.minecraft.nbt.NbtFloat;
 import net.minecraft.nbt.NbtList;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.spongepowered.asm.mixin.Mixin;
@@ -46,8 +44,6 @@ public abstract class PlayerManagerMixin {
             player.readNbt(nbt);
             ci.setReturnValue(nbt);
         } else if (ci.getReturnValue() == null && gameState == PLAYING) {
-            MinecraftServer server = Manhunt.SERVER;
-
             NbtCompound nbt = new NbtCompound();
             nbt.putString("Dimension", "overworld");
 

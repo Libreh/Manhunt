@@ -1,6 +1,5 @@
 package manhunt.mixin;
 
-import manhunt.Manhunt;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.PlayerManager;
@@ -26,7 +25,7 @@ public abstract class ServerWorldMixin {
 
     @Redirect(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/world/ServerWorld;setTimeOfDay(J)V"))
     private void redirectWorld(ServerWorld world, long l) {
-        MinecraftServer server = Manhunt.SERVER;
+        MinecraftServer server = world.getServer();
         l = world.getLevelProperties().getTimeOfDay() + 24000L;
         server.getOverworld().setTimeOfDay(l - l % 24000L);
     }

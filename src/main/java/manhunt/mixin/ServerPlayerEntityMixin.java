@@ -10,9 +10,7 @@ import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
-import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
@@ -32,17 +30,14 @@ public class ServerPlayerEntityMixin {
     @Final
     @Shadow
     public MinecraftServer server;
-    @Shadow
-    public ServerPlayNetworkHandler networkHandler;
 
     private long lastDelay = System.currentTimeMillis();
-    private static boolean holding;
     private ServerPlayerEntity player = (ServerPlayerEntity) (Object) this;
 
     @Inject(method = "tick", at = @At("HEAD"))
     public void tick(CallbackInfo ci) {
         if (ManhuntGame.gameState == ManhuntState.PLAYING) {
-            if (player.isTeamPlayer(server.getScoreboard().getTeam("hunters")) && player.isAlive()) {
+            if (player.isTeamPlayer(player.getScoreboard().getTeam("hunters")) && player.isAlive()) {
                 if (!hasTracker(server.getPlayerManager().getPlayer(player.getName().getString()))) {
                     NbtCompound nbt = new NbtCompound();
                     nbt.putBoolean("Tracker", true);
@@ -59,7 +54,7 @@ public class ServerPlayerEntityMixin {
                     tracker.addEnchantment(Enchantments.VANISHING_CURSE, 1);
 
                     player.giveItemStack(tracker);
-                } else if (ManhuntGame.settings.compassUpdate && System.currentTimeMillis() - lastDelay > ((long) 500)) {
+                } else if (ManhuntGame.settings.compassUpdate && System.currentTimeMillis() - lastDelay > ((long) 1000)) {
                     for (ItemStack item : player.getInventory().main) {
                         if (item.getItem().equals(Items.COMPASS) && item.getNbt() != null && item.getNbt().getBoolean("Tracker")) {
                             if (!item.getNbt().contains("Info")) {
@@ -87,17 +82,38 @@ public class ServerPlayerEntityMixin {
 
     @Inject(at = @At("HEAD"), method = "onDeath")
     public void onDeath(DamageSource source, CallbackInfo ci) {
-        Scoreboard scoreboard = server.getScoreboard();
 
         if (player.getScoreboardTeam() != null) {
-            if (player.getScoreboardTeam().isEqual(scoreboard.getTeam("runners"))) {
-                if (ManhuntGame.settings.winnerTitle && server.getScoreboard().getTeam("runners").getPlayerList().size() == 1) {
+            if (player.getScoreboardTeam().isEqual(player.getScoreboard().getTeam("runners"))) {
+                if (ManhuntGame.settings.winnerTitle && player.getScoreboard().getTeam("runners").getPlayerList().size() == 1) {
                     ManhuntGame.manhuntState(ManhuntState.POSTGAME, server);
                     for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
                         ManhuntGame.updateGameMode(player);
                         MessageUtil.showTitle(player, "manhunt.title.hunters", "manhunt.title.dead");
                         player.playSound(SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, SoundCategory.PLAYERS, 0.1f, 0.5f);
                     }
+                    String hoursString;
+                    int hours = (int) Math.floor((double) player.getWorld().getTime() % (20 * 60 * 60 * 24) / (20 * 60 * 60));
+                    if (hours <= 9) {
+                        hoursString = "0" + hours;
+                    } else {
+                        hoursString = String.valueOf(hours);
+                    }
+                    String minutesString;
+                    int minutes = (int) Math.floor((double) player.getWorld().getTime() % (20 * 60 * 60) / (20 * 60));
+                    if (minutes <= 9) {
+                        minutesString = "0" + minutes;
+                    } else {
+                        minutesString = String.valueOf(minutes);
+                    }
+                    String secondsString;
+                    int seconds = (int) Math.floor((double) player.getWorld().getTime() % (20 * 60) / (20));
+                    if (seconds <= 9) {
+                        secondsString = "0" + seconds;
+                    } else {
+                        secondsString = String.valueOf(seconds);
+                    }
+                    MessageUtil.sendBroadcast("manhunt.chat.duration", hoursString, minutesString, secondsString);
                 }
             }
         }

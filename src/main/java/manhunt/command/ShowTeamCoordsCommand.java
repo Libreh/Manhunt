@@ -4,13 +4,11 @@ import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 import com.mojang.brigadier.suggestion.Suggestions;
-import manhunt.Manhunt;
 import manhunt.game.ManhuntGame;
 import manhunt.game.ManhuntState;
 import manhunt.util.MessageUtil;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.scoreboard.Scoreboard;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -44,10 +42,9 @@ public class ShowTeamCoordsCommand {
     }
 
     private static int showTeamCoords(ServerCommandSource source, ServerPlayerEntity player) {
-        if (player.isTeamPlayer(Manhunt.SERVER.getScoreboard().getTeam(source.getPlayer().getScoreboardTeam().getName()))) {
+        if (player.isTeamPlayer(player.getScoreboard().getTeam(source.getPlayer().getScoreboardTeam().getName()))) {
             if (ManhuntGame.gameState == ManhuntState.PLAYING) {
-                MinecraftServer server = Manhunt.SERVER;
-                Scoreboard scoreboard = server.getScoreboard();
+                Scoreboard scoreboard = player.getScoreboard();
 
                 if (source.getPlayer().getScoreboardTeam().isEqual(scoreboard.getTeam("hunters"))) {
                     MessageUtil.sendMessage(source.getPlayer(), "manhunt.chat.huntercoords", player.getName().getString(), (int) player.getX(), (int) player.getY(), (int) player.getZ());

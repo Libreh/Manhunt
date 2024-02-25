@@ -1,6 +1,5 @@
 package manhunt.mixin;
 
-import manhunt.Manhunt;
 import manhunt.game.ManhuntGame;
 import net.fabricmc.fabric.api.dimension.v1.FabricDimensions;
 import net.minecraft.block.BlockState;
@@ -50,7 +49,7 @@ public class EndPortalBlockMixin {
                 blockPos = ServerWorld.END_SPAWN_POS;
             }
             if (entity instanceof ServerPlayerEntity) {
-                MinecraftServer server = Manhunt.SERVER;
+                MinecraftServer server = entity.getServer();
                 server.getCommandManager().executeWithPrefix(server.getCommandSource().withSilent().withLevel(2), "advancement grant " + entity.getName().getString() + " only minecraft:story/enter_the_end");
             }
             TeleportTarget teleportTarget = getTeleportTarget(entity, blockPos);

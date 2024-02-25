@@ -2,12 +2,10 @@ package manhunt.command;
 
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
-import manhunt.Manhunt;
 import manhunt.game.ManhuntGame;
 import manhunt.game.ManhuntState;
 import manhunt.util.MessageUtil;
 import net.minecraft.scoreboard.Scoreboard;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -22,9 +20,8 @@ public class SendTeamCoordsCommand {
 
     private static int sendTeamCoords(ServerCommandSource source) {
         if (ManhuntGame.gameState == ManhuntState.PLAYING) {
-            MinecraftServer server = Manhunt.SERVER;
-            Scoreboard scoreboard = server.getScoreboard();
             ServerPlayerEntity player = source.getPlayer();
+            Scoreboard scoreboard = player.getScoreboard();
 
             if (player.isTeamPlayer(scoreboard.getTeam("hunters"))) {
                 MessageUtil.sendMessage(player, "manhunt.chat.sendhuntercoords", player.getName().getString(), (int) player.getX(), (int) player.getY(), (int) player.getZ());

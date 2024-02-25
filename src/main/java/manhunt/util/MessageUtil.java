@@ -133,7 +133,7 @@ public class MessageUtil {
     public static void sendMessageToTeam(String team, String key, Object... args) {
         MinecraftServer server = Manhunt.SERVER;
         for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
-            if (player.isTeamPlayer(server.getScoreboard().getTeam(team))) {
+            if (player.isTeamPlayer(player.getScoreboard().getTeam(team))) {
                 sendMessage(player, key, args);
             }
         }

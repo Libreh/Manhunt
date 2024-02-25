@@ -2,7 +2,6 @@ package manhunt.command;
 
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
-import manhunt.Manhunt;
 import manhunt.game.ManhuntGame;
 import manhunt.game.ManhuntState;
 import manhunt.util.MessageUtil;
@@ -31,7 +30,7 @@ public class TogglePauseCommand {
     private static int togglePause(ServerCommandSource source) {
         if (source.hasPermissionLevel(1) || source.hasPermissionLevel(2) || source.hasPermissionLevel(3) || source.hasPermissionLevel(4)) {
             if (ManhuntGame.gameState == ManhuntState.PLAYING) {
-                MinecraftServer server = Manhunt.SERVER;
+                MinecraftServer server = source.getServer();
 
                 if (ManhuntGame.isPaused()) {
                     for (ServerPlayerEntity gamePlayer : server.getPlayerManager().getPlayerList()) {
@@ -47,7 +46,7 @@ public class TogglePauseCommand {
                     MessageUtil.sendBroadcast("manhunt.chat.unpaused");
                     ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
                     scheduledExecutorService.schedule(() -> ManhuntGame.setPaused(false), 1, TimeUnit.SECONDS);
-                } else if (!ManhuntGame.isPaused()) {
+                } else {
                     for (ServerPlayerEntity gamePlayer : server.getPlayerManager().getPlayerList()) {
                         gamePlayer.getAttributeInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED).setBaseValue(0);
                         gamePlayer.playSound(SoundEvents.BLOCK_ANVIL_LAND, SoundCategory.MASTER, 0.1f, 1.5f);
