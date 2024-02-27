@@ -2,13 +2,14 @@ package manhunt.command;
 
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
-import manhunt.game.ManhuntGame;
-import manhunt.game.ManhuntState;
 import manhunt.util.MessageUtil;
 import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
+
+import static manhunt.game.ManhuntGame.gameState;
+import static manhunt.game.ManhuntState.PLAYING;
 
 public class SendTeamCoordsCommand {
 
@@ -19,7 +20,7 @@ public class SendTeamCoordsCommand {
     }
 
     private static int sendTeamCoords(ServerCommandSource source) {
-        if (ManhuntGame.gameState == ManhuntState.PLAYING) {
+        if (gameState == PLAYING) {
             ServerPlayerEntity player = source.getPlayer();
             Scoreboard scoreboard = player.getScoreboard();
 

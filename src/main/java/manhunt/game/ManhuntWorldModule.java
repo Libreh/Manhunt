@@ -2,7 +2,6 @@ package manhunt.game;
 
 import com.google.common.collect.ImmutableList;
 import com.mojang.serialization.Lifecycle;
-import manhunt.Manhunt;
 import manhunt.config.Configs;
 import manhunt.mixin.MinecraftServerAccessInterface;
 import manhunt.util.MessageUtil;
@@ -25,6 +24,9 @@ import net.minecraft.world.dimension.DimensionType;
 import net.minecraft.world.dimension.DimensionTypes;
 import net.minecraft.world.gen.chunk.ChunkGenerator;
 
+import static manhunt.Manhunt.LOGGER;
+import static manhunt.game.ManhuntGame.settings;
+
 // Thanks to https://github.com/sakurawald/fuji-fabric
 
 public class ManhuntWorldModule {
@@ -35,7 +37,7 @@ public class ManhuntWorldModule {
 
     public void resetWorlds(MinecraftServer server) {
         MessageUtil.sendBroadcast("manhunt.world.begin");
-        Configs.configHandler.model().settings.worldSeed = RandomSeed.getSeed();
+        settings.worldSeed = RandomSeed.getSeed();
         Configs.configHandler.saveToDisk();
         deleteWorld(server, DEFAULT_OVERWORLD_PATH);
         deleteWorld(server, DEFAULT_THE_NETHER_PATH);
@@ -149,7 +151,7 @@ public class ManhuntWorldModule {
             String path = world.getRegistryKey().getValue().getPath();
             if (!namespace.equals(DEFAULT_MANHUNT_WORLD_NAMESPACE)) return;
 
-            Manhunt.LOGGER.info("onWorldUnload() -> Creating world {} ...", path);
+            LOGGER.info("onWorldUnload() -> Creating world {} ...", path);
             long seed = Configs.configHandler.model().settings.worldSeed;
             this.createWorld(server, this.getDimensionTypeRegistryKeyByPath(path), path, seed);
         }

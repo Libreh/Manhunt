@@ -4,13 +4,14 @@ import assets.manhunt.Placeholder;
 import com.google.gson.*;
 import lombok.Cleanup;
 import lombok.Getter;
-import manhunt.Manhunt;
 
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.Map;
 import java.util.Set;
+
+import static manhunt.Manhunt.LOGGER;
 
 // Thanks to https://github.com/sakurawald/fuji-fabric
 
@@ -39,7 +40,7 @@ public abstract class ConfigHandler<T> {
             @Cleanup Reader reader = new BufferedReader(new InputStreamReader(inputStream));
             return JsonParser.parseReader(reader);
         } catch (Exception e) {
-            Manhunt.LOGGER.error(e.getMessage());
+            LOGGER.error(e.getMessage());
         }
 
         return null;
@@ -69,7 +70,7 @@ public abstract class ConfigHandler<T> {
         try {
             Files.copy(file.toPath(), backupFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
-            Manhunt.LOGGER.error("Backup file failed: " + e.getMessage());
+            LOGGER.error("Backup file failed: " + e.getMessage());
         }
     }
 
@@ -92,7 +93,7 @@ public abstract class ConfigHandler<T> {
                 // note: for JsonArray, we will not directly set array elements, but we will add new properties for every array element (language default empty-value). e.g. For List<ExamplePojo>, we will never change the size of this list, but we will add missing properties for every ExamplePojo with the language default empty-value.
                 if (!oldJson.has(key)) {
                     oldJson.add(key, value);
-                    Manhunt.LOGGER.warn("Add missing json property: file = {}, key = {}, value = {}", this.file.getName(), key, value);
+                    LOGGER.warn("Add missing json property: file = {}, key = {}, value = {}", this.file.getName(), key, value);
                 }
             }
         }

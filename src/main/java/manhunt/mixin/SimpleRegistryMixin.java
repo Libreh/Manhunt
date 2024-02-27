@@ -3,7 +3,6 @@ package manhunt.mixin;
 import com.mojang.serialization.Lifecycle;
 import it.unimi.dsi.fastutil.objects.ObjectList;
 import it.unimi.dsi.fastutil.objects.Reference2IntMap;
-import manhunt.Manhunt;
 import manhunt.game.SimpleRegistryInterface;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.SimpleRegistry;
@@ -17,6 +16,8 @@ import org.spongepowered.asm.mixin.Shadow;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
+import static manhunt.Manhunt.LOGGER;
 
 @SuppressWarnings("unused")
 @Mixin(SimpleRegistry.class)
@@ -76,7 +77,7 @@ public abstract class SimpleRegistryMixin<T> implements SimpleRegistryInterface<
 
             return true;
         } catch (Throwable e) {
-            Manhunt.LOGGER.error("Failed to remove entry: " + entry.toString());
+            LOGGER.error("Failed to remove entry: " + entry.toString());
             return false;
         }
     }

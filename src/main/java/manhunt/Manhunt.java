@@ -17,6 +17,8 @@ import org.apache.logging.log4j.Logger;
 
 import java.nio.file.Path;
 
+import static manhunt.game.ManhuntGame.*;
+
 public class Manhunt implements ModInitializer {
 	public static final String MOD_ID = "manhunt";
 	public static final Logger LOGGER = LogUtil.createLogger("Manhunt");
@@ -29,13 +31,13 @@ public class Manhunt implements ModInitializer {
 
 		LOGGER.info("Manhunt mod initialized");
 
-		CommandRegistrationCallback.EVENT.register(ManhuntGame::commandRegister);
+		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> commandRegister(dispatcher));
 		ServerLifecycleEvents.SERVER_STARTED.register(ManhuntGame::serverStart);
 		ServerTickEvents.START_SERVER_TICK.register(ManhuntGame::serverTick);
-		ServerPlayConnectionEvents.JOIN.register((handler1, sender, server1) -> ManhuntGame.playerJoin(handler1, server1));
-		ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> ManhuntGame.playerDisconnect(handler));
-		UseItemCallback.EVENT.register((player, world, hand) -> ManhuntGame.useItem(player, hand));
-		ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> ManhuntGame.playerRespawn(newPlayer));
+		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> playerJoin(handler, server));
+		ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> playerDisconnect(handler));
+		UseItemCallback.EVENT.register((player, world, hand) -> useItem(player, hand));
+		ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> playerRespawn(newPlayer));
 		ServerWorldEvents.UNLOAD.register(ManhuntGame::unloadWorld);
 	}
 }

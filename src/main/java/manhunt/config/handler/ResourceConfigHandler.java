@@ -4,9 +4,11 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.google.gson.stream.JsonWriter;
 import lombok.Cleanup;
-import manhunt.Manhunt;
 
 import java.io.*;
+
+import static manhunt.Manhunt.CONFIG_PATH;
+import static manhunt.Manhunt.LOGGER;
 
 // Thanks to https://github.com/sakurawald/fuji-fabric
 
@@ -21,7 +23,7 @@ public class ResourceConfigHandler extends ConfigHandler<JsonElement> {
     }
 
     public ResourceConfigHandler(String resourcePath) {
-        this(Manhunt.CONFIG_PATH.resolve(resourcePath).toFile(), resourcePath);
+        this(CONFIG_PATH.resolve(resourcePath).toFile(), resourcePath);
     }
 
     public void loadFromDisk() {
@@ -46,7 +48,7 @@ public class ResourceConfigHandler extends ConfigHandler<JsonElement> {
             }
 
         } catch (IOException e) {
-            Manhunt.LOGGER.error("Load config failed: " + e.getMessage());
+            LOGGER.error("Load config failed: " + e.getMessage());
         }
     }
 

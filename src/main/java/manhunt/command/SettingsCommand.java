@@ -2,9 +2,10 @@ package manhunt.command;
 
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
-import manhunt.game.ManhuntGame;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
+
+import static manhunt.game.ManhuntGame.showSettings;
 
 public class SettingsCommand {
 
@@ -15,7 +16,7 @@ public class SettingsCommand {
     }
 
     private static int showSettingsToSource(ServerCommandSource source) {
-        ManhuntGame.showSettings(source.getPlayer());
+        showSettings(source.getPlayer());
 
         return Command.SINGLE_SUCCESS;
     }

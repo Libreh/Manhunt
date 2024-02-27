@@ -1,6 +1,5 @@
 package manhunt.mixin;
 
-import manhunt.game.ManhuntGame;
 import net.fabricmc.fabric.api.dimension.v1.FabricDimensions;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.EndPortalBlock;
@@ -17,6 +16,8 @@ import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 
+import static manhunt.game.ManhuntGame.*;
+
 // Thanks to https://github.com/Tater-Certified/Carpet-Sky-Additionals
 
 @Mixin(EndPortalBlock.class)
@@ -31,8 +32,8 @@ public class EndPortalBlockMixin {
         if (world instanceof ServerWorld && entity.canUsePortals() && VoxelShapes.matchesAnywhere(VoxelShapes.cuboid(entity.getBoundingBox().offset(-pos.getX(), -pos.getY(), -pos.getZ())), state.getOutlineShape(world, pos), BooleanBiFunction.AND)) {
             ServerWorld serverWorld;
             BlockPos blockPos;
-            if (world.getRegistryKey() == ManhuntGame.theEndRegistryKey) {
-                serverWorld = entity.getServer().getWorld(ManhuntGame.overworldRegistryKey);
+            if (world.getRegistryKey() == theEndRegistryKey) {
+                serverWorld = entity.getServer().getWorld(overworldRegistryKey);
                 if (entity instanceof ServerPlayerEntity) {
                     blockPos = ((ServerPlayerEntity) entity).getSpawnPointPosition();
                     serverWorld = entity.getServer().getWorld(((ServerPlayerEntity) entity).getSpawnPointDimension());
@@ -40,10 +41,10 @@ public class EndPortalBlockMixin {
                         blockPos = new BlockPos(8, 64, 9);
                     }
                 } else {
-                    blockPos = ManhuntGame.worldSpawnPos;
+                    blockPos = worldSpawnPos;
                 }
             } else {
-                serverWorld = entity.getServer().getWorld(ManhuntGame.theEndRegistryKey);
+                serverWorld = entity.getServer().getWorld(theEndRegistryKey);
                 serverWorld.setSpawnPos(ServerWorld.END_SPAWN_POS, 0);
                 ServerWorld.createEndSpawnPlatform(serverWorld);
                 blockPos = ServerWorld.END_SPAWN_POS;
@@ -58,6 +59,6 @@ public class EndPortalBlockMixin {
     }
 
     private TeleportTarget getTeleportTarget(Entity entity, BlockPos teleport_pos) {
-        return new TeleportTarget(new Vec3d((double)teleport_pos.getX() + 0.5, teleport_pos.getY(), (double)teleport_pos.getZ() + 0.5), entity.getVelocity(), 90.0F, 0.0F);
+        return new TeleportTarget(new Vec3d((double) teleport_pos.getX() + 0.5, teleport_pos.getY(), (double) teleport_pos.getZ() + 0.5), entity.getVelocity(), 90.0F, 0.0F);
     }
 }

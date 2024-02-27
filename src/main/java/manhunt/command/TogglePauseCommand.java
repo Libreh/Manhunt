@@ -2,7 +2,6 @@ package manhunt.command;
 
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
-import manhunt.game.ManhuntGame;
 import manhunt.game.ManhuntState;
 import manhunt.util.MessageUtil;
 import net.minecraft.entity.attribute.EntityAttributes;
@@ -19,6 +18,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import static manhunt.game.ManhuntGame.*;
+
 public class TogglePauseCommand {
 
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
@@ -28,11 +29,11 @@ public class TogglePauseCommand {
     }
 
     private static int togglePause(ServerCommandSource source) {
-        if (source.hasPermissionLevel(1) || source.hasPermissionLevel(2) || source.hasPermissionLevel(3) || source.hasPermissionLevel(4)) {
-            if (ManhuntGame.gameState == ManhuntState.PLAYING) {
+        if (gameState == ManhuntState.PLAYING) {
+            if (source.hasPermissionLevel(1) || source.hasPermissionLevel(2) || source.hasPermissionLevel(3) || source.hasPermissionLevel(4)) {
                 MinecraftServer server = source.getServer();
 
-                if (ManhuntGame.isPaused()) {
+                if (isPaused()) {
                     for (ServerPlayerEntity gamePlayer : server.getPlayerManager().getPlayerList()) {
                         gamePlayer.getAttributeInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED).setBaseValue(0.10000000149011612);
                         gamePlayer.playSound(SoundEvents.BLOCK_ANVIL_LAND, SoundCategory.MASTER, 0.1f, 0.5f);
@@ -45,7 +46,7 @@ public class TogglePauseCommand {
                     }
                     MessageUtil.sendBroadcast("manhunt.chat.unpaused");
                     ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
-                    scheduledExecutorService.schedule(() -> ManhuntGame.setPaused(false), 1, TimeUnit.SECONDS);
+                    scheduledExecutorService.schedule(() -> setPaused(false), 1, TimeUnit.SECONDS);
                 } else {
                     for (ServerPlayerEntity gamePlayer : server.getPlayerManager().getPlayerList()) {
                         gamePlayer.getAttributeInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED).setBaseValue(0);
@@ -59,13 +60,15 @@ public class TogglePauseCommand {
                     }
                     MessageUtil.sendBroadcast("manhunt.chat.paused");
                     ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
-                    scheduledExecutorService.schedule(() -> ManhuntGame.setPaused(true), 1, TimeUnit.SECONDS);
+                    scheduledExecutorService.schedule(() -> setPaused(true), 1, TimeUnit.SECONDS);
                 }
             } else {
-                source.sendFeedback(() -> MessageUtil.ofVomponent(source.getPlayer(), "manhunt.chat.pregame"), false);
+                source.sendFeedback(() -> MessageUtil.ofVomponent(source.getPlayer(), "manhunt.chat.leader"), false);
             }
+        } else if (gameState == ManhuntState.POSTGAME) {
+            source.sendFeedback(() -> MessageUtil.ofVomponent(source.getPlayer(), "manhunt.chat.pregame"), false);
         } else {
-            source.sendFeedback(() -> MessageUtil.ofVomponent(source.getPlayer(), "manhunt.chat.leader"), false);
+            source.sendFeedback(() -> MessageUtil.ofVomponent(source.getPlayer(), "manhunt.chat.postgame"), false);
         }
 
         return Command.SINGLE_SUCCESS;

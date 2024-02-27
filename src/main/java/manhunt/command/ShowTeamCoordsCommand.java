@@ -4,14 +4,15 @@ import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 import com.mojang.brigadier.suggestion.Suggestions;
-import manhunt.game.ManhuntGame;
-import manhunt.game.ManhuntState;
 import manhunt.util.MessageUtil;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
+
+import static manhunt.game.ManhuntGame.gameState;
+import static manhunt.game.ManhuntState.PLAYING;
 
 public class ShowTeamCoordsCommand {
 
@@ -43,7 +44,7 @@ public class ShowTeamCoordsCommand {
 
     private static int showTeamCoords(ServerCommandSource source, ServerPlayerEntity player) {
         if (player.isTeamPlayer(player.getScoreboard().getTeam(source.getPlayer().getScoreboardTeam().getName()))) {
-            if (ManhuntGame.gameState == ManhuntState.PLAYING) {
+            if (gameState == PLAYING) {
                 Scoreboard scoreboard = player.getScoreboard();
 
                 if (source.getPlayer().getScoreboardTeam().isEqual(scoreboard.getTeam("hunters"))) {

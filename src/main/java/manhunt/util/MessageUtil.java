@@ -2,7 +2,6 @@ package manhunt.util;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import manhunt.Manhunt;
 import manhunt.config.handler.ResourceConfigHandler;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.platform.fabric.FabricServerAudiences;
@@ -24,10 +23,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static manhunt.Manhunt.*;
+
 // Thanks to https://github.com/sakurawald/fuji-fabric
 
 public class MessageUtil {
-    private static final FabricServerAudiences adventure = FabricServerAudiences.of(Manhunt.SERVER);
+    private static final FabricServerAudiences adventure = FabricServerAudiences.of(SERVER);
     private static final Map<String, String> player2lang = new HashMap<>();
     private static final Map<String, JsonObject> lang2json = new HashMap<>();
     private static final String DEFAULT_LANG = "en_us";
@@ -42,12 +43,12 @@ public class MessageUtil {
 
         InputStream is;
         try {
-            is = FileUtils.openInputStream(Manhunt.CONFIG_PATH.resolve("lang").resolve(lang + ".json").toFile());
+            is = FileUtils.openInputStream(CONFIG_PATH.resolve("lang").resolve(lang + ".json").toFile());
             JsonObject jsonObject = JsonParser.parseReader(new InputStreamReader(is)).getAsJsonObject();
             lang2json.put(lang, jsonObject);
-            Manhunt.LOGGER.info("Language {} loaded.", lang);
+            LOGGER.info("Language {} loaded.", lang);
         } catch (IOException e) {
-            Manhunt.LOGGER.debug("One of your player is using a language '{}' that is missing -> fallback to default language for this player", lang);
+            LOGGER.debug("One of your player is using a language '{}' that is missing -> fallback to default language for this player", lang);
         }
 
         if (!lang2json.containsKey(DEFAULT_LANG)) loadLanguageIfAbsent(DEFAULT_LANG);
@@ -77,7 +78,7 @@ public class MessageUtil {
         JsonObject json;
         json = lang2json.get(!lang2json.containsKey(lang) ? DEFAULT_LANG : lang);
         if (!json.has(key)) {
-            Manhunt.LOGGER.warn("Language {} miss key '{}' -> fallback to default language for this key", lang, key);
+            LOGGER.warn("Language {} miss key '{}' -> fallback to default language for this key", lang, key);
             json = lang2json.get(DEFAULT_LANG);
         }
 
@@ -131,7 +132,7 @@ public class MessageUtil {
     }
 
     public static void sendMessageToTeam(String team, String key, Object... args) {
-        MinecraftServer server = Manhunt.SERVER;
+        MinecraftServer server = SERVER;
         for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
             if (player.isTeamPlayer(player.getScoreboard().getTeam(team))) {
                 sendMessage(player, key, args);
@@ -145,9 +146,9 @@ public class MessageUtil {
 
     public static void sendBroadcast(String key, Object... args) {
         // fix: log broadcast for console
-        Manhunt.LOGGER.info(PlainTextComponentSerializer.plainText().serialize(ofComponent(null, key, args)));
+        LOGGER.info(PlainTextComponentSerializer.plainText().serialize(ofComponent(null, key, args)));
 
-        for (ServerPlayerEntity player : Manhunt.SERVER.getPlayerManager().getPlayerList()) {
+        for (ServerPlayerEntity player : SERVER.getPlayerManager().getPlayerList()) {
             sendMessage(player, key, args);
         }
     }

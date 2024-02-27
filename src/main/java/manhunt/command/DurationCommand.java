@@ -2,11 +2,13 @@ package manhunt.command;
 
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
-import manhunt.game.ManhuntGame;
 import manhunt.game.ManhuntState;
 import manhunt.util.MessageUtil;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
+
+import static manhunt.game.ManhuntGame.gameState;
+import static manhunt.game.ManhuntState.PLAYING;
 
 public class DurationCommand {
 
@@ -17,7 +19,7 @@ public class DurationCommand {
     }
 
     private static int showDuration(ServerCommandSource source) {
-        if (ManhuntGame.gameState == ManhuntState.PLAYING) {
+        if (gameState == PLAYING) {
             String hoursString;
             int hours = (int) Math.floor((double) source.getWorld().getTime() % (20 * 60 * 60 * 24) / (20 * 60 * 60));
             if (hours <= 9) {
@@ -40,8 +42,10 @@ public class DurationCommand {
                 secondsString = String.valueOf(seconds);
             }
             source.sendFeedback(() -> MessageUtil.ofVomponent(source.getPlayer(), "manhunt.chat.duration",  hoursString, minutesString, secondsString), false);
-        } else {
+        } else if (gameState == ManhuntState.PREGAME) {
             source.sendFeedback(() -> MessageUtil.ofVomponent(source.getPlayer(), "manhunt.chat.pregame"), false);
+        } else {
+            source.sendFeedback(() -> MessageUtil.ofVomponent(source.getPlayer(), "manhunt.chat.postgame"), false);
         }
 
         return Command.SINGLE_SUCCESS;

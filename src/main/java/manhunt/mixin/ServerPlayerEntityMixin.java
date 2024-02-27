@@ -1,27 +1,32 @@
 package manhunt.mixin;
 
-import manhunt.game.ManhuntGame;
-import manhunt.game.ManhuntState;
+import eu.pb4.playerdata.api.PlayerDataApi;
 import manhunt.util.MessageUtil;
 import net.minecraft.enchantment.Enchantments;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.nbt.NbtList;
+import net.minecraft.nbt.*;
+import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
+import net.minecraft.world.World;
+import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.Objects;
+
+import static manhunt.game.ManhuntGame.*;
+import static manhunt.game.ManhuntState.PLAYING;
+import static manhunt.game.ManhuntState.POSTGAME;
 
 // Thanks to https://github.com/Ivan-Khar/manhunt-fabricated
 
@@ -36,8 +41,8 @@ public class ServerPlayerEntityMixin {
 
     @Inject(method = "tick", at = @At("HEAD"))
     public void tick(CallbackInfo ci) {
-        if (ManhuntGame.gameState == ManhuntState.PLAYING) {
-            if (player.isTeamPlayer(player.getScoreboard().getTeam("hunters")) && player.isAlive()) {
+        if (gameState == PLAYING) {
+            if (player.isTeamPlayer(player.getScoreboard().getTeam("hunters"))) {
                 if (!hasTracker(server.getPlayerManager().getPlayer(player.getName().getString()))) {
                     NbtCompound nbt = new NbtCompound();
                     nbt.putBoolean("Tracker", true);
@@ -54,7 +59,7 @@ public class ServerPlayerEntityMixin {
                     tracker.addEnchantment(Enchantments.VANISHING_CURSE, 1);
 
                     player.giveItemStack(tracker);
-                } else if (ManhuntGame.settings.compassUpdate && System.currentTimeMillis() - lastDelay > ((long) 1000)) {
+                } else if (settings.compassUpdate && System.currentTimeMillis() - lastDelay > ((long) 1000)) {
                     for (ItemStack item : player.getInventory().main) {
                         if (item.getItem().equals(Items.COMPASS) && item.getNbt() != null && item.getNbt().getBoolean("Tracker")) {
                             if (!item.getNbt().contains("Info")) {
@@ -63,8 +68,8 @@ public class ServerPlayerEntityMixin {
 
                             NbtCompound info = item.getNbt().getCompound("Info");
 
-                            if (!info.contains("Name", NbtElement.STRING_TYPE) && !ManhuntGame.allRunners.isEmpty()) {
-                                info.putString("Name", ManhuntGame.allRunners.get(0).getName().getString());
+                            if (!info.contains("Name", NbtElement.STRING_TYPE) && !allRunners.isEmpty()) {
+                                info.putString("Name", allRunners.get(0).getName().getString());
                             }
 
                             ServerPlayerEntity trackedPlayer = server.getPlayerManager().getPlayer(item.getNbt().getCompound("Info").getString("Name"));
@@ -84,39 +89,51 @@ public class ServerPlayerEntityMixin {
     public void onDeath(DamageSource source, CallbackInfo ci) {
 
         if (player.getScoreboardTeam() != null) {
-            if (player.getScoreboardTeam().isEqual(player.getScoreboard().getTeam("runners"))) {
-                if (ManhuntGame.settings.winnerTitle && player.getScoreboard().getTeam("runners").getPlayerList().size() == 1) {
-                    ManhuntGame.manhuntState(ManhuntState.POSTGAME, server);
-                    for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
-                        ManhuntGame.updateGameMode(player);
+            if (player.getScoreboardTeam().isEqual(player.getScoreboard().getTeam("runners")) && player.getScoreboard().getTeam("runners").getPlayerList().size() == 1) {
+                manhuntState(POSTGAME, server);
+                for (ServerPlayerEntity serverPlayer : server.getPlayerManager().getPlayerList()) {
+                    updateGameMode(player);
+                    if (PlayerDataApi.getGlobalDataFor(serverPlayer, winnerTitlePreference).equals(NbtByte.ONE)) {
                         MessageUtil.showTitle(player, "manhunt.title.hunters", "manhunt.title.dead");
-                        player.playSound(SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, SoundCategory.PLAYERS, 0.1f, 0.5f);
+                        if (!PlayerDataApi.getGlobalDataFor(player, manhuntSoundsVolumePreference).equals(NbtInt.of(0))) {
+                            float volume = (float) Integer.parseInt(String.valueOf(PlayerDataApi.getGlobalDataFor(player, manhuntSoundsVolumePreference))) / 100;
+                            if (volume >= 0.2f) {
+                                player.playSound(SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, SoundCategory.PLAYERS, volume / 2, 0.5f);
+                            }
+                        }
                     }
-                    String hoursString;
-                    int hours = (int) Math.floor((double) player.getWorld().getTime() % (20 * 60 * 60 * 24) / (20 * 60 * 60));
-                    if (hours <= 9) {
-                        hoursString = "0" + hours;
-                    } else {
-                        hoursString = String.valueOf(hours);
+                    if (PlayerDataApi.getGlobalDataFor(serverPlayer, durationAtEndPreference).equals(NbtByte.ONE)) {
+                        String hoursString;
+                        int hours = (int) Math.floor((double) player.getWorld().getTime() % (20 * 60 * 60 * 24) / (20 * 60 * 60));
+                        if (hours <= 9) {
+                            hoursString = "0" + hours;
+                        } else {
+                            hoursString = String.valueOf(hours);
+                        }
+                        String minutesString;
+                        int minutes = (int) Math.floor((double) player.getWorld().getTime() % (20 * 60 * 60) / (20 * 60));
+                        if (minutes <= 9) {
+                            minutesString = "0" + minutes;
+                        } else {
+                            minutesString = String.valueOf(minutes);
+                        }
+                        String secondsString;
+                        int seconds = (int) Math.floor((double) player.getWorld().getTime() % (20 * 60) / (20));
+                        if (seconds <= 9) {
+                            secondsString = "0" + seconds;
+                        } else {
+                            secondsString = String.valueOf(seconds);
+                        }
+                        MessageUtil.sendMessage(serverPlayer, "manhunt.chat.duration", hoursString, minutesString, secondsString);
                     }
-                    String minutesString;
-                    int minutes = (int) Math.floor((double) player.getWorld().getTime() % (20 * 60 * 60) / (20 * 60));
-                    if (minutes <= 9) {
-                        minutesString = "0" + minutes;
-                    } else {
-                        minutesString = String.valueOf(minutes);
-                    }
-                    String secondsString;
-                    int seconds = (int) Math.floor((double) player.getWorld().getTime() % (20 * 60) / (20));
-                    if (seconds <= 9) {
-                        secondsString = "0" + seconds;
-                    } else {
-                        secondsString = String.valueOf(seconds);
-                    }
-                    MessageUtil.sendBroadcast("manhunt.chat.duration", hoursString, minutesString, secondsString);
                 }
             }
         }
+    }
+
+    @Redirect(method = "<init>", at = @At(value = "FIELD", target = "Lnet/minecraft/world/World;OVERWORLD:Lnet/minecraft/registry/RegistryKey;", opcode = Opcodes.GETSTATIC))
+    private RegistryKey<World> redirectSpawnpointDimension() {
+        return overworldRegistryKey;
     }
 
     private static boolean hasTracker(ServerPlayerEntity player) {

@@ -1,6 +1,5 @@
 package manhunt.mixin;
 
-import manhunt.game.ManhuntGame;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtDouble;
 import net.minecraft.nbt.NbtFloat;
@@ -13,7 +12,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import static manhunt.game.ManhuntGame.gameState;
-import static manhunt.game.ManhuntState.PLAYING;
 import static manhunt.game.ManhuntState.PREGAME;
 
 // Thanks to https://gitlab.com/horrific-tweaks/bingo
@@ -39,23 +37,6 @@ public abstract class PlayerManagerMixin {
             NbtList rotation = new NbtList();
             rotation.add(NbtFloat.of(0.0F));
             rotation.add(NbtFloat.of(0.0F));
-            nbt.put("Rotation", rotation);
-
-            player.readNbt(nbt);
-            ci.setReturnValue(nbt);
-        } else if (ci.getReturnValue() == null && gameState == PLAYING) {
-            NbtCompound nbt = new NbtCompound();
-            nbt.putString("Dimension", "overworld");
-
-            NbtList position = new NbtList();
-            position.add(NbtDouble.of(ManhuntGame.worldSpawnPos.getX()));
-            position.add(NbtDouble.of(ManhuntGame.worldSpawnPos.getY()));
-            position.add(NbtDouble.of(ManhuntGame.worldSpawnPos.getZ()));
-            nbt.put("Pos", position);
-
-            NbtList rotation = new NbtList();
-            rotation.add(NbtFloat.of(0f));
-            rotation.add(NbtFloat.of(0f));
             nbt.put("Rotation", rotation);
 
             player.readNbt(nbt);

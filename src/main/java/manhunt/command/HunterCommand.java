@@ -2,12 +2,15 @@ package manhunt.command;
 
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
-import manhunt.game.ManhuntGame;
 import manhunt.util.MessageUtil;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
+
+import static manhunt.game.ManhuntGame.gameState;
+import static manhunt.game.ManhuntState.PLAYING;
+import static manhunt.game.ManhuntState.PREGAME;
 
 public class HunterCommand {
 
@@ -21,22 +24,36 @@ public class HunterCommand {
     }
 
     private static int setOneselfHunter(ServerCommandSource source) {
-        ServerPlayerEntity player = source.getPlayer();
+        if (gameState == PREGAME) {
+            ServerPlayerEntity player = source.getPlayer();
 
-        ManhuntGame.currentRole.put(player.getUuid(), "hunter");
+            player.getScoreboard().clearTeam(player.getName().getString());
+            player.getScoreboard().addScoreHolderToTeam(player.getName().getString(), player.getScoreboard().getTeam("hunters"));
 
-        MessageUtil.sendBroadcast("manhunt.chat.role.hunter", player.getName().getString());
+            MessageUtil.sendBroadcast("manhunt.chat.role.hunter", player.getName().getString());
+        } else if (gameState == PLAYING) {
+            source.sendFeedback(() -> MessageUtil.ofVomponent(source.getPlayer(), "manhunt.chat.playing"), false);
+        } else {
+            source.sendFeedback(() -> MessageUtil.ofVomponent(source.getPlayer(), "manhunt.chat.postgame"), false);
+        }
 
         return Command.SINGLE_SUCCESS;
     }
 
     private static int setSomeoneHunter(ServerCommandSource source, ServerPlayerEntity player) {
-        if (source.hasPermissionLevel(1) || source.hasPermissionLevel(2) || source.hasPermissionLevel(3) || source.hasPermissionLevel(4)) {
-            ManhuntGame.currentRole.put(player.getUuid(), "hunter");
+        if (gameState == PREGAME) {
+            if (source.hasPermissionLevel(1) || source.hasPermissionLevel(2) || source.hasPermissionLevel(3) || source.hasPermissionLevel(4)) {
+                player.getScoreboard().clearTeam(player.getName().getString());
+                player.getScoreboard().addScoreHolderToTeam(player.getName().getString(), player.getScoreboard().getTeam("hunters"));
 
-            MessageUtil.sendBroadcast("manhunt.chat.role.hunter", player.getName().getString());
+                MessageUtil.sendBroadcast("manhunt.chat.role.hunter", player.getName().getString());
+            } else {
+                source.sendFeedback(() -> MessageUtil.ofVomponent(source.getPlayer(), "manhunt.chat.leader"), false);
+            }
+        } else if (gameState == PLAYING) {
+            source.sendFeedback(() -> MessageUtil.ofVomponent(source.getPlayer(), "manhunt.chat.playing"), false);
         } else {
-            source.sendFeedback(() -> MessageUtil.ofVomponent(source.getPlayer(), "manhunt.chat.leader"), false);
+            source.sendFeedback(() -> MessageUtil.ofVomponent(source.getPlayer(), "manhunt.chat.postgame"), false);
         }
 
         return Command.SINGLE_SUCCESS;

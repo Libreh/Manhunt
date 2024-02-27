@@ -42,6 +42,8 @@ dependencies {
 	include(implementation group: 'org.quartz-scheduler', name: 'quartz', version: "${project.quartz_version}")
 
 	modImplementation include("eu.pb4:sgui:${project.sgui_version}")
+
+	modImplementation include("eu.pb4:player-data-api:0.4.0+1.20.3")
 }
 
 processResources {
