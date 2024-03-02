@@ -4,12 +4,13 @@ import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 import com.mojang.brigadier.suggestion.Suggestions;
-import manhunt.util.MessageUtil;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 
 import static manhunt.game.ManhuntGame.gameState;
 import static manhunt.game.ManhuntState.PLAYING;
@@ -48,12 +49,12 @@ public class ShowTeamCoordsCommand {
                 Scoreboard scoreboard = player.getScoreboard();
 
                 if (source.getPlayer().getScoreboardTeam().isEqual(scoreboard.getTeam("hunters"))) {
-                    MessageUtil.sendMessage(source.getPlayer(), "manhunt.chat.huntercoords", player.getName().getString(), (int) player.getX(), (int) player.getY(), (int) player.getZ());
+                    player.sendMessage(Text.translatable("manhunt.chat.teamcoords", Text.literal("[hunters]").formatted(Formatting.RED), Text.literal(player.getName().getString()).formatted(Formatting.RED), Text.literal(String.valueOf(player.getX())), Text.literal(String.valueOf(player.getY())), Text.literal(String.valueOf(player.getZ()))));
                 } else {
-                    MessageUtil.sendMessage(source.getPlayer(), "manhunt.chat.runnercoords", player.getName().getString(), (int) player.getX(), (int) player.getY(), (int) player.getZ());
+                    player.sendMessage(Text.translatable("manhunt.chat.teamcoords", Text.literal("[runners]").formatted(Formatting.GREEN), Text.literal(player.getName().getString()).formatted(Formatting.GREEN), Text.literal(String.valueOf(player.getX())), Text.literal(String.valueOf(player.getY())), Text.literal(String.valueOf(player.getZ()))));
                 }
             } else {
-                source.sendFeedback(() -> MessageUtil.ofVomponent(source.getPlayer(), "manhunt.chat.pregame"), false);
+                source.sendFeedback(() -> Text.translatable("manhunt.chat.pregame"), false);
             }
         }
         return Command.SINGLE_SUCCESS;

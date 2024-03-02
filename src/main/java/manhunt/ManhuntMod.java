@@ -1,8 +1,6 @@
 package manhunt;
 
-import manhunt.config.Configs;
 import manhunt.game.ManhuntGame;
-import manhunt.util.LogUtil;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
@@ -11,25 +9,19 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
 import net.fabricmc.fabric.api.event.player.UseItemCallback;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
-import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.server.MinecraftServer;
+import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.nio.file.Path;
-
+import static manhunt.config.ManhuntConfig.setDefaults;
 import static manhunt.game.ManhuntGame.*;
 
-public class Manhunt implements ModInitializer {
+public class ManhuntMod implements ModInitializer {
 	public static final String MOD_ID = "manhunt";
-	public static final Logger LOGGER = LogUtil.createLogger("Manhunt");
-	public static final Path CONFIG_PATH = FabricLoader.getInstance().getConfigDir().resolve(MOD_ID).toAbsolutePath();
-	public static MinecraftServer SERVER;
+	public static final Logger LOGGER = LogManager.getLogger("Manhunt");
 
 	@Override
 	public void onInitialize() {
-		Configs.configHandler.loadFromDisk();
-
-		LOGGER.info("Manhunt mod initialized");
+		setDefaults();
 
 		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> commandRegister(dispatcher));
 		ServerLifecycleEvents.SERVER_STARTED.register(ManhuntGame::serverStart);
@@ -39,5 +31,6 @@ public class Manhunt implements ModInitializer {
 		UseItemCallback.EVENT.register((player, world, hand) -> useItem(player, hand));
 		ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> playerRespawn(newPlayer));
 		ServerWorldEvents.UNLOAD.register(ManhuntGame::unloadWorld);
+		ServerLifecycleEvents.SERVER_STOPPED.register(ManhuntGame::serverStop);
 	}
 }

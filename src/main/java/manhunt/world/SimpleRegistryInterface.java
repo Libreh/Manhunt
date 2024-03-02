@@ -1,4 +1,4 @@
-package manhunt.game;
+package manhunt.world;
 
 import net.minecraft.registry.SimpleRegistry;
 import net.minecraft.util.Identifier;

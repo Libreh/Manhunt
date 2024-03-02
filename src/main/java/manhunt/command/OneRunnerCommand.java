@@ -3,14 +3,16 @@ package manhunt.command;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import eu.pb4.playerdata.api.PlayerDataApi;
-import manhunt.config.Configs;
-import manhunt.util.MessageUtil;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.nbt.NbtByte;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 
+import static manhunt.config.ManhuntConfig.ALLOW_BED_EXPLOSIONS;
+import static manhunt.config.ManhuntConfig.ALLOW_LAVA_PVP_IN_THE_NETHER;
 import static manhunt.game.ManhuntGame.*;
 import static manhunt.game.ManhuntState.PLAYING;
 import static manhunt.game.ManhuntState.PREGAME;
@@ -35,35 +37,31 @@ public class OneRunnerCommand {
                 }
 
                 player.getScoreboard().clearTeam(player.getName().getString());
-                player.getScoreboard().addScoreHolderToTeam(player.getName().getString(), player.getScoreboard().getTeam("manhunters"));
+                player.getScoreboard().addScoreHolderToTeam(player.getName().getString(), player.getScoreboard().getTeam("players"));
                 player.getScoreboard().addScoreHolderToTeam(player.getName().getString(), player.getScoreboard().getTeam("runners"));
 
-                MessageUtil.sendBroadcast("manhunt.chat.role.onerunner", player.getName().getString());
+                player.getServer().getPlayerManager().broadcast(Text.translatable("manhunt.chat.onerunner", Text.literal(player.getName().getString()), Text.literal("Runner").formatted(Formatting.GREEN), Text.literal("Hunter").formatted(Formatting.RED)), false);
 
-                if (PlayerDataApi.getGlobalDataFor(player, bedExplosionDamagePreference).equals(NbtByte.ZERO)) {
-                    settings.bedExplosionDamage = false;
-                    Configs.configHandler.saveToDisk();
+                if (PlayerDataApi.getGlobalDataFor(player, allowBedExplosionsPreference).equals(NbtByte.ZERO)) {
+                    ALLOW_BED_EXPLOSIONS.set(false);
                 } else {
-                    settings.bedExplosionDamage = true;
-                    Configs.configHandler.saveToDisk();
+                    ALLOW_BED_EXPLOSIONS.set(true);
                 }
 
-                if (PlayerDataApi.getGlobalDataFor(player, lavaPvpInTheNetherPreference).equals(NbtByte.ZERO)) {
-                    settings.lavaPvpInTheNether = false;
-                    Configs.configHandler.saveToDisk();
+                if (PlayerDataApi.getGlobalDataFor(player, allowLavaPvpInNetherPreference).equals(NbtByte.ZERO)) {
+                    ALLOW_LAVA_PVP_IN_THE_NETHER.set(false);
                 } else {
-                    settings.lavaPvpInTheNether = true;
-                    Configs.configHandler.saveToDisk();
+                    ALLOW_LAVA_PVP_IN_THE_NETHER.set(true);
                 }
 
-                MessageUtil.sendBroadcast("manhunt.chat.preferences", player.getName().getString());
+                player.getServer().getPlayerManager().broadcast(Text.translatable("manhunt.chat.preference.runner", Text.literal(player.getName().getString())).formatted(Formatting.GREEN), false);
             } else {
-                source.sendFeedback(() -> MessageUtil.ofVomponent(source.getPlayer(), "manhunt.chat.leader"), false);
+                source.sendFeedback(() -> Text.translatable("manhunt.chat.onlyleader"), false);
             }
         } else if (gameState == PLAYING) {
-            source.sendFeedback(() -> MessageUtil.ofVomponent(source.getPlayer(), "manhunt.chat.playing"), false);
+            source.sendFeedback(() -> Text.translatable("manhunt.chat.playing"), false);
         } else {
-            source.sendFeedback(() -> MessageUtil.ofVomponent(source.getPlayer(), "manhunt.chat.postgame"), false);
+            source.sendFeedback(() -> Text.translatable("manhunt.chat.postgame"), false);
         }
 
         return Command.SINGLE_SUCCESS;

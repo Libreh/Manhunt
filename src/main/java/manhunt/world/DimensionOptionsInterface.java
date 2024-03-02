@@ -1,4 +1,4 @@
-package manhunt.game;
+package manhunt.world;
 
 import net.minecraft.world.dimension.DimensionOptions;
 import org.jetbrains.annotations.ApiStatus;

@@ -1,4 +1,4 @@
-package manhunt.game;
+package manhunt.world;
 
 import net.minecraft.server.WorldGenerationProgressListener;
 import net.minecraft.util.math.ChunkPos;

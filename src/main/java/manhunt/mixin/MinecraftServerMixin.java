@@ -1,6 +1,6 @@
 package manhunt.mixin;
 
-import manhunt.game.SafeIterator;
+import manhunt.world.SafeIterator;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.dedicated.MinecraftDedicatedServer;
 import net.minecraft.server.world.ServerWorld;
@@ -14,8 +14,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.function.BooleanSupplier;
 
-import static manhunt.Manhunt.LOGGER;
-import static manhunt.Manhunt.SERVER;
+import static manhunt.ManhuntMod.LOGGER;
 import static manhunt.game.ManhuntGame.isPaused;
 
 // Thanks to https://github.com/sakurawald/fuji-fabric
@@ -27,7 +26,6 @@ public class MinecraftServerMixin {
     private void manhunt$init(CallbackInfo ci) {
         MinecraftServer server = (MinecraftServer) (Object) this;
         LOGGER.debug("MinecraftServerMixin: $init: " + server);
-        SERVER = server;
     }
 
     // Thanks to https://git.sr.ht/~arm32x/tick-stasis for beforeTick mixin

@@ -14,9 +14,7 @@ repositories {
 	mavenCentral()
 	maven { url 'https://maven.nucleoid.xyz' }
 	maven { url 'https://jitpack.io' }
-	maven { url "https://s01.oss.sonatype.org/content/repositories/snapshots/" }
-	maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
-	maven { url 'https://projectlombok.org/edge-releases' }
+	maven { url "https://repo.codemc.io/repository/maven-public/" }
 }
 
 dependencies {
@@ -25,25 +23,13 @@ dependencies {
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-	compileOnly "org.projectlombok:lombok:${project.lombok_version}"
-	annotationProcessor "org.projectlombok:lombok:${project.lombok_version}"
-	testCompileOnly "org.projectlombok:lombok:${project.lombok_version}"
-	testAnnotationProcessor "org.projectlombok:lombok:${project.lombok_version}"
-
-	implementation group: 'com.google.code.gson', name: 'gson', version: "${project.gson_version}"
-
-	modImplementation include("net.kyori:adventure-platform-fabric:${project.adventure_platform_fabric_version}")
-	include(implementation "net.kyori:adventure-text-minimessage:${project.adventure_api_version}")
-	include(implementation "net.kyori:adventure-text-serializer-plain:${project.adventure_api_version}")
-
-	include(implementation group: 'org.apache.commons', name: 'commons-compress', version: "${project.apache_commons_compression_version}")
-	include(implementation group: 'commons-io', name: 'commons-io', version: "${project.apache_commons_io_version}")
-
-	include(implementation group: 'org.quartz-scheduler', name: 'quartz', version: "${project.quartz_version}")
+	modImplementation include("xyz.nucleoid:server-translations-api:2.2.0+1.20.3-rc1")
 
 	modImplementation include("eu.pb4:sgui:${project.sgui_version}")
 
-	modImplementation include("eu.pb4:player-data-api:0.4.0+1.20.3")
+	modImplementation include("eu.pb4:player-data-api:${project.player_data_api_version}")
+
+	compileOnly "org.popcraft:chunky-common:${project.chunky_common_version}"
 }
 
 processResources {

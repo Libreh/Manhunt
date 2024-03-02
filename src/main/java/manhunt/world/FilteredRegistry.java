@@ -1,4 +1,4 @@
-package manhunt.game;
+package manhunt.world;
 
 import com.google.common.collect.Iterators;
 import com.mojang.datafixers.util.Pair;
@@ -20,7 +20,7 @@ import java.util.stream.Stream;
 
 // Thanks to https://github.com/sakurawald/fuji-fabric
 
-@SuppressWarnings({"unused", "InfiniteRecursion", "LombokGetterMayBeUsed"})
+@SuppressWarnings({"unused", "InfiniteRecursion"})
 public class FilteredRegistry<T> extends SimpleRegistry<T> {
     private final Registry<T> source;
     private final Predicate<T> check;

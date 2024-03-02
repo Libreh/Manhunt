@@ -8,11 +8,11 @@
 		"Libreh"
 	],
 	"license": "LGPLv3",
-	"icon": "assets/manhunt/icon.png",
+	"icon": "data/manhunt/icon.png",
 	"environment": "*",
 	"entrypoints": {
 		"main": [
-			"manhunt.Manhunt"
+			"manhunt.ManhuntMod"
 		]
 	},
 	"mixins": [

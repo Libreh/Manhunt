@@ -3,7 +3,7 @@ package manhunt.mixin;
 import com.mojang.serialization.Lifecycle;
 import it.unimi.dsi.fastutil.objects.ObjectList;
 import it.unimi.dsi.fastutil.objects.Reference2IntMap;
-import manhunt.game.SimpleRegistryInterface;
+import manhunt.world.SimpleRegistryInterface;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.SimpleRegistry;
 import net.minecraft.registry.entry.RegistryEntry;
@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static manhunt.Manhunt.LOGGER;
+import static manhunt.ManhuntMod.LOGGER;
 
 @SuppressWarnings("unused")
 @Mixin(SimpleRegistry.class)

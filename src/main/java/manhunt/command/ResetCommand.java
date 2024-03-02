@@ -2,9 +2,9 @@ package manhunt.command;
 
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
-import manhunt.util.MessageUtil;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.text.Text;
 
 import static manhunt.game.ManhuntGame.gameState;
 import static manhunt.game.ManhuntGame.resetGame;
@@ -22,12 +22,12 @@ public class ResetCommand {
     private static int resetCommand(ServerCommandSource source) {
         if (gameState == PLAYING || gameState == POSTGAME) {
             if (source.hasPermissionLevel(1) || source.hasPermissionLevel(2) || source.hasPermissionLevel(3) || source.hasPermissionLevel(4)) {
-                resetGame(source);
+                resetGame(source.getServer());
             } else {
-                source.sendFeedback(() -> MessageUtil.ofVomponent(source.getPlayer(), "manhunt.chat.leader"), false);
+                source.sendFeedback(() -> Text.translatable("manhunt.chat.onlyleader"), false);
             }
         } else {
-            source.sendFeedback(() -> MessageUtil.ofVomponent(source.getPlayer(), "manhunt.chat.pregame"), false);
+            source.sendFeedback(() -> Text.translatable("manhunt.chat.pregame"), false);
         }
 
         return Command.SINGLE_SUCCESS;

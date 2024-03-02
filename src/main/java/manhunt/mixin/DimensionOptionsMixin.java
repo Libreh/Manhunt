@@ -1,6 +1,6 @@
 package manhunt.mixin;
 
-import manhunt.game.DimensionOptionsInterface;
+import manhunt.world.DimensionOptionsInterface;
 import net.minecraft.world.dimension.DimensionOptions;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;

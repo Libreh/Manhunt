@@ -1,7 +1,7 @@
 package manhunt.mixin;
 
-import manhunt.game.DimensionOptionsInterface;
-import manhunt.game.FilteredRegistry;
+import manhunt.world.DimensionOptionsInterface;
+import manhunt.world.FilteredRegistry;
 import net.minecraft.registry.Registry;
 import net.minecraft.world.dimension.DimensionOptions;
 import net.minecraft.world.dimension.DimensionOptionsRegistryHolder;

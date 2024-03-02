@@ -1,11 +1,10 @@
-package manhunt.game;
+package manhunt.world;
 
 import net.minecraft.world.SaveProperties;
 import net.minecraft.world.level.UnmodifiableLevelProperties;
 
 // Thanks to https://github.com/sakurawald/fuji-fabric
 
-@SuppressWarnings("LombokGetterMayBeUsed")
 public final class ManhuntWorldProperties extends UnmodifiableLevelProperties {
 
     private final long seed;

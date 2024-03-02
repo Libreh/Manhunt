@@ -1,11 +1,10 @@
-package manhunt.game;
+package manhunt.world;
 
 import com.google.common.collect.ImmutableList;
 import com.mojang.serialization.Lifecycle;
-import manhunt.config.Configs;
 import manhunt.mixin.MinecraftServerAccessInterface;
-import manhunt.util.MessageUtil;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.entity.boss.dragon.EnderDragonFight;
 import net.minecraft.registry.DynamicRegistryManager;
 import net.minecraft.registry.RegistryKey;
@@ -13,7 +12,10 @@ import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.SimpleRegistry;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.random.RandomSeed;
@@ -23,9 +25,21 @@ import net.minecraft.world.dimension.DimensionOptions;
 import net.minecraft.world.dimension.DimensionType;
 import net.minecraft.world.dimension.DimensionTypes;
 import net.minecraft.world.gen.chunk.ChunkGenerator;
+import org.apache.commons.io.FileUtils;
+import org.popcraft.chunky.ChunkyProvider;
+import org.popcraft.chunky.api.ChunkyAPI;
+import org.popcraft.chunky.api.event.task.GenerationCompleteEvent;
 
-import static manhunt.Manhunt.LOGGER;
-import static manhunt.game.ManhuntGame.settings;
+import java.io.IOException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
+import static manhunt.ManhuntMod.LOGGER;
+import static manhunt.config.ManhuntConfig.AUTO_START;
+import static manhunt.config.ManhuntConfig.WORLD_SEED;
+import static manhunt.game.ManhuntGame.*;
+import static manhunt.game.ManhuntState.PREGAME;
 
 // Thanks to https://github.com/sakurawald/fuji-fabric
 
@@ -36,16 +50,15 @@ public class ManhuntWorldModule {
     private final String DEFAULT_THE_END_PATH = "the_end";
 
     public void resetWorlds(MinecraftServer server) {
-        MessageUtil.sendBroadcast("manhunt.world.begin");
-        settings.worldSeed = RandomSeed.getSeed();
-        Configs.configHandler.saveToDisk();
+        server.getPlayerManager().broadcast(Text.translatable("manhunt.world", Text.translatable("manhunt.begin"), Text.translatable("manhunt.deleting")).formatted(Formatting.RED), false);
+        WORLD_SEED.set(RandomSeed.getSeed());
         deleteWorld(server, DEFAULT_OVERWORLD_PATH);
         deleteWorld(server, DEFAULT_THE_NETHER_PATH);
         deleteWorld(server, DEFAULT_THE_END_PATH);
     }
 
     public void loadWorlds(MinecraftServer server) {
-        long seed = Configs.configHandler.model().settings.worldSeed;
+        long seed = Long.parseLong(WORLD_SEED.get());
 
         createWorld(server, DimensionTypes.OVERWORLD, DEFAULT_OVERWORLD_PATH, seed);
         createWorld(server, DimensionTypes.THE_NETHER, DEFAULT_THE_NETHER_PATH, seed);
@@ -128,7 +141,16 @@ public class ManhuntWorldModule {
         world.tick(() -> true);
 
         if (path.equals(DEFAULT_THE_END_PATH)) {
-            MessageUtil.sendBroadcast("manhunt.world.finish", path);
+            server.getPlayerManager().broadcast(Text.translatable("manhunt.world", Text.translatable("manhunt.finished"), Text.translatable("manhunt.creating")).formatted(Formatting.GREEN), false);
+
+            worldSpawnPos = setupSpawn(world);
+
+            setHasPreloaded(false);
+
+            if (!server.getPlayerManager().getPlayerList().isEmpty()) {
+                ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
+                scheduledExecutorService.schedule(() -> startPreload(server), 2, TimeUnit.SECONDS);
+            }
         }
     }
 
@@ -152,8 +174,47 @@ public class ManhuntWorldModule {
             if (!namespace.equals(DEFAULT_MANHUNT_WORLD_NAMESPACE)) return;
 
             LOGGER.info("onWorldUnload() -> Creating world {} ...", path);
-            long seed = Configs.configHandler.model().settings.worldSeed;
+            long seed = Long.parseLong(WORLD_SEED.get());
             this.createWorld(server, this.getDimensionTypeRegistryKeyByPath(path), path, seed);
+        }
+    }
+
+    private void startPreload(MinecraftServer server) {
+        server.getPlayerManager().broadcast(Text.translatable("manhunt.world", Text.translatable("manhunt.begin"), Text.translatable("manhunt.preloading")), false);
+
+        try {
+            FileUtils.deleteDirectory(FabricLoader.getInstance().getConfigDir().resolve("chunky/tasks").toFile());
+        } catch (IOException ignored) {
+        }
+
+        int radius = server.getPlayerManager().getViewDistance() * 8;
+
+        ChunkyAPI chunky = ChunkyProvider.get().getApi();
+
+        if (chunky.version() == 0) {
+            chunky.startTask("manhunt:overworld", "square", worldSpawnPos.getX(), worldSpawnPos.getZ(), radius, radius, "concrentric");
+            chunky.startTask("manhunt:the_nether", "square", (double) worldSpawnPos.getX() / 8, (double) worldSpawnPos.getZ() / 4, (double) radius / 4, (double) radius / 4, "concrentric");
+            chunky.startTask("manhunt:the_end", "square", 0, 0, 64, 64, "concrentric");
+            chunky.onGenerationComplete(event -> finishPreload(event, server));
+        }
+    }
+
+    private void finishPreload(GenerationCompleteEvent event, MinecraftServer server) {
+        LOGGER.info("Generation completed for " + event.world());
+
+        if (event.world().equals("manhunt:overworld")) {
+            for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+                setPlayerSpawnXYZ(server.getWorld(overworldRegistryKey), player);
+            }
+
+            setHasPreloaded(true);
+
+            server.getPlayerManager().broadcast(Text.translatable("manhunt.world", Text.translatable("manhunt.finished"), Text.translatable("manhunt.preloading")).formatted(Formatting.GREEN), false);
+
+            if (gameState == PREGAME && Boolean.parseBoolean(AUTO_START.get())) {
+                ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
+                scheduledExecutorService.schedule(() -> startGame(server), 2, TimeUnit.SECONDS);
+            }
         }
     }
 }

@@ -3,16 +3,19 @@ package manhunt.command;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import manhunt.game.ManhuntState;
-import manhunt.util.MessageUtil;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
+import net.minecraft.network.packet.s2c.play.SubtitleS2CPacket;
+import net.minecraft.network.packet.s2c.play.TitleS2CPacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
+import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -42,9 +45,11 @@ public class TogglePauseCommand {
                         gamePlayer.removeStatusEffect(StatusEffects.MINING_FATIGUE);
                         gamePlayer.removeStatusEffect(StatusEffects.RESISTANCE);
                         gamePlayer.removeStatusEffect(StatusEffects.WEAKNESS);
-                        MessageUtil.showTitle(gamePlayer, "manhunt.title.unpaused", "manhunt.title.go");
+                        gamePlayer.networkHandler.sendPacket(new TitleS2CPacket(Text.translatable("manhunt.title.unpaused").formatted(Formatting.YELLOW)));
+                        gamePlayer.networkHandler.sendPacket(new SubtitleS2CPacket(Text.translatable("manhunt.title.go").formatted(Formatting.GOLD)));
                     }
-                    MessageUtil.sendBroadcast("manhunt.chat.unpaused");
+                    server.getPlayerManager().broadcast(Text.translatable("manhunt.chat.unpaused"), false);
+
                     ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
                     scheduledExecutorService.schedule(() -> setPaused(false), 1, TimeUnit.SECONDS);
                 } else {
@@ -56,19 +61,21 @@ public class TogglePauseCommand {
                         gamePlayer.addStatusEffect(new StatusEffectInstance(StatusEffects.MINING_FATIGUE, StatusEffectInstance.INFINITE, 255, false, false));
                         gamePlayer.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE, StatusEffectInstance.INFINITE, 255, false, false));
                         gamePlayer.addStatusEffect(new StatusEffectInstance(StatusEffects.WEAKNESS, StatusEffectInstance.INFINITE, 255, false, false));
-                        MessageUtil.showTitle(gamePlayer, "manhunt.title.paused", "manhunt.title.holdup");
+                        gamePlayer.networkHandler.sendPacket(new TitleS2CPacket(Text.translatable("manhunt.title.paused").formatted(Formatting.YELLOW)));
+                        gamePlayer.networkHandler.sendPacket(new SubtitleS2CPacket(Text.translatable("manhunt.title.holdup").formatted(Formatting.GOLD)));
                     }
-                    MessageUtil.sendBroadcast("manhunt.chat.paused");
+                    server.getPlayerManager().broadcast(Text.translatable("manhunt.chat.paused"), false);
+
                     ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
                     scheduledExecutorService.schedule(() -> setPaused(true), 1, TimeUnit.SECONDS);
                 }
             } else {
-                source.sendFeedback(() -> MessageUtil.ofVomponent(source.getPlayer(), "manhunt.chat.leader"), false);
+                source.sendFeedback(() -> Text.translatable("manhunt.chat.onlyleader"), false);
             }
         } else if (gameState == ManhuntState.POSTGAME) {
-            source.sendFeedback(() -> MessageUtil.ofVomponent(source.getPlayer(), "manhunt.chat.pregame"), false);
+            source.sendFeedback(() -> Text.translatable("manhunt.chat.pregame"), false);
         } else {
-            source.sendFeedback(() -> MessageUtil.ofVomponent(source.getPlayer(), "manhunt.chat.postgame"), false);
+            source.sendFeedback(() -> Text.translatable("manhunt.chat.postgame"), false);
         }
 
         return Command.SINGLE_SUCCESS;

@@ -2,11 +2,12 @@ package manhunt.command;
 
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
-import manhunt.util.MessageUtil;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 
 import static manhunt.game.ManhuntGame.gameState;
 import static manhunt.game.ManhuntState.PLAYING;
@@ -24,17 +25,17 @@ public class HunterCommand {
     }
 
     private static int setOneselfHunter(ServerCommandSource source) {
+        ServerPlayerEntity sourcePlayer = source.getPlayer();
+
         if (gameState == PREGAME) {
-            ServerPlayerEntity player = source.getPlayer();
+            sourcePlayer.getScoreboard().clearTeam(sourcePlayer.getName().getString());
+            sourcePlayer.getScoreboard().addScoreHolderToTeam(sourcePlayer.getName().getString(), sourcePlayer.getScoreboard().getTeam("hunters"));
 
-            player.getScoreboard().clearTeam(player.getName().getString());
-            player.getScoreboard().addScoreHolderToTeam(player.getName().getString(), player.getScoreboard().getTeam("hunters"));
-
-            MessageUtil.sendBroadcast("manhunt.chat.role.hunter", player.getName().getString());
+            source.getServer().getPlayerManager().broadcast(Text.translatable("manhunt.chat.hunter", Text.literal(sourcePlayer.getName().getString())).formatted(Formatting.RED), false);
         } else if (gameState == PLAYING) {
-            source.sendFeedback(() -> MessageUtil.ofVomponent(source.getPlayer(), "manhunt.chat.playing"), false);
+            source.sendFeedback(() -> Text.translatable("manhunt.chat.playing"), false);
         } else {
-            source.sendFeedback(() -> MessageUtil.ofVomponent(source.getPlayer(), "manhunt.chat.postgame"), false);
+            source.sendFeedback(() -> Text.translatable("manhunt.chat.postgame"), false);
         }
 
         return Command.SINGLE_SUCCESS;
@@ -46,14 +47,14 @@ public class HunterCommand {
                 player.getScoreboard().clearTeam(player.getName().getString());
                 player.getScoreboard().addScoreHolderToTeam(player.getName().getString(), player.getScoreboard().getTeam("hunters"));
 
-                MessageUtil.sendBroadcast("manhunt.chat.role.hunter", player.getName().getString());
+                player.getServer().getPlayerManager().broadcast(Text.translatable("manhunt.chat.hunter.set", Text.literal(player.getName().getString())).formatted(Formatting.RED), false);
             } else {
-                source.sendFeedback(() -> MessageUtil.ofVomponent(source.getPlayer(), "manhunt.chat.leader"), false);
+                source.sendFeedback(() -> Text.translatable("manhunt.chat.onlyleader"), false);
             }
         } else if (gameState == PLAYING) {
-            source.sendFeedback(() -> MessageUtil.ofVomponent(source.getPlayer(), "manhunt.chat.playing"), false);
+            source.sendFeedback(() -> Text.translatable("manhunt.chat.playing"), false);
         } else {
-            source.sendFeedback(() -> MessageUtil.ofVomponent(source.getPlayer(), "manhunt.chat.postgame"), false);
+            source.sendFeedback(() -> Text.translatable("manhunt.chat.postgame"), false);
         }
 
         return Command.SINGLE_SUCCESS;

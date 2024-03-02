@@ -1,17 +1,21 @@
 package manhunt.mixin;
 
 import eu.pb4.playerdata.api.PlayerDataApi;
-import manhunt.util.MessageUtil;
+import manhunt.config.ManhuntConfig;
 import net.minecraft.enchantment.Enchantments;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.*;
+import net.minecraft.network.packet.s2c.play.SubtitleS2CPacket;
+import net.minecraft.network.packet.s2c.play.TitleS2CPacket;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
+import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import net.minecraft.world.World;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Final;
@@ -23,7 +27,12 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.Objects;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
+import static manhunt.config.ManhuntConfig.AUTO_RESET;
+import static manhunt.config.ManhuntConfig.RESET_SECONDS;
 import static manhunt.game.ManhuntGame.*;
 import static manhunt.game.ManhuntState.PLAYING;
 import static manhunt.game.ManhuntState.POSTGAME;
@@ -59,7 +68,7 @@ public class ServerPlayerEntityMixin {
                     tracker.addEnchantment(Enchantments.VANISHING_CURSE, 1);
 
                     player.giveItemStack(tracker);
-                } else if (settings.compassUpdate && System.currentTimeMillis() - lastDelay > ((long) 1000)) {
+                } else if (!Boolean.getBoolean(String.valueOf(ManhuntConfig.MANUAL_COMPASS_UPDATE.get())) && System.currentTimeMillis() - lastDelay > ((long) 1000)) {
                     for (ItemStack item : player.getInventory().main) {
                         if (item.getItem().equals(Items.COMPASS) && item.getNbt() != null && item.getNbt().getBoolean("Tracker")) {
                             if (!item.getNbt().contains("Info")) {
@@ -93,8 +102,9 @@ public class ServerPlayerEntityMixin {
                 manhuntState(POSTGAME, server);
                 for (ServerPlayerEntity serverPlayer : server.getPlayerManager().getPlayerList()) {
                     updateGameMode(player);
-                    if (PlayerDataApi.getGlobalDataFor(serverPlayer, winnerTitlePreference).equals(NbtByte.ONE)) {
-                        MessageUtil.showTitle(player, "manhunt.title.hunters", "manhunt.title.dead");
+                    if (PlayerDataApi.getGlobalDataFor(serverPlayer, showWinnerTitlePreference).equals(NbtByte.ONE)) {
+                        player.networkHandler.sendPacket(new TitleS2CPacket(Text.translatable("manhunt.title.hunterswon").formatted(Formatting.RED)));
+                        player.networkHandler.sendPacket(new SubtitleS2CPacket(Text.translatable("manhunt.title.runnersdied").formatted(Formatting.DARK_RED)));
                         if (!PlayerDataApi.getGlobalDataFor(player, manhuntSoundsVolumePreference).equals(NbtInt.of(0))) {
                             float volume = (float) Integer.parseInt(String.valueOf(PlayerDataApi.getGlobalDataFor(player, manhuntSoundsVolumePreference))) / 100;
                             if (volume >= 0.2f) {
@@ -102,7 +112,7 @@ public class ServerPlayerEntityMixin {
                             }
                         }
                     }
-                    if (PlayerDataApi.getGlobalDataFor(serverPlayer, durationAtEndPreference).equals(NbtByte.ONE)) {
+                    if (PlayerDataApi.getGlobalDataFor(serverPlayer, showDurationAtEndPreference).equals(NbtByte.ONE)) {
                         String hoursString;
                         int hours = (int) Math.floor((double) player.getWorld().getTime() % (20 * 60 * 60 * 24) / (20 * 60 * 60));
                         if (hours <= 9) {
@@ -124,8 +134,15 @@ public class ServerPlayerEntityMixin {
                         } else {
                             secondsString = String.valueOf(seconds);
                         }
-                        MessageUtil.sendMessage(serverPlayer, "manhunt.chat.duration", hoursString, minutesString, secondsString);
+                        serverPlayer.sendMessage(Text.translatable("manhunt.chat.duration", hoursString, minutesString, secondsString));
                     }
+                }
+
+                if (Boolean.parseBoolean(AUTO_RESET.get())) {
+                    server.getPlayerManager().broadcast(Text.translatable("manhunt.chat.willreset", Text.literal(String.valueOf(Integer.parseInt(RESET_SECONDS.get())))).formatted(Formatting.RED), false);
+
+                    ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
+                    scheduledExecutorService.schedule(() -> resetGameIfAuto(server), Integer.parseInt(RESET_SECONDS.get()), TimeUnit.SECONDS);
                 }
             }
         }

@@ -3,9 +3,9 @@ package manhunt.command;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import manhunt.game.ManhuntState;
-import manhunt.util.MessageUtil;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.text.Text;
 
 import static manhunt.game.ManhuntGame.gameState;
 import static manhunt.game.ManhuntState.PLAYING;
@@ -41,11 +41,11 @@ public class DurationCommand {
             } else {
                 secondsString = String.valueOf(seconds);
             }
-            source.sendFeedback(() -> MessageUtil.ofVomponent(source.getPlayer(), "manhunt.chat.duration",  hoursString, minutesString, secondsString), false);
+            source.sendFeedback(() -> Text.translatable("manhunt.chat.duration", Text.literal(hoursString), Text.literal(minutesString), Text.literal(secondsString)), false);
         } else if (gameState == ManhuntState.PREGAME) {
-            source.sendFeedback(() -> MessageUtil.ofVomponent(source.getPlayer(), "manhunt.chat.pregame"), false);
+            source.sendFeedback(() -> Text.translatable("manhunt.chat.pregame"), false);
         } else {
-            source.sendFeedback(() -> MessageUtil.ofVomponent(source.getPlayer(), "manhunt.chat.postgame"), false);
+            source.sendFeedback(() -> Text.translatable("manhunt.chat.postgame"), false);
         }
 
         return Command.SINGLE_SUCCESS;

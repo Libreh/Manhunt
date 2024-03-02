@@ -1,18 +1,28 @@
 package manhunt.mixin;
 
 import eu.pb4.playerdata.api.PlayerDataApi;
-import manhunt.util.MessageUtil;
 import net.minecraft.entity.boss.dragon.EnderDragonEntity;
 import net.minecraft.nbt.NbtByte;
 import net.minecraft.nbt.NbtInt;
+import net.minecraft.network.packet.s2c.play.SubtitleS2CPacket;
+import net.minecraft.network.packet.s2c.play.TitleS2CPacket;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
+import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
+import static manhunt.config.ManhuntConfig.AUTO_RESET;
+import static manhunt.config.ManhuntConfig.RESET_SECONDS;
 import static manhunt.game.ManhuntGame.*;
 import static manhunt.game.ManhuntState.POSTGAME;
 
@@ -25,11 +35,14 @@ public abstract class EnderDragonEntityMixin {
     private void runnersWon(CallbackInfo ci) {
         EnderDragonEntity dragon = ((EnderDragonEntity) (Object) this);
         if (dragon.getHealth() == 1.0F) {
-            manhuntState(POSTGAME, dragon.getServer());
+            MinecraftServer server = dragon.getServer();
+
+            manhuntState(POSTGAME, server);
             dragon.setHealth(0.0F);
-            for (ServerPlayerEntity player : dragon.getServer().getPlayerManager().getPlayerList()) {
-                if (PlayerDataApi.getGlobalDataFor(player, winnerTitlePreference).equals(NbtByte.ONE)) {
-                    MessageUtil.showTitle(player, "manhunt.title.runners", "manhunt.title.dragon");
+            for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+                if (PlayerDataApi.getGlobalDataFor(player, showWinnerTitlePreference).equals(NbtByte.ONE)) {
+                    player.networkHandler.sendPacket(new TitleS2CPacket(Text.translatable("manhunt.title.runnerswon").formatted(Formatting.GREEN)));
+                    player.networkHandler.sendPacket(new SubtitleS2CPacket(Text.translatable("manhunt.title.dragondied").formatted(Formatting.DARK_GREEN)));
                     if (!PlayerDataApi.getGlobalDataFor(player, manhuntSoundsVolumePreference).equals(NbtInt.of(0))) {
                         float volume = (float) Integer.parseInt(String.valueOf(PlayerDataApi.getGlobalDataFor(player, manhuntSoundsVolumePreference))) / 100;
                         if (volume >= 0.2f) {
@@ -37,7 +50,7 @@ public abstract class EnderDragonEntityMixin {
                         }
                     }
                 }
-                if (PlayerDataApi.getGlobalDataFor(player, durationAtEndPreference).equals(NbtByte.ONE)) {
+                if (PlayerDataApi.getGlobalDataFor(player, showDurationAtEndPreference).equals(NbtByte.ONE)) {
                     String hoursString;
                     int hours = (int) Math.floor((double) dragon.getWorld().getTime() % (20 * 60 * 60 * 24) / (20 * 60 * 60));
                     if (hours <= 9) {
@@ -59,8 +72,15 @@ public abstract class EnderDragonEntityMixin {
                     } else {
                         secondsString = String.valueOf(seconds);
                     }
-                    MessageUtil.sendMessage(player, "manhunt.chat.duration", hoursString, minutesString, secondsString);
+                    player.sendMessage(Text.translatable("manhunt.chat.duration", hoursString, minutesString, secondsString));
                 }
+            }
+
+            if (Boolean.parseBoolean(AUTO_RESET.get())) {
+                server.getPlayerManager().broadcast(Text.translatable("manhunt.chat.willreset", Text.literal(String.valueOf(Integer.parseInt(RESET_SECONDS.get())))).formatted(Formatting.RED), false);
+
+                ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
+                scheduledExecutorService.schedule(() -> resetGameIfAuto(server), Integer.parseInt(RESET_SECONDS.get()), TimeUnit.SECONDS);
             }
         }
     }

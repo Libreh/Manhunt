@@ -1,4 +1,4 @@
-package manhunt.game;
+package manhunt.world;
 
 import eu.pb4.playerdata.api.PlayerDataApi;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
@@ -10,6 +10,7 @@ import net.minecraft.advancement.AdvancementProgress;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.nbt.NbtByte;
+import net.minecraft.nbt.NbtInt;
 import net.minecraft.network.packet.s2c.play.PositionFlag;
 import net.minecraft.registry.DynamicRegistryManager;
 import net.minecraft.registry.RegistryKey;
@@ -19,6 +20,7 @@ import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.world.GameRules;
 import net.minecraft.world.World;
@@ -28,8 +30,10 @@ import net.minecraft.world.level.storage.LevelStorage;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
+import static manhunt.config.ManhuntConfig.*;
 import static manhunt.game.ManhuntGame.*;
 
 // Thanks to https://github.com/sakurawald/fuji-fabric
@@ -130,18 +134,35 @@ public class ManhuntWorldManager {
 
             updateGameMode(player);
 
-            scoreboard.addScoreHolderToTeam(player.getName().getString(), scoreboard.getTeam("manhunters"));
+            scoreboard.clearTeam(player.getName().getString());
+            scoreboard.addScoreHolderToTeam(player.getName().getString(), scoreboard.getTeam("players"));
+            scoreboard.addScoreHolderToTeam(player.getName().getString(), server.getScoreboard().getTeam("hunters"));
 
-            if (settings.setRoles == 3) {
-                player.getScoreboard().clearTeam(player.getName().getString());
-                scoreboard.addScoreHolderToTeam(player.getName().getString(), scoreboard.getTeam("manhunters"));
-                player.getScoreboard().addScoreHolderToTeam(player.getName().getString(), player.getScoreboard().getTeam("runners"));
-            }
+            if (!Boolean.getBoolean(String.valueOf(RUNNER_VOTING.get()))) {
+                if (SET_ROLES.get() == "All Runners" || PlayerDataApi.getGlobalDataFor(player, isRunner) == NbtByte.ONE) {
+                    scoreboard.clearTeam(player.getName().getString());
+                    scoreboard.addScoreHolderToTeam(player.getName().getString(), scoreboard.getTeam("players"));
+                    scoreboard.addScoreHolderToTeam(player.getName().getString(), scoreboard.getTeam("runners"));
+                }
+            } else {
+                if (PlayerDataApi.getGlobalDataFor(player, isRunner) == NbtByte.ONE) {
+                    if (!(PlayerDataApi.getGlobalDataFor(player, votesLeft) == NbtInt.of(0))) {
+                        PlayerDataApi.setGlobalDataFor(player, votesLeft, NbtInt.of(Integer.parseInt(String.valueOf(PlayerDataApi.getGlobalDataFor(player, votesLeft))) - 1));
+                    } else {
+                        topVoted.remove(player);
+                        if (!topVoted.isEmpty()) {
+                            for (Object e : topVoted.entrySet().toArray()) {
+                                scoreboard.clearTeam(((Map.Entry<ServerPlayerEntity, Integer>) e).getKey().getName().getString());
+                                scoreboard.addScoreHolderToTeam(((Map.Entry<ServerPlayerEntity, Integer>) e).getKey().getName().getString(), scoreboard.getTeam("players"));
+                                scoreboard.addScoreHolderToTeam(((Map.Entry<ServerPlayerEntity, Integer>) e).getKey().getName().getString(), scoreboard.getTeam("runners"));
+                            }
+                        } else {
+                            AUTO_START.set(false);
 
-            server.getScoreboard().addScoreHolderToTeam(player.getName().getString(), server.getScoreboard().getTeam("hunters"));
-
-            if (PlayerDataApi.getGlobalDataFor(player, isRunner) == NbtByte.ONE) {
-                server.getScoreboard().addScoreHolderToTeam(player.getName().getString(), server.getScoreboard().getTeam("runners"));
+                            server.getPlayerManager().broadcast(Text.translatable("manhunt.chat.runnercycle").formatted(Formatting.GREEN), false);
+                        }
+                    }
+                }
             }
         }
     }
