@@ -122,9 +122,9 @@ public class VoteCommand {
                 source.sendFeedback(() -> Text.translatable("manhunt.chat.runnervoting"), false);
             }
         } else if (gameState == PLAYING) {
-            source.sendFeedback(() -> Text.translatable("manhunt.chat.playing"), false);
+            source.sendFeedback(() -> Text.translatable("manhunt.chat.playing").formatted(Formatting.RED), false);
         } else {
-            source.sendFeedback(() -> Text.translatable("manhunt.chat.postgame"), false);
+            source.sendFeedback(() -> Text.translatable("manhunt.chat.postgame").formatted(Formatting.RED), false);
         }
 
         return Command.SINGLE_SUCCESS;

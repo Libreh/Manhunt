@@ -1,7 +1,6 @@
 package manhunt.mixin;
 
 import eu.pb4.playerdata.api.PlayerDataApi;
-import manhunt.config.ManhuntConfig;
 import net.minecraft.enchantment.Enchantments;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.item.ItemStack;
@@ -9,21 +8,17 @@ import net.minecraft.item.Items;
 import net.minecraft.nbt.*;
 import net.minecraft.network.packet.s2c.play.SubtitleS2CPacket;
 import net.minecraft.network.packet.s2c.play.TitleS2CPacket;
-import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
-import net.minecraft.world.World;
-import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.Objects;
@@ -31,8 +26,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import static manhunt.config.ManhuntConfig.AUTO_RESET;
-import static manhunt.config.ManhuntConfig.RESET_SECONDS;
+import static manhunt.config.ManhuntConfig.*;
 import static manhunt.game.ManhuntGame.*;
 import static manhunt.game.ManhuntState.PLAYING;
 import static manhunt.game.ManhuntState.POSTGAME;
@@ -61,14 +55,14 @@ public class ServerPlayerEntityMixin {
                     nbt.putInt("HideFlags", 1);
                     nbt.put("Info", new NbtCompound());
                     nbt.put("display", new NbtCompound());
-                    nbt.getCompound("display").putString("Name", "{\"translate\": \"Tracker\",\"italic\": false,\"color\": \"light_purple\"}");
+                    nbt.getCompound("display").putString("Name", "{\"translate\": \"manhunt.item.tracker\",\"italic\": false,\"color\": \"light_purple\"}");
 
                     ItemStack tracker = new ItemStack(Items.COMPASS);
                     tracker.setNbt(nbt);
                     tracker.addEnchantment(Enchantments.VANISHING_CURSE, 1);
 
                     player.giveItemStack(tracker);
-                } else if (!Boolean.getBoolean(String.valueOf(ManhuntConfig.MANUAL_COMPASS_UPDATE.get())) && System.currentTimeMillis() - lastDelay > ((long) 1000)) {
+                } else if (!Boolean.parseBoolean(MANUAL_COMPASS_UPDATE.get()) && System.currentTimeMillis() - lastDelay > ((long) 1000)) {
                     for (ItemStack item : player.getInventory().main) {
                         if (item.getItem().equals(Items.COMPASS) && item.getNbt() != null && item.getNbt().getBoolean("Tracker")) {
                             if (!item.getNbt().contains("Info")) {
@@ -148,11 +142,6 @@ public class ServerPlayerEntityMixin {
         }
     }
 
-    @Redirect(method = "<init>", at = @At(value = "FIELD", target = "Lnet/minecraft/world/World;OVERWORLD:Lnet/minecraft/registry/RegistryKey;", opcode = Opcodes.GETSTATIC))
-    private RegistryKey<World> redirectSpawnpointDimension() {
-        return overworldRegistryKey;
-    }
-
     private static boolean hasTracker(ServerPlayerEntity player) {
         boolean bool = false;
         for (ItemStack itemStack : player.getInventory().main) {
@@ -175,7 +164,7 @@ public class ServerPlayerEntityMixin {
         nbt.remove("LodestoneDimension");
 
         nbt.put("Info", new NbtCompound());
-        if (trackedPlayer.getScoreboardTeam() != null && Objects.equals(trackedPlayer.getScoreboardTeam().getName(), "runners")) {
+        if (trackedPlayer.isTeamPlayer(player.getScoreboard().getTeam("runners"))) {
             NbtCompound playerTag = trackedPlayer.writeNbt(new NbtCompound());
             NbtList positions = playerTag.getList("Positions", 10);
             int i;

@@ -233,7 +233,7 @@ public class ManhuntGame {
                     nbt.putBoolean("NotReady", true);
                     nbt.putInt("HideFlags", 1);
                     nbt.put("display", new NbtCompound());
-                    nbt.getCompound("display").putString("Name", "{\"translate\": \"Unready\",\"italic\": false,\"color\": \"red\"}");
+                    nbt.getCompound("display").putString("Name", "{\"translate\": \"manhunt.item.notready\",\"italic\": false,\"color\": \"red\"}");
 
                     ItemStack notReady = new ItemStack(Items.RED_CONCRETE);
                     notReady.setNbt(nbt);
@@ -247,7 +247,7 @@ public class ManhuntGame {
                     nbt.putBoolean("Hunter", true);
                     nbt.putInt("HideFlags", 1);
                     nbt.put("display", new NbtCompound());
-                    nbt.getCompound("display").putString("Name", "{\"translate\": \"Hunter\",\"italic\": false,\"color\": \"aqua\"}");
+                    nbt.getCompound("display").putString("Name", "{\"translate\": \"manhunt.item.hunter\",\"italic\": false,\"color\": \"aqua\"}");
 
                     ItemStack chooseHunter = new ItemStack(Items.RECOVERY_COMPASS);
                     chooseHunter.setNbt(nbt);
@@ -261,7 +261,7 @@ public class ManhuntGame {
                     nbt.putBoolean("Runner", true);
                     nbt.putInt("HideFlags", 1);
                     nbt.put("display", new NbtCompound());
-                    nbt.getCompound("display").putString("Name", "{\"translate\": \"Runner\",\"italic\": false,\"color\": \"gold\"}");
+                    nbt.getCompound("display").putString("Name", "{\"translate\": \"manhunt.item.runner\",\"italic\": false,\"color\": \"gold\"}");
 
                     ItemStack chooseRunner = new ItemStack(Items.CLOCK);
                     chooseRunner.setNbt(nbt);
@@ -276,7 +276,7 @@ public class ManhuntGame {
                         nbt.putBoolean("Settings", true);
                         nbt.putInt("HideFlags", 1);
                         nbt.put("display", new NbtCompound());
-                        nbt.getCompound("display").putString("Name", "{\"translate\": \"Settings\",\"italic\": false,\"color\": \"white\"}");
+                        nbt.getCompound("display").putString("Name", "{\"translate\": \"manhunt.settings\",\"italic\": false,\"color\": \"white\"}");
 
                         ItemStack showSettings = new ItemStack(Items.COMPARATOR);
                         showSettings.setNbt(nbt);
@@ -302,14 +302,12 @@ public class ManhuntGame {
         }
 
         if (gameState == PLAYING) {
+            allRunners = new LinkedList<>();
+
             for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
                 if (player != null) {
-                    if (player.getWorld().getRegistryKey().getValue().getNamespace().equals("manhunt")) {
-                        allRunners = new LinkedList<>();
-
-                        if (player.isTeamPlayer(player.getScoreboard().getTeam("runners"))) {
-                            allRunners.add(player);
-                        }
+                    if (player.isTeamPlayer(player.getScoreboard().getTeam("runners"))) {
+                        allRunners.add(player);
                     }
                 }
             }
@@ -336,15 +334,11 @@ public class ManhuntGame {
     public static void playerJoin(ServerPlayNetworkHandler handler, MinecraftServer server) {
         ServerPlayerEntity player = handler.getPlayer();
 
-        if (!(player.isTeamPlayer(player.getScoreboard().getTeam("hunters")) && player.isTeamPlayer(player.getScoreboard().getTeam("runners")))) {
-            player.getScoreboard().addScoreHolderToTeam(player.getName().getString(), player.getScoreboard().getTeam("hunters"));
-        }
-
         if (gameState == PREGAME) {
             server.getPlayerManager().removeFromOperators(player.getGameProfile());
-            player.teleport(server.getWorld(lobbyRegistryKey), 0, 63, 5.5, PositionFlag.ROT, 0, 0);
-            player.clearStatusEffects();
+            player.teleport(server.getWorld(lobbyRegistryKey), 0, 63, 5.5, PositionFlag.ROT, 0.0F, 0.0F);
             player.getInventory().clear();
+            updateGameMode(player);
             player.setFireTicks(0);
             player.setOnFire(false);
             player.setHealth(20);
@@ -355,18 +349,14 @@ public class ManhuntGame {
             player.setExperiencePoints(0);
             player.clearStatusEffects();
             player.addStatusEffect(new StatusEffectInstance(StatusEffects.SATURATION, StatusEffectInstance.INFINITE, 255, false, false, false));
+            player.getScoreboard().clearTeam(player.getName().getString());
+            player.getScoreboard().addScoreHolderToTeam(player.getName().getString(), player.getScoreboard().getTeam("players"));
 
             for (AdvancementEntry advancement : server.getAdvancementLoader().getAdvancements()) {
                 AdvancementProgress progress = player.getAdvancementTracker().getProgress(advancement);
                 for (String criteria : progress.getObtainedCriteria()) {
                     player.getAdvancementTracker().revokeCriterion(advancement, criteria);
                 }
-            }
-
-            updateGameMode(player);
-
-            if (!player.isTeamPlayer(player.getScoreboard().getTeam("players"))) {
-                player.getScoreboard().addScoreHolderToTeam(player.getName().getString(), player.getScoreboard().getTeam("players"));
             }
 
             if (SET_ROLES.get().equals("All Runners")) {
@@ -378,26 +368,25 @@ public class ManhuntGame {
             setPlayerSpawnXYZ(server.getWorld(overworldRegistryKey), player);
         }
 
-        if (gameState == PLAYING) {
+        if (gameState == PLAYING || gameState == POSTGAME) {
             updateGameMode(player);
+
+            int playerX = Integer.parseInt(String.valueOf(PlayerDataApi.getGlobalDataFor(player, playerSpawnX)));
+            int playerY = Integer.parseInt(String.valueOf(PlayerDataApi.getGlobalDataFor(player, playerSpawnY)));
+            int playerZ = Integer.parseInt(String.valueOf(PlayerDataApi.getGlobalDataFor(player, playerSpawnZ)));
+            player.setSpawnPoint(overworldRegistryKey, new BlockPos(playerX, playerY, playerZ), 0.0F, true, false);
 
             if (player.isTeamPlayer(player.getScoreboard().getTeam("players"))) {
                 player.getScoreboard().removeScoreHolderFromTeam(player.getName().getString(), player.getScoreboard().getTeam("players"));
             }
 
-            if (player.getWorld() == server.getWorld(lobbyRegistryKey) || player.getWorld() == server.getOverworld()) {
-                player.getInventory().clear();
-                updateGameMode(player);
-                moveToSpawn(server.getWorld(overworldRegistryKey), player);
+            if (player.hasStatusEffect(StatusEffects.SATURATION)) {
                 player.removeStatusEffect(StatusEffects.SATURATION);
             }
         }
 
-        if (gameState == POSTGAME) {
-            player.getInventory().clear();
-            updateGameMode(player);
-            moveToSpawn(server.getWorld(overworldRegistryKey), player);
-            player.removeStatusEffect(StatusEffects.SATURATION);
+        if (!player.isTeamPlayer(player.getScoreboard().getTeam("hunters")) && !player.isTeamPlayer(player.getScoreboard().getTeam("runners"))) {
+            player.getScoreboard().addScoreHolderToTeam(player.getName().getString(), player.getScoreboard().getTeam("hunters"));
         }
 
         if (PlayerDataApi.getGlobalDataFor(player, isRunner) == null) {
@@ -454,7 +443,7 @@ public class ManhuntGame {
                     nbt.putBoolean("Ready", true);
                     nbt.putInt("HideFlags", 1);
                     nbt.put("display", new NbtCompound());
-                    nbt.getCompound("display").putString("Name", "{\"translate\": \"Ready\",\"italic\": false,\"color\": \"green\"}");
+                    nbt.getCompound("display").putString("Name", "{\"translate\": \"manhunt.item.ready\",\"italic\": false,\"color\": \"green\"}");
 
                     ItemStack item = new ItemStack(Items.LIME_CONCRETE);
                     item.setNbt(nbt);
@@ -641,7 +630,7 @@ public class ManhuntGame {
             }
         }
 
-        return TypedActionResult.success(itemStack);
+        return TypedActionResult.pass(itemStack);
     }
 
     public static void playerRespawn(ServerPlayerEntity newPlayer) {
@@ -675,23 +664,24 @@ public class ManhuntGame {
     private static void settingsGui(ServerPlayerEntity player) {
         SimpleGui settingsGui = new SimpleGui(ScreenHandlerType.GENERIC_9X2, player, false);
         settingsGui.setTitle(Text.translatable("manhunt.settings"));
-        changeSetting(player, settingsGui, SET_MOTD, Items.DIRT, 0, SoundEvents.BLOCK_GRAVEL_PLACE);
-        changeSetting(player, settingsGui, RUNNER_VOTING, Items.BELL, 1, SoundEvents.BLOCK_BELL_USE);
-        changeSetting(player, settingsGui, VOTES_PER_PLAYER, Items.PAPER, 2, SoundEvents.ITEM_BOOK_PUT);
-        changeSetting(player, settingsGui, TOP_VOTED_RUNS, Items.FEATHER, 3, SoundEvents.ENTITY_GENERIC_WIND_BURST);
-        changeSetting(player, settingsGui, VOTE_PLACES, Items.GOLD_BLOCK, 4, SoundEvents.ITEM_ARMOR_EQUIP_GOLD);
-        changeSetting(player, settingsGui, RESET_SECONDS, Items.BARRIER, 5, SoundEvents.BLOCK_BARREL_CLOSE);
-        changeSetting(player, settingsGui, AUTO_RESET, Items.CHEST, 6, SoundEvents.BLOCK_CHEST_CLOSE);
-        changeSetting(player, settingsGui, AUTO_START, Items.ENDER_CHEST, 7, SoundEvents.BLOCK_ENDER_CHEST_OPEN);
-        changeSetting(player, settingsGui, SET_ROLES, Items.FLETCHING_TABLE, 8, SoundEvents.ENTITY_VILLAGER_WORK_FLETCHER);
-        changeSetting(player, settingsGui, HUNTER_FREEZE_SECONDS, Items.ICE, 9, SoundEvents.BLOCK_GLASS_BREAK);
-        changeSetting(player, settingsGui, TIME_LIMIT_MINUTES, Items.CLOCK, 10, SoundEvents.ENTITY_FISHING_BOBBER_THROW);
-        changeSetting(player, settingsGui, MANUAL_COMPASS_UPDATE, Items.COMPASS, 11, SoundEvents.ITEM_LODESTONE_COMPASS_LOCK);
-        changeSetting(player, settingsGui, SHOW_TEAM_COLOR, Items.LEATHER_CHESTPLATE, 12, SoundEvents.ITEM_ARMOR_EQUIP_LEATHER);
-        changeSetting(player, settingsGui, WORLD_DIFFICULTY, Items.CREEPER_HEAD, 13, SoundEvents.ENTITY_CREEPER_HURT);
-        changeSetting(player, settingsGui, WORLD_BORDER_BLOCKS, Items.STRUCTURE_VOID, 14, SoundEvents.BLOCK_DEEPSLATE_BREAK);
-        changeSetting(player, settingsGui, ALLOW_BED_EXPLOSIONS, Items.RED_BED, 15, SoundEvents.ENTITY_GENERIC_EXPLODE);
-        changeSetting(player, settingsGui, ALLOW_LAVA_PVP_IN_THE_NETHER, Items.LAVA_BUCKET, 16, SoundEvents.ITEM_BUCKET_FILL_LAVA);
+        changeSetting(player, settingsGui, PRELOADING, Items.GRASS_BLOCK, 0, SoundEvents.BLOCK_GRASS_BREAK);
+        changeSetting(player, settingsGui, SET_MOTD, Items.DIRT, 1, SoundEvents.BLOCK_GRAVEL_PLACE);
+        changeSetting(player, settingsGui, RUNNER_VOTING, Items.BELL, 2, SoundEvents.BLOCK_BELL_USE);
+        changeSetting(player, settingsGui, VOTES_PER_PLAYER, Items.PAPER, 3, SoundEvents.ITEM_BOOK_PUT);
+        changeSetting(player, settingsGui, TOP_VOTED_RUNS, Items.FEATHER, 4, SoundEvents.ENTITY_GENERIC_WIND_BURST);
+        changeSetting(player, settingsGui, VOTE_PLACES, Items.GOLD_BLOCK, 5, SoundEvents.ITEM_ARMOR_EQUIP_GOLD);
+        changeSetting(player, settingsGui, RESET_SECONDS, Items.BARRIER, 6, SoundEvents.BLOCK_BARREL_CLOSE);
+        changeSetting(player, settingsGui, AUTO_RESET, Items.CHEST, 7, SoundEvents.BLOCK_CHEST_CLOSE);
+        changeSetting(player, settingsGui, AUTO_START, Items.ENDER_CHEST, 8, SoundEvents.BLOCK_ENDER_CHEST_OPEN);
+        changeSetting(player, settingsGui, SET_ROLES, Items.FLETCHING_TABLE, 9, SoundEvents.ENTITY_VILLAGER_WORK_FLETCHER);
+        changeSetting(player, settingsGui, HUNTER_FREEZE_SECONDS, Items.ICE, 10, SoundEvents.BLOCK_GLASS_BREAK);
+        changeSetting(player, settingsGui, TIME_LIMIT_MINUTES, Items.CLOCK, 11, SoundEvents.ENTITY_FISHING_BOBBER_THROW);
+        changeSetting(player, settingsGui, MANUAL_COMPASS_UPDATE, Items.COMPASS, 12, SoundEvents.ITEM_LODESTONE_COMPASS_LOCK);
+        changeSetting(player, settingsGui, SHOW_TEAM_COLOR, Items.LEATHER_CHESTPLATE, 13, SoundEvents.ITEM_ARMOR_EQUIP_LEATHER);
+        changeSetting(player, settingsGui, WORLD_DIFFICULTY, Items.CREEPER_HEAD, 14, SoundEvents.ENTITY_CREEPER_HURT);
+        changeSetting(player, settingsGui, WORLD_BORDER_BLOCKS, Items.STRUCTURE_VOID, 15, SoundEvents.BLOCK_DEEPSLATE_BREAK);
+        changeSetting(player, settingsGui, ALLOW_BED_EXPLOSIONS, Items.RED_BED, 16, SoundEvents.ENTITY_GENERIC_EXPLODE);
+        changeSetting(player, settingsGui, ALLOW_LAVA_PVP_IN_THE_NETHER, Items.LAVA_BUCKET, 17, SoundEvents.ITEM_BUCKET_FILL_LAVA);
         settingsGui.open();
     }
 
@@ -826,7 +816,7 @@ public class ManhuntGame {
                     .setCallback(() -> {
                         if (setting.get().equals(finalValue1)) {
                             setting.set(finalValue2);
-                            player.getServer().getPlayerManager().broadcast(Text.translatable("manhunt.chat.setting.set", Text.translatable("manhunt." + name).formatted(Formatting.WHITE), Text.translatable("manhunt." + name + "." + finalValue2).formatted(Formatting.YELLOW)).formatted(Formatting.GRAY), false);
+                            player.getServer().getPlayerManager().broadcast(Text.translatable("manhunt.chat.setting.set", Text.translatable("manhunt." + name).formatted(Formatting.WHITE), Text.translatable("manhunt." + name + "." + finalValue2.toLowerCase().replaceAll("\\s+","")).formatted(Formatting.YELLOW)).formatted(Formatting.GRAY), false);
                             player.playSound(sound, SoundCategory.MASTER, 1.0F, 1.0F);
                             if (name.equals("setroles")) {
                                 for (ServerPlayerEntity serverPlayer : playerList) {
@@ -838,7 +828,7 @@ public class ManhuntGame {
                             }
                         } else if (setting.get().equals(finalValue2)) {
                             setting.set(finalValue3);
-                            player.getServer().getPlayerManager().broadcast(Text.translatable("manhunt.chat.setting.set", Text.translatable("manhunt." + name).formatted(Formatting.WHITE), Text.translatable("manhunt." + name + "." + finalValue3).formatted(Formatting.RED)).formatted(Formatting.GRAY), false);
+                            player.getServer().getPlayerManager().broadcast(Text.translatable("manhunt.chat.setting.set", Text.translatable("manhunt." + name).formatted(Formatting.WHITE), Text.translatable("manhunt." + name + "." + finalValue3.toLowerCase().replaceAll("\\s+","")).formatted(Formatting.RED)).formatted(Formatting.GRAY), false);
                             player.playSound(sound, SoundCategory.MASTER, 1.0F, 1.5F);
                             if (name.equals("setroles")) {
                                 for (ServerPlayerEntity serverPlayer : playerList) {
@@ -850,7 +840,7 @@ public class ManhuntGame {
                             }
                         } else {
                             setting.set(finalValue1);
-                            player.getServer().getPlayerManager().broadcast(Text.translatable("manhunt.chat.setting.set", Text.translatable("manhunt." + name).formatted(Formatting.WHITE), Text.translatable("manhunt." + name + "." + finalValue1).formatted(Formatting.GREEN)).formatted(Formatting.GRAY), false);
+                            player.getServer().getPlayerManager().broadcast(Text.translatable("manhunt.chat.setting.set", Text.translatable("manhunt." + name).formatted(Formatting.WHITE), Text.translatable("manhunt." + name + "." + finalValue1.toLowerCase().replaceAll("\\s+","")).formatted(Formatting.GREEN)).formatted(Formatting.GRAY), false);
                             player.playSound(sound, SoundCategory.MASTER, 1.0F, 0.5F);
                         }
                         changeSetting(player, gui, setting, item, slot, sound);
@@ -870,7 +860,7 @@ public class ManhuntGame {
             if (Integer.parseInt(setting.get()) == 0) {
                 loreList.add(Text.translatable("manhunt.lore.setting", setting.get(), dataType, Text.literal("(disabled)")).formatted(Formatting.RED));
             } else if (Integer.parseInt(setting.get()) == 59999968 && name.equals("worldborderblocks")) {
-                loreList.add(Text.translatable("manhunt.lore.setting", setting.get(), dataType, Text.literal("(maximum)")).formatted(Formatting.RED));
+                loreList.add(Text.translatable("manhunt.lore.setting", setting.get(), dataType, Text.literal("(default)")).formatted(Formatting.RED));
             } else if (dataType.equals("votes") || dataType.equals("runs") || dataType.equals("places")) {
                 loreList.add(Text.translatable("manhunt.lore.setting", setting.get(), dataType, "").formatted(Formatting.GREEN));
             } else {
@@ -1061,6 +1051,8 @@ public class ManhuntGame {
         }
 
         for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+            setPlayerSpawnXYZ(server.getWorld(overworldRegistryKey), player);
+
             player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.BOAT_ONE_CM));
             player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.ANIMALS_BRED));
             player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.AVIATE_ONE_CM));
@@ -1148,6 +1140,7 @@ public class ManhuntGame {
             double playerY = Double.parseDouble(String.valueOf(PlayerDataApi.getGlobalDataFor(player, playerSpawnY)));
             double playerZ = Double.parseDouble(String.valueOf(PlayerDataApi.getGlobalDataFor(player, playerSpawnZ)));
             player.teleport(world, playerX, playerY, playerZ, 0.0F, 0.0F);
+            player.setSpawnPoint(overworldRegistryKey, new BlockPos((int) playerX, (int) playerY, (int) playerZ), 0.0F, true, false);
             player.clearStatusEffects();
             player.getInventory().clear();
             player.setFireTicks(0);
@@ -1254,36 +1247,10 @@ public class ManhuntGame {
         new ManhuntWorldModule().onWorldUnload(server, world);
     }
 
-    private static void moveToSpawn(ServerWorld world, ServerPlayerEntity player) {
-        BlockPos blockPos = worldSpawnPos;
-        long l;
-        long m;
-        int i = Math.max(0, world.getServer().getSpawnRadius(world));
-        int j = MathHelper.floor(world.getWorldBorder().getDistanceInsideBorder(blockPos.getX(), blockPos.getZ()));
-        if (j < i) {
-            i = j;
-        }
-        if (j <= 1) {
-            i = 1;
-        }
-        int k = (m = (l = i * 2L + 1) * l) > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int)m;
-        int n = k <= 16 ? k - 1 : 17;
-        int o = Random.create().nextInt(k);
-        for (int p = 0; p < k; ++p) {
-            int q = (o + n * p) % k;
-            int r = q % (i * 2 + 1);
-            int s = q / (i * 2 + 1);
-            BlockPos blockPos2 = findOverworldSpawn(world, blockPos.getX() + r - i, blockPos.getZ() + s - i);
-            if (blockPos2 == null) continue;
-            player.teleport(world, blockPos2.getX(), blockPos2.getY(), blockPos2.getZ(), 0.0F, 0.0F);
-            if (!world.isSpaceEmpty(player)) {
-                continue;
-            }
-            break;
-        }
-    }
-
     public static void setPlayerSpawnXYZ(ServerWorld world, ServerPlayerEntity player) {
+        if (worldSpawnPos.equals(new BlockPos(0, 0, 0))) {
+            worldSpawnPos = setupSpawn(world);
+        }
         BlockPos blockPos = worldSpawnPos;
         long l;
         long m;

@@ -8,3 +8,5 @@ Source code and ideas have referenced from the following projects:
 3. https://gitlab.com/horrific-tweaks/bingo
 4. https://github.com/NucleoidMC/fantasy
 5. https://git.sr.ht/~arm32x/tick-stasis
+6. https://github.com/malte0811/FerriteCore
+

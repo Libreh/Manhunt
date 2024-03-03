@@ -9,6 +9,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 
+import static manhunt.config.ManhuntConfig.SET_ROLES;
 import static manhunt.game.ManhuntGame.gameState;
 import static manhunt.game.ManhuntState.PLAYING;
 import static manhunt.game.ManhuntState.PREGAME;
@@ -28,14 +29,23 @@ public class HunterCommand {
         ServerPlayerEntity sourcePlayer = source.getPlayer();
 
         if (gameState == PREGAME) {
-            sourcePlayer.getScoreboard().clearTeam(sourcePlayer.getName().getString());
-            sourcePlayer.getScoreboard().addScoreHolderToTeam(sourcePlayer.getName().getString(), sourcePlayer.getScoreboard().getTeam("hunters"));
+            if (SET_ROLES.get().equals("Free Select")) {
+                sourcePlayer.getScoreboard().clearTeam(sourcePlayer.getName().getString());
+                sourcePlayer.getScoreboard().addScoreHolderToTeam(sourcePlayer.getName().getString(), sourcePlayer.getScoreboard().getTeam("hunters"));
 
-            source.getServer().getPlayerManager().broadcast(Text.translatable("manhunt.chat.hunter", Text.literal(sourcePlayer.getName().getString())).formatted(Formatting.RED), false);
+                source.getServer().getPlayerManager().broadcast(Text.translatable("manhunt.chat.hunter", Text.literal(sourcePlayer.getName().getString())).formatted(Formatting.RED), false);
+            } else if (source.hasPermissionLevel(1) || source.hasPermissionLevel(2) || source.hasPermissionLevel(3) || source.hasPermissionLevel(4)) {
+                sourcePlayer.getScoreboard().clearTeam(sourcePlayer.getName().getString());
+                sourcePlayer.getScoreboard().addScoreHolderToTeam(sourcePlayer.getName().getString(), sourcePlayer.getScoreboard().getTeam("hunters"));
+
+                source.getServer().getPlayerManager().broadcast(Text.translatable("manhunt.chat.hunter", Text.literal(sourcePlayer.getName().getString())).formatted(Formatting.RED), false);
+            } else {
+                source.sendFeedback(() -> Text.translatable("manhunt.chat.notallowed").formatted(Formatting.RED), false);
+            }
         } else if (gameState == PLAYING) {
-            source.sendFeedback(() -> Text.translatable("manhunt.chat.playing"), false);
+            source.sendFeedback(() -> Text.translatable("manhunt.chat.playing").formatted(Formatting.RED), false);
         } else {
-            source.sendFeedback(() -> Text.translatable("manhunt.chat.postgame"), false);
+            source.sendFeedback(() -> Text.translatable("manhunt.chat.postgame").formatted(Formatting.RED), false);
         }
 
         return Command.SINGLE_SUCCESS;
@@ -49,12 +59,12 @@ public class HunterCommand {
 
                 player.getServer().getPlayerManager().broadcast(Text.translatable("manhunt.chat.hunter.set", Text.literal(player.getName().getString())).formatted(Formatting.RED), false);
             } else {
-                source.sendFeedback(() -> Text.translatable("manhunt.chat.onlyleader"), false);
+                source.sendFeedback(() -> Text.translatable("manhunt.chat.onlyleader").formatted(Formatting.RED), false);
             }
         } else if (gameState == PLAYING) {
-            source.sendFeedback(() -> Text.translatable("manhunt.chat.playing"), false);
+            source.sendFeedback(() -> Text.translatable("manhunt.chat.playing").formatted(Formatting.RED), false);
         } else {
-            source.sendFeedback(() -> Text.translatable("manhunt.chat.postgame"), false);
+            source.sendFeedback(() -> Text.translatable("manhunt.chat.postgame").formatted(Formatting.RED), false);
         }
 
         return Command.SINGLE_SUCCESS;

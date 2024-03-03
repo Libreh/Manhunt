@@ -54,7 +54,7 @@ public class ShowTeamCoordsCommand {
                     player.sendMessage(Text.translatable("manhunt.chat.teamcoords", Text.literal("[runners]").formatted(Formatting.GREEN), Text.literal(player.getName().getString()).formatted(Formatting.GREEN), Text.literal(String.valueOf(player.getX())), Text.literal(String.valueOf(player.getY())), Text.literal(String.valueOf(player.getZ()))));
                 }
             } else {
-                source.sendFeedback(() -> Text.translatable("manhunt.chat.pregame"), false);
+                source.sendFeedback(() -> Text.translatable("manhunt.chat.pregame").formatted(Formatting.RED), false);
             }
         }
         return Command.SINGLE_SUCCESS;

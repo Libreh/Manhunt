@@ -56,12 +56,12 @@ public class OneRunnerCommand {
 
                 player.getServer().getPlayerManager().broadcast(Text.translatable("manhunt.chat.preference.runner", Text.literal(player.getName().getString())).formatted(Formatting.GREEN), false);
             } else {
-                source.sendFeedback(() -> Text.translatable("manhunt.chat.onlyleader"), false);
+                source.sendFeedback(() -> Text.translatable("manhunt.chat.onlyleader").formatted(Formatting.RED), false);
             }
         } else if (gameState == PLAYING) {
-            source.sendFeedback(() -> Text.translatable("manhunt.chat.playing"), false);
+            source.sendFeedback(() -> Text.translatable("manhunt.chat.playing").formatted(Formatting.RED), false);
         } else {
-            source.sendFeedback(() -> Text.translatable("manhunt.chat.postgame"), false);
+            source.sendFeedback(() -> Text.translatable("manhunt.chat.postgame").formatted(Formatting.RED), false);
         }
 
         return Command.SINGLE_SUCCESS;

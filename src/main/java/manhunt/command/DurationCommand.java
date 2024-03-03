@@ -6,6 +6,7 @@ import manhunt.game.ManhuntState;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 
 import static manhunt.game.ManhuntGame.gameState;
 import static manhunt.game.ManhuntState.PLAYING;
@@ -43,9 +44,9 @@ public class DurationCommand {
             }
             source.sendFeedback(() -> Text.translatable("manhunt.chat.duration", Text.literal(hoursString), Text.literal(minutesString), Text.literal(secondsString)), false);
         } else if (gameState == ManhuntState.PREGAME) {
-            source.sendFeedback(() -> Text.translatable("manhunt.chat.pregame"), false);
+            source.sendFeedback(() -> Text.translatable("manhunt.chat.pregame").formatted(Formatting.RED), false);
         } else {
-            source.sendFeedback(() -> Text.translatable("manhunt.chat.postgame"), false);
+            source.sendFeedback(() -> Text.translatable("manhunt.chat.postgame").formatted(Formatting.RED), false);
         }
 
         return Command.SINGLE_SUCCESS;

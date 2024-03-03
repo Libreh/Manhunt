@@ -4,8 +4,8 @@ import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 
 import static manhunt.game.ManhuntGame.*;
 import static manhunt.game.ManhuntState.PLAYING;
@@ -20,8 +20,6 @@ public class StartCommand {
     }
 
     private static int startCommand(ServerCommandSource source) {
-        ServerPlayerEntity sourcePlayer = source.getPlayer();
-
         if (gameState == PREGAME) {
             if (hasPreloaded) {
                 if (source.hasPermissionLevel(1) || source.hasPermissionLevel(2) || source.hasPermissionLevel(3) || source.hasPermissionLevel(4)) {
@@ -31,15 +29,15 @@ public class StartCommand {
                         startGame(source.getServer());
                     }
                 } else {
-                    source.sendFeedback(() -> Text.translatable("manhunt.chat.onlyleader"), false);
+                    source.sendFeedback(() -> Text.translatable("manhunt.chat.onlyleader").formatted(Formatting.RED), false);
                 }
             } else {
                 source.sendFeedback(() -> Text.translatable("manhunt.chat.preload"), false);
             }
         } else if (gameState == PLAYING) {
-            source.sendFeedback(() -> Text.translatable("manhunt.chat.playing"), false);
+            source.sendFeedback(() -> Text.translatable("manhunt.chat.playing").formatted(Formatting.RED), false);
         } else {
-            source.sendFeedback(() -> Text.translatable("manhunt.chat.postgame"), false);
+            source.sendFeedback(() -> Text.translatable("manhunt.chat.postgame").formatted(Formatting.RED), false);
         }
 
         return Command.SINGLE_SUCCESS;

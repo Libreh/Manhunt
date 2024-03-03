@@ -10,6 +10,7 @@ import static manhunt.config.ConfigFileHandler.config;
 
 public class ManhuntConfig {
     public static Setting WORLD_SEED;
+    public static Setting PRELOADING;
     public static Setting SET_MOTD;
     public static Setting RUNNER_VOTING;
     public static Setting VOTES_PER_PLAYER;
@@ -31,21 +32,22 @@ public class ManhuntConfig {
     public static void setDefaults() {
         ConfigBuilder builder = new ConfigBuilder();
         WORLD_SEED = builder.createSetting("worldSeed", "Used to hash the world seed", 0L);
+        PRELOADING = builder.createSetting("preloading", "Preload the world before start", false);
         SET_MOTD = builder.createSetting("setMotd", "Set motd based on game state", true);
         RUNNER_VOTING = builder.createSetting("runnerVoting", "Voting system to select runners", false);
-        VOTES_PER_PLAYER = builder.createSetting("votesPerPlayer", "How many votes a player has", 1);
-        TOP_VOTED_RUNS = builder.createSetting("topVotedRuns", "How many runs a top voted runner has", 3);
+        VOTES_PER_PLAYER = builder.createSetting("votesPerPlayer", "Votes per player", 1);
+        TOP_VOTED_RUNS = builder.createSetting("topVotedRuns", "Runs per top voted runner", 3);
         VOTE_PLACES = builder.createSetting("votePlaces", "Top voted runners amount", 2);
         RESET_SECONDS = builder.createSetting("resetSeconds", "Seconds until a game auto resets", 5);
         AUTO_RESET = builder.createSetting("autoReset", "Reset game a select seconds after a win", true);
         AUTO_START = builder.createSetting("autoStart", "Start game after voting", true);
         SET_ROLES = builder.createSetting("setRoles", "How the roles should be choosen\n# Available options are \"Free Select\", \"All Hunters\", and \"All Runners\"", "Free Select");
-        HUNTER_FREEZE_SECONDS = builder.createSetting("hunterFreezeSeconds", "Seconds hunters are frozen in at the start", 0);
-        TIME_LIMIT_MINUTES = builder.createSetting("timeLimitMinutes", "Minutes until the hunters win", 0);
+        HUNTER_FREEZE_SECONDS = builder.createSetting("hunterFreezeSeconds", "Freezes the hunters at start", 0);
+        TIME_LIMIT_MINUTES = builder.createSetting("timeLimitMinutes", "Hunters win at the limit", 0);
         MANUAL_COMPASS_UPDATE = builder.createSetting("manualCompassUpdate", "Right click on compass or if false then automatically update it", false);
         SHOW_TEAM_COLOR = builder.createSetting("showTeamColor", "The color of nametags depend on team", true);
         WORLD_DIFFICULTY = builder.createSetting("worldDifficulty", "The world difficulty\n# Available options are \"Easy\", \"Normal\", and \"Hard\"", "Easy");
-        WORLD_BORDER_BLOCKS = builder.createSetting("worldBorderBlocks", "Set border size in blocks\n# It defaults to \"59999968\" if it's higher than it", 59999968);
+        WORLD_BORDER_BLOCKS = builder.createSetting("worldBorderBlocks", "Set border size in blocks\n# It defaults to the maximum if it's higher than it (59999968)", 59999968);
         ALLOW_BED_EXPLOSIONS = builder.createSetting("allowBedExplosions", "If false then disables placement if enemy team is closer than 9 blocks", false);
         ALLOW_LAVA_PVP_IN_THE_NETHER = builder.createSetting("allowLavaPvpInTheNether", "If false then disables placement if enemy team is closer than 9 blocks", false);
         builder.finish();

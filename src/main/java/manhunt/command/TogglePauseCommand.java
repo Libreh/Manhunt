@@ -70,12 +70,12 @@ public class TogglePauseCommand {
                     scheduledExecutorService.schedule(() -> setPaused(true), 1, TimeUnit.SECONDS);
                 }
             } else {
-                source.sendFeedback(() -> Text.translatable("manhunt.chat.onlyleader"), false);
+                source.sendFeedback(() -> Text.translatable("manhunt.chat.onlyleader").formatted(Formatting.RED).formatted(Formatting.RED), false);
             }
         } else if (gameState == ManhuntState.POSTGAME) {
-            source.sendFeedback(() -> Text.translatable("manhunt.chat.pregame"), false);
+            source.sendFeedback(() -> Text.translatable("manhunt.chat.pregame").formatted(Formatting.RED), false);
         } else {
-            source.sendFeedback(() -> Text.translatable("manhunt.chat.postgame"), false);
+            source.sendFeedback(() -> Text.translatable("manhunt.chat.postgame").formatted(Formatting.RED), false);
         }
 
         return Command.SINGLE_SUCCESS;

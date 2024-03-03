@@ -5,6 +5,7 @@ import com.mojang.brigadier.CommandDispatcher;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 
 import static manhunt.config.ManhuntConfig.AUTO_RESET;
 
@@ -22,7 +23,7 @@ public class CancelCommand {
 
             source.getServer().getPlayerManager().broadcast(Text.translatable("manhunt.chat.cancel"), false);
         } else {
-            source.sendFeedback(() -> Text.translatable("manhunt.chat.onlyleader"), false);
+            source.sendFeedback(() -> Text.translatable("manhunt.chat.onlyleader").formatted(Formatting.RED), false);
         }
 
         return Command.SINGLE_SUCCESS;

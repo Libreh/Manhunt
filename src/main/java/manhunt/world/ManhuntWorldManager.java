@@ -111,7 +111,7 @@ public class ManhuntWorldManager {
             }
 
             server.getPlayerManager().removeFromOperators(player.getGameProfile());
-            player.teleport(server.getWorld(lobbyRegistryKey), 0, 63, 5.5, PositionFlag.ROT, 0, 0);
+            player.teleport(server.getWorld(lobbyRegistryKey), 0, 63, 5.5, PositionFlag.ROT, 0.0F, 0.0F);
             player.clearStatusEffects();
             player.getInventory().clear();
             player.setOnFire(false);
