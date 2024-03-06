@@ -37,14 +37,14 @@ public class RunnerCommand {
 
                 source.getServer().getPlayerManager().broadcast(Text.translatable("manhunt.chat.runner", Text.literal(sourcePlayer.getName().getString())).formatted(Formatting.GREEN), false);
 
-                if (PlayerDataApi.getGlobalDataFor(sourcePlayer, allowBedExplosionsPreference).equals(NbtByte.ZERO)) {
+                if (PlayerDataApi.getGlobalDataFor(sourcePlayer, allowBedExplosions) == NbtByte.ZERO) {
                     ALLOW_BED_EXPLOSIONS.set(false);
                 } else {
                     ALLOW_BED_EXPLOSIONS.set(true);
                 }
 
-                if (PlayerDataApi.getGlobalDataFor(sourcePlayer, allowLavaPvpInNetherPreference).equals(NbtByte.ZERO)) {
-                    ALLOW_LAVA_PVP_IN_THE_NETHER.set(true);
+                if (PlayerDataApi.getGlobalDataFor(sourcePlayer, allowLavaPvpInNether) == NbtByte.ZERO) {
+                    ALLOW_LAVA_PVP_IN_THE_NETHER.set(false);
                 } else {
                     ALLOW_LAVA_PVP_IN_THE_NETHER.set(true);
                 }
@@ -56,14 +56,14 @@ public class RunnerCommand {
 
                 source.getServer().getPlayerManager().broadcast(Text.translatable("manhunt.chat.runner", Text.literal(sourcePlayer.getName().getString())).formatted(Formatting.GREEN), false);
 
-                if (PlayerDataApi.getGlobalDataFor(sourcePlayer, allowBedExplosionsPreference).equals(NbtByte.ZERO)) {
+                if (PlayerDataApi.getGlobalDataFor(sourcePlayer, allowBedExplosions) == NbtByte.ZERO) {
                     ALLOW_BED_EXPLOSIONS.set(false);
                 } else {
                     ALLOW_BED_EXPLOSIONS.set(true);
                 }
 
-                if (PlayerDataApi.getGlobalDataFor(sourcePlayer, allowLavaPvpInNetherPreference).equals(NbtByte.ZERO)) {
-                    ALLOW_LAVA_PVP_IN_THE_NETHER.set(true);
+                if (PlayerDataApi.getGlobalDataFor(sourcePlayer, allowLavaPvpInNether) == NbtByte.ZERO) {
+                    ALLOW_LAVA_PVP_IN_THE_NETHER.set(false);
                 } else {
                     ALLOW_LAVA_PVP_IN_THE_NETHER.set(true);
                 }
@@ -89,14 +89,14 @@ public class RunnerCommand {
 
                 player.getServer().getPlayerManager().broadcast(Text.translatable("manhunt.chat.runner.set", Text.literal(player.getName().getString())).formatted(Formatting.GREEN), false);
 
-                if (PlayerDataApi.getGlobalDataFor(player, allowBedExplosionsPreference).equals(NbtByte.ZERO)) {
+                if (PlayerDataApi.getGlobalDataFor(player, allowBedExplosions) == NbtByte.ZERO) {
                     ALLOW_BED_EXPLOSIONS.set(false);
                 } else {
                     ALLOW_BED_EXPLOSIONS.set(true);
                 }
 
-                if (PlayerDataApi.getGlobalDataFor(player, allowLavaPvpInNetherPreference).equals(NbtByte.ZERO)) {
-                    ALLOW_LAVA_PVP_IN_THE_NETHER.set(true);
+                if (PlayerDataApi.getGlobalDataFor(player, allowLavaPvpInNether) == NbtByte.ZERO) {
+                    ALLOW_LAVA_PVP_IN_THE_NETHER.set(false);
                 } else {
                     ALLOW_LAVA_PVP_IN_THE_NETHER.set(true);
                 }

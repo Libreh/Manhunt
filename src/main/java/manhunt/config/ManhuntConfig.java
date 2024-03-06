@@ -28,6 +28,12 @@ public class ManhuntConfig {
     public static Setting WORLD_BORDER_BLOCKS;
     public static Setting ALLOW_BED_EXPLOSIONS;
     public static Setting ALLOW_LAVA_PVP_IN_THE_NETHER;
+    public static Setting CHANGEABLE_PREFERENCES;
+    public static Setting SHOW_WINNER_TITLE;
+    public static Setting MANHUNT_SOUNDS_VOLUME;
+    public static Setting SHOW_SETTINGS_AT_START;
+    public static Setting SHOW_DURATION_AT_END;
+    public static Setting SHOW_SEED_AT_END;
 
     public static void setDefaults() {
         ConfigBuilder builder = new ConfigBuilder();
@@ -50,6 +56,12 @@ public class ManhuntConfig {
         WORLD_BORDER_BLOCKS = builder.createSetting("worldBorderBlocks", "Set border size in blocks\n# It defaults to the maximum if it's higher than it (59999968)", 59999968);
         ALLOW_BED_EXPLOSIONS = builder.createSetting("allowBedExplosions", "If false then disables placement if enemy team is closer than 9 blocks", false);
         ALLOW_LAVA_PVP_IN_THE_NETHER = builder.createSetting("allowLavaPvpInTheNether", "If false then disables placement if enemy team is closer than 9 blocks", false);
+        CHANGEABLE_PREFERENCES = builder.createSetting("changeablePreferences", "If false then preferences default", true);
+        SHOW_WINNER_TITLE = builder.createSetting("showWinnerTitle", "Default preference value", true);
+        MANHUNT_SOUNDS_VOLUME = builder.createSetting("manhuntSoundsVolume", "Default preference value in percent", 100);
+        SHOW_SETTINGS_AT_START = builder.createSetting("showSettingsAtStart", "Default preference value in percent", true);
+        SHOW_DURATION_AT_END = builder.createSetting("showDurationAtEnd", "Default preference value in percent", true);
+        SHOW_SEED_AT_END = builder.createSetting("showSeedAtEnd", "Default preference value", true);
         builder.finish();
     }
 

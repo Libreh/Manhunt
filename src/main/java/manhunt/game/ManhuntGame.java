@@ -74,9 +74,19 @@ public class ManhuntGame {
     public static RegistryKey<World> theNetherRegistryKey = RegistryKey.of(RegistryKeys.WORLD, THE_NETHER_ID);
     public static RegistryKey<World> theEndRegistryKey = RegistryKey.of(RegistryKeys.WORLD, THE_END_ID);
     public static List<ServerPlayerEntity> allRunners;
+    public static String previousDuration;
+    public static String previousSeed;
     public static HashMap<UUID, Boolean> isReady = new HashMap<>();
     public static HashMap<ServerPlayerEntity, Integer> votedRunners = new HashMap<>();
     public static HashMap<ServerPlayerEntity, Integer> topVoted = new HashMap<>();
+    public static ArrayList<Identifier> personalPreferences = new ArrayList<>();
+    public static ArrayList<Identifier> runnerPreferences = new ArrayList<>();
+    public static HashMap<Setting, Integer> settingIndex = new HashMap<>();
+    public static HashMap<Identifier, Integer> personalPreferencesIndex = new HashMap<>();
+    public static HashMap<Identifier, Integer> runnerPreferencesIndex = new HashMap<>();
+    public static int settingSlot = 0;
+    public static int personalPreferencesSlot = 0;
+    public static int runnerPreferencesSlot = 0;
     private static boolean paused;
     public static boolean isPaused() {
         return paused;
@@ -98,12 +108,13 @@ public class ManhuntGame {
     public static Identifier playerSpawnY = new Identifier(MOD_ID, "spawn_y");
     public static Identifier playerSpawnZ = new Identifier(MOD_ID, "spawn_z");
     public static Identifier runsLeft = new Identifier(MOD_ID, "runs_left");
-    public static Identifier showWinnerTitlePreference = new Identifier(MOD_ID, "show_winner_title");
-    public static Identifier manhuntSoundsVolumePreference = new Identifier(MOD_ID, "manhunt_sounds_volume");
-    public static Identifier showSettingsAtStartPreference = new Identifier(MOD_ID, "settingsatstart");
-    public static Identifier showDurationAtEndPreference = new Identifier(MOD_ID, "durationatend");
-    public static Identifier allowBedExplosionsPreference = new Identifier(MOD_ID, "allow_bed_explosions");
-    public static Identifier allowLavaPvpInNetherPreference = new Identifier(MOD_ID, "allow_lava_pvp_in_nether");
+    public static Identifier showWinnerTitle = new Identifier(MOD_ID, "show_winner_title");
+    public static Identifier manhuntSoundsVolume = new Identifier(MOD_ID, "manhunt_sounds_volume");
+    public static Identifier showSettingsAtStart = new Identifier(MOD_ID, "show_settings_at_start");
+    public static Identifier showDurationAtEnd = new Identifier(MOD_ID, "show_duration_at_end");
+    public static Identifier showSeedAtEnd = new Identifier(MOD_ID, "show_seed_at_end");
+    public static Identifier allowBedExplosions = new Identifier(MOD_ID, "allow_bed_explosions");
+    public static Identifier allowLavaPvpInNether = new Identifier(MOD_ID, "allow_lava_pvp_in_the_nether");
 
     public ManhuntGame(MinecraftServerAccessInterface serverAccessMixin) {
         this.serverAccessMixin = serverAccessMixin;
@@ -168,6 +179,15 @@ public class ManhuntGame {
 
         manhuntState(PREGAME, server);
 
+        personalPreferences.add(showWinnerTitle);
+        personalPreferences.add(manhuntSoundsVolume);
+        personalPreferences.add(showSettingsAtStart);
+        personalPreferences.add(showDurationAtEnd);
+        personalPreferences.add(showSeedAtEnd);
+
+        runnerPreferences.add(allowBedExplosions);
+        runnerPreferences.add(allowLavaPvpInNether);
+
         Difficulty difficulty = Difficulty.EASY;
 
         if (WORLD_DIFFICULTY.get().equals("Normal")) {
@@ -198,22 +218,18 @@ public class ManhuntGame {
         Scoreboard scoreboard = server.getScoreboard();
 
         for (Team team : scoreboard.getTeams()) {
-            if (team.getName().equals("players")) {
-                scoreboard.removeTeam(scoreboard.getTeam("players"));
-            }
-            if (team.getName().equals("hunters")) {
-                scoreboard.removeTeam(scoreboard.getTeam("hunters"));
-            }
-            if (team.getName().equals("runners")) {
-                scoreboard.removeTeam(scoreboard.getTeam("runners"));
+            String name = team.getName();
+
+            if (name.equals("players") || name.equals("hunters") || name.equals("runners")) {
+                scoreboard.removeTeam(scoreboard.getTeam(name));
             }
         }
 
         scoreboard.addTeam("players");
-        scoreboard.getTeam("players").setCollisionRule(AbstractTeam.CollisionRule.NEVER);
-
         scoreboard.addTeam("hunters");
         scoreboard.addTeam("runners");
+
+        scoreboard.getTeam("players").setCollisionRule(AbstractTeam.CollisionRule.NEVER);
         scoreboard.getTeam("hunters").setColor(Formatting.RED);
         scoreboard.getTeam("runners").setColor(Formatting.GREEN);
 
@@ -315,11 +331,11 @@ public class ManhuntGame {
                 if (server.getWorld(overworldRegistryKey).getTime() % (20 * 60 * 60) / (20 * 60) >= Integer.parseInt(TIME_LIMIT_MINUTES.get())) {
                     manhuntState(POSTGAME, server);
                     for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
-                        if (PlayerDataApi.getGlobalDataFor(player, showWinnerTitlePreference).equals(NbtByte.ONE)) {
+                        if (PlayerDataApi.getGlobalDataFor(player, showWinnerTitle) == NbtByte.ONE) {
                             player.networkHandler.sendPacket(new TitleS2CPacket(Text.translatable("manhunt.title.hunterswon").formatted(Formatting.RED)));
                             player.networkHandler.sendPacket(new SubtitleS2CPacket(Text.translatable("manhunt.title.timelimit").formatted(Formatting.DARK_RED)));
-                            if (!PlayerDataApi.getGlobalDataFor(player, manhuntSoundsVolumePreference).equals(NbtInt.of(0))) {
-                                float volume = (float) Integer.parseInt(String.valueOf(PlayerDataApi.getGlobalDataFor(player, manhuntSoundsVolumePreference))) / 100;
+                            if (!PlayerDataApi.getGlobalDataFor(player, manhuntSoundsVolume).equals(NbtInt.of(0))) {
+                                float volume = (float) Integer.parseInt(String.valueOf(PlayerDataApi.getGlobalDataFor(player, manhuntSoundsVolume))) / 100;
                                 if (volume >= 0.2f) {
                                     player.playSound(SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, SoundCategory.PLAYERS, volume / 2, 2f);
                                 }
@@ -404,23 +420,42 @@ public class ManhuntGame {
         if (PlayerDataApi.getGlobalDataFor(player, runsLeft) == null) {
             PlayerDataApi.setGlobalDataFor(player, runsLeft, NbtInt.of(0));
         }
-        if (PlayerDataApi.getGlobalDataFor(player, showWinnerTitlePreference) == null) {
-            PlayerDataApi.setGlobalDataFor(player, showWinnerTitlePreference, NbtByte.ONE);
+        if (PlayerDataApi.getGlobalDataFor(player, showWinnerTitle) == null) {
+            if (Boolean.parseBoolean(SHOW_WINNER_TITLE.get())) {
+                PlayerDataApi.setGlobalDataFor(player, showWinnerTitle, NbtByte.ONE);
+            } else {
+                PlayerDataApi.setGlobalDataFor(player, showWinnerTitle, NbtByte.ZERO);
+            }
         }
-        if (PlayerDataApi.getGlobalDataFor(player, manhuntSoundsVolumePreference) == null) {
-            PlayerDataApi.setGlobalDataFor(player, manhuntSoundsVolumePreference, NbtInt.of(100));
+        if (PlayerDataApi.getGlobalDataFor(player, manhuntSoundsVolume) == null) {
+            PlayerDataApi.setGlobalDataFor(player, manhuntSoundsVolume, NbtInt.of(Integer.parseInt(MANHUNT_SOUNDS_VOLUME.get())));
         }
-        if (PlayerDataApi.getGlobalDataFor(player, showSettingsAtStartPreference) == null) {
-            PlayerDataApi.setGlobalDataFor(player, showSettingsAtStartPreference, NbtByte.ONE);
+        if (PlayerDataApi.getGlobalDataFor(player, showSettingsAtStart) == null) {
+            if (Boolean.parseBoolean(SHOW_SETTINGS_AT_START.get())) {
+                PlayerDataApi.setGlobalDataFor(player, showSettingsAtStart, NbtByte.ONE);
+            } else {
+                PlayerDataApi.setGlobalDataFor(player, showSettingsAtStart, NbtByte.ZERO);
+            }
         }
-        if (PlayerDataApi.getGlobalDataFor(player, showDurationAtEndPreference) == null) {
-            PlayerDataApi.setGlobalDataFor(player, showDurationAtEndPreference, NbtByte.ONE);
+        if (PlayerDataApi.getGlobalDataFor(player, showDurationAtEnd) == null) {
+            if (Boolean.parseBoolean(SHOW_DURATION_AT_END.get())) {
+                PlayerDataApi.setGlobalDataFor(player, showDurationAtEnd, NbtByte.ONE);
+            } else {
+                PlayerDataApi.setGlobalDataFor(player, showDurationAtEnd, NbtByte.ZERO);
+            }
         }
-        if (PlayerDataApi.getGlobalDataFor(player, allowBedExplosionsPreference) == null) {
-            PlayerDataApi.setGlobalDataFor(player, allowBedExplosionsPreference, NbtByte.ONE);
+        if (PlayerDataApi.getGlobalDataFor(player, showSeedAtEnd) == null) {
+            if (Boolean.parseBoolean(SHOW_SEED_AT_END.get())) {
+                PlayerDataApi.setGlobalDataFor(player, showSeedAtEnd, NbtByte.ONE);
+            } else {
+                PlayerDataApi.setGlobalDataFor(player, showSeedAtEnd, NbtByte.ZERO);
+            }
         }
-        if (PlayerDataApi.getGlobalDataFor(player, allowLavaPvpInNetherPreference) == null) {
-            PlayerDataApi.setGlobalDataFor(player, allowLavaPvpInNetherPreference, NbtByte.ONE);
+        if (PlayerDataApi.getGlobalDataFor(player, allowBedExplosions) == null) {
+            PlayerDataApi.setGlobalDataFor(player, allowBedExplosions, NbtByte.ONE);
+        }
+        if (PlayerDataApi.getGlobalDataFor(player, allowLavaPvpInNether) == null) {
+            PlayerDataApi.setGlobalDataFor(player, allowLavaPvpInNether, NbtByte.ONE);
         }
     }
 
@@ -546,13 +581,13 @@ public class ManhuntGame {
 
                     server.getPlayerManager().broadcast(Text.translatable("manhunt.chat.runner", Text.literal(player.getName().getString()).formatted(Formatting.WHITE)).formatted(Formatting.GREEN), false);
 
-                    if (PlayerDataApi.getGlobalDataFor((ServerPlayerEntity) player, allowBedExplosionsPreference).equals(NbtByte.ZERO)) {
+                    if (PlayerDataApi.getGlobalDataFor((ServerPlayerEntity) player, allowBedExplosions) == NbtByte.ZERO) {
                         ALLOW_BED_EXPLOSIONS.set(false);
                     } else {
                         ALLOW_BED_EXPLOSIONS.set(true);
                     }
 
-                    if (PlayerDataApi.getGlobalDataFor((ServerPlayerEntity) player, allowLavaPvpInNetherPreference).equals(NbtByte.ZERO)) {
+                    if (PlayerDataApi.getGlobalDataFor((ServerPlayerEntity) player, allowLavaPvpInNether) == NbtByte.ZERO) {
                         ALLOW_LAVA_PVP_IN_THE_NETHER.set(false);
                     } else {
                         ALLOW_LAVA_PVP_IN_THE_NETHER.set(true);
@@ -566,7 +601,11 @@ public class ManhuntGame {
                 }
 
                 if (itemStack.getItem() == Items.REPEATER && itemStack.getNbt().getBoolean("Preferences")) {
-                    preferencesGui((ServerPlayerEntity) player);
+                    if (Boolean.parseBoolean(CHANGEABLE_PREFERENCES.get())) {
+                        preferencesGui((ServerPlayerEntity) player);
+                    } else {
+                        player.sendMessage(Text.translatable("manhunt.chat.notallowed").formatted(Formatting.RED));
+                    }
                 }
             }
         }
@@ -597,17 +636,19 @@ public class ManhuntGame {
                     if (player.isTeamPlayer(player.getScoreboard().getTeam("hunters"))) {
                         for (String playerName : player.getScoreboard().getTeam("runners").getPlayerList()) {
                             if (player.distanceTo(player.getServer().getPlayerManager().getPlayer(playerName)) <= 9.0F) {
+                                player.sendMessage(Text.translatable("manhunt.chat.allowbedexplosions").formatted(Formatting.RED), false);
                                 return TypedActionResult.fail(itemStack);
                             }
                         }
                     } else {
                         for (String playerName : player.getScoreboard().getTeam("hunters").getPlayerList()) {
                             if (player.distanceTo(player.getServer().getPlayerManager().getPlayer(playerName)) <= 9.0F) {
+                                player.sendMessage(Text.translatable("manhunt.chat.allowlavapvpinthenether").formatted(Formatting.RED), false);
                                 return TypedActionResult.fail(itemStack);
                             }
                         }
                     }
-                    player.sendMessage(Text.translatable("manhunt.chat.allowbedexplosions").formatted(Formatting.RED), false);
+
                 }
             }
             if (!Boolean.parseBoolean(ALLOW_LAVA_PVP_IN_THE_NETHER.get())) {
@@ -642,6 +683,7 @@ public class ManhuntGame {
             scoreboard.clearTeam(newPlayer.getName().getString());
             scoreboard.addScoreHolderToTeam(newPlayer.getName().getString(), scoreboard.getTeam("hunters"));
         }
+        updateGameMode(newPlayer);
     }
 
     private static boolean doesNotHaveItem(PlayerEntity player, Item item, String nbtBoolean) {
@@ -662,26 +704,50 @@ public class ManhuntGame {
     }
 
     private static void settingsGui(ServerPlayerEntity player) {
-        SimpleGui settingsGui = new SimpleGui(ScreenHandlerType.GENERIC_9X2, player, false);
+        if (settingIndex.isEmpty()) {
+            settingSlot = 0;
+
+            for (Setting setting : ConfigBuilder.settings) {
+                settingIndex.put(setting, settingSlot);
+                settingSlot++;
+            }
+        }
+
+        SimpleGui settingsGui;
+        if (settingSlot <= 8) {
+            settingsGui = new SimpleGui(ScreenHandlerType.GENERIC_9X1, player, false);
+        } else if (settingSlot <= 17) {
+            settingsGui = new SimpleGui(ScreenHandlerType.GENERIC_9X2, player, false);
+        } else {
+            settingsGui = new SimpleGui(ScreenHandlerType.GENERIC_9X3, player, false);
+        }
+
         settingsGui.setTitle(Text.translatable("manhunt.settings"));
-        changeSetting(player, settingsGui, PRELOADING, Items.GRASS_BLOCK, 0, SoundEvents.BLOCK_GRASS_BREAK);
-        changeSetting(player, settingsGui, SET_MOTD, Items.DIRT, 1, SoundEvents.BLOCK_GRAVEL_PLACE);
-        changeSetting(player, settingsGui, RUNNER_VOTING, Items.BELL, 2, SoundEvents.BLOCK_BELL_USE);
-        changeSetting(player, settingsGui, VOTES_PER_PLAYER, Items.PAPER, 3, SoundEvents.ITEM_BOOK_PUT);
-        changeSetting(player, settingsGui, TOP_VOTED_RUNS, Items.FEATHER, 4, SoundEvents.ENTITY_GENERIC_WIND_BURST);
-        changeSetting(player, settingsGui, VOTE_PLACES, Items.GOLD_BLOCK, 5, SoundEvents.ITEM_ARMOR_EQUIP_GOLD);
-        changeSetting(player, settingsGui, RESET_SECONDS, Items.BARRIER, 6, SoundEvents.BLOCK_BARREL_CLOSE);
-        changeSetting(player, settingsGui, AUTO_RESET, Items.CHEST, 7, SoundEvents.BLOCK_CHEST_CLOSE);
-        changeSetting(player, settingsGui, AUTO_START, Items.ENDER_CHEST, 8, SoundEvents.BLOCK_ENDER_CHEST_OPEN);
-        changeSetting(player, settingsGui, SET_ROLES, Items.FLETCHING_TABLE, 9, SoundEvents.ENTITY_VILLAGER_WORK_FLETCHER);
-        changeSetting(player, settingsGui, HUNTER_FREEZE_SECONDS, Items.ICE, 10, SoundEvents.BLOCK_GLASS_BREAK);
-        changeSetting(player, settingsGui, TIME_LIMIT_MINUTES, Items.CLOCK, 11, SoundEvents.ENTITY_FISHING_BOBBER_THROW);
-        changeSetting(player, settingsGui, MANUAL_COMPASS_UPDATE, Items.COMPASS, 12, SoundEvents.ITEM_LODESTONE_COMPASS_LOCK);
-        changeSetting(player, settingsGui, SHOW_TEAM_COLOR, Items.LEATHER_CHESTPLATE, 13, SoundEvents.ITEM_ARMOR_EQUIP_LEATHER);
-        changeSetting(player, settingsGui, WORLD_DIFFICULTY, Items.CREEPER_HEAD, 14, SoundEvents.ENTITY_CREEPER_HURT);
-        changeSetting(player, settingsGui, WORLD_BORDER_BLOCKS, Items.STRUCTURE_VOID, 15, SoundEvents.BLOCK_DEEPSLATE_BREAK);
-        changeSetting(player, settingsGui, ALLOW_BED_EXPLOSIONS, Items.RED_BED, 16, SoundEvents.ENTITY_GENERIC_EXPLODE);
-        changeSetting(player, settingsGui, ALLOW_LAVA_PVP_IN_THE_NETHER, Items.LAVA_BUCKET, 17, SoundEvents.ITEM_BUCKET_FILL_LAVA);
+
+        changeSetting(player, settingsGui, PRELOADING, Items.GRASS_BLOCK, SoundEvents.BLOCK_GRASS_PLACE);
+        changeSetting(player, settingsGui, SET_MOTD, Items.DIRT, SoundEvents.BLOCK_GRAVEL_PLACE);
+        changeSetting(player, settingsGui, RUNNER_VOTING, Items.BELL, SoundEvents.BLOCK_BELL_USE);
+        changeSetting(player, settingsGui, VOTES_PER_PLAYER, Items.PAPER, SoundEvents.ITEM_BOOK_PUT);
+        changeSetting(player, settingsGui, TOP_VOTED_RUNS, Items.FEATHER, SoundEvents.ENTITY_GENERIC_WIND_BURST);
+        changeSetting(player, settingsGui, VOTE_PLACES, Items.GOLD_BLOCK, SoundEvents.ITEM_ARMOR_EQUIP_GOLD);
+        changeSetting(player, settingsGui, RESET_SECONDS, Items.BARRIER, SoundEvents.BLOCK_BARREL_CLOSE);
+        changeSetting(player, settingsGui, AUTO_RESET, Items.CHEST, SoundEvents.BLOCK_CHEST_CLOSE);
+        changeSetting(player, settingsGui, AUTO_START, Items.ENDER_CHEST, SoundEvents.BLOCK_ENDER_CHEST_OPEN);
+        changeSetting(player, settingsGui, SET_ROLES, Items.FLETCHING_TABLE, SoundEvents.ENTITY_VILLAGER_WORK_FLETCHER);
+        changeSetting(player, settingsGui, HUNTER_FREEZE_SECONDS, Items.ICE, SoundEvents.BLOCK_GLASS_BREAK);
+        changeSetting(player, settingsGui, TIME_LIMIT_MINUTES, Items.CLOCK, SoundEvents.ENTITY_FISHING_BOBBER_THROW);
+        changeSetting(player, settingsGui, MANUAL_COMPASS_UPDATE, Items.COMPASS, SoundEvents.ITEM_LODESTONE_COMPASS_LOCK);
+        changeSetting(player, settingsGui, SHOW_TEAM_COLOR, Items.LEATHER_CHESTPLATE, SoundEvents.ITEM_ARMOR_EQUIP_LEATHER);
+        changeSetting(player, settingsGui, WORLD_DIFFICULTY, Items.CREEPER_HEAD, SoundEvents.ENTITY_CREEPER_HURT);
+        changeSetting(player, settingsGui, WORLD_BORDER_BLOCKS, Items.STRUCTURE_VOID, SoundEvents.BLOCK_DEEPSLATE_BREAK);
+        changeSetting(player, settingsGui, ALLOW_BED_EXPLOSIONS, Items.RED_BED, SoundEvents.ENTITY_GENERIC_EXPLODE);
+        changeSetting(player, settingsGui, ALLOW_LAVA_PVP_IN_THE_NETHER, Items.LAVA_BUCKET, SoundEvents.ITEM_BUCKET_FILL_LAVA);
+        changeSetting(player, settingsGui, CHANGEABLE_PREFERENCES, Items.BONE, SoundEvents.BLOCK_BONE_BLOCK_BREAK);
+        changeSetting(player, settingsGui, SHOW_WINNER_TITLE, Items.OAK_SIGN, SoundEvents.BLOCK_WOOD_PLACE);
+        changeSetting(player, settingsGui, MANHUNT_SOUNDS_VOLUME, Items.PLAYER_HEAD, SoundEvents.ENTITY_PLAYER_BURP);
+        changeSetting(player, settingsGui, SHOW_SETTINGS_AT_START, Items.IRON_BLOCK, SoundEvents.BLOCK_METAL_PLACE);
+        changeSetting(player, settingsGui, SHOW_DURATION_AT_END, Items.GRAY_WOOL, SoundEvents.BLOCK_WOOL_BREAK);
+        changeSetting(player, settingsGui, SHOW_SEED_AT_END, Items.WHEAT_SEEDS, SoundEvents.BLOCK_GRASS_BREAK);
         settingsGui.open();
     }
 
@@ -712,30 +778,69 @@ public class ManhuntGame {
     }
 
     private static void personalPreferencesGui(ServerPlayerEntity player) {
-        SimpleGui personalPreferencesGui = new SimpleGui(ScreenHandlerType.GENERIC_9X1, player, false);
+        if (personalPreferencesIndex.isEmpty()) {
+            personalPreferencesSlot = 0;
+
+            for (Identifier preference : personalPreferences) {
+                personalPreferencesIndex.put(preference, personalPreferencesSlot);
+                personalPreferencesSlot++;
+            }
+        }
+
+        SimpleGui personalPreferencesGui;
+        if (personalPreferencesSlot <= 8) {
+            personalPreferencesGui = new SimpleGui(ScreenHandlerType.GENERIC_9X1, player, false);
+        } else if (personalPreferencesSlot <= 17) {
+            personalPreferencesGui = new SimpleGui(ScreenHandlerType.GENERIC_9X2, player, false);
+        } else {
+            personalPreferencesGui = new SimpleGui(ScreenHandlerType.GENERIC_9X3, player, false);
+        }
+
         personalPreferencesGui.setTitle(Text.translatable("manhunt.personalpreferences"));
-        changePreferences(player, personalPreferencesGui, showWinnerTitlePreference, "showwinnertitle", Items.OAK_SIGN, 0, SoundEvents.BLOCK_WOOD_PLACE);
-        changePreferences(player, personalPreferencesGui, manhuntSoundsVolumePreference, "manhuntsoundsvolume",Items.PLAYER_HEAD, 1, SoundEvents.ENTITY_PLAYER_BURP);
-        changePreferences(player, personalPreferencesGui, showSettingsAtStartPreference, "showsettingsatstart",Items.IRON_BLOCK, 2, SoundEvents.BLOCK_METAL_PLACE);
-        changePreferences(player, personalPreferencesGui, showDurationAtEndPreference, "showdurationatend", Items.CLOCK, 3, SoundEvents.BLOCK_SAND_BREAK);
+
+        changePreference(player, personalPreferencesGui, showWinnerTitle, Items.OAK_SIGN, SoundEvents.BLOCK_WOOD_PLACE);
+        changePreference(player, personalPreferencesGui, manhuntSoundsVolume, Items.PLAYER_HEAD, SoundEvents.ENTITY_PLAYER_BURP);
+        changePreference(player, personalPreferencesGui, showSettingsAtStart, Items.IRON_BLOCK, SoundEvents.BLOCK_METAL_PLACE);
+        changePreference(player, personalPreferencesGui, showDurationAtEnd, Items.GRAY_WOOL, SoundEvents.BLOCK_WOOL_BREAK);
+        changePreference(player, personalPreferencesGui, showSeedAtEnd, Items.WHEAT_SEEDS, SoundEvents.BLOCK_GRASS_BREAK);
         personalPreferencesGui.open();
     }
 
     private static void runnerPreferencesGui(ServerPlayerEntity player) {
-        SimpleGui runnerPreferencesGui = new SimpleGui(ScreenHandlerType.GENERIC_9X1, player, false);
+        if (runnerPreferencesIndex.isEmpty()) {
+            runnerPreferencesSlot = 0;
+
+            for (Identifier preference : runnerPreferences) {
+                runnerPreferencesIndex.put(preference, runnerPreferencesSlot);
+                runnerPreferencesSlot++;
+            }
+        }
+
+        SimpleGui runnerPreferencesGui;
+        if (runnerPreferencesSlot <= 8) {
+            runnerPreferencesGui = new SimpleGui(ScreenHandlerType.GENERIC_9X1, player, false);
+        } else if (runnerPreferencesSlot <= 17) {
+            runnerPreferencesGui = new SimpleGui(ScreenHandlerType.GENERIC_9X2, player, false);
+        } else {
+            runnerPreferencesGui = new SimpleGui(ScreenHandlerType.GENERIC_9X3, player, false);
+        }
+
         runnerPreferencesGui.setTitle(Text.translatable("manhunt.runnerpreferences"));
-        changePreferences(player, runnerPreferencesGui, allowBedExplosionsPreference, "allowbedexplosions", Items.RED_BED, 0, SoundEvents.ENTITY_GENERIC_EXPLODE);
-        changePreferences(player, runnerPreferencesGui, allowLavaPvpInNetherPreference, "allowlavapvpinthenether", Items.LAVA_BUCKET, 1, SoundEvents.ITEM_BUCKET_FILL_LAVA);
+
+        changePreference(player, runnerPreferencesGui, allowBedExplosions, Items.RED_BED, SoundEvents.ENTITY_GENERIC_EXPLODE);
+        changePreference(player, runnerPreferencesGui, allowLavaPvpInNether, Items.LAVA_BUCKET, SoundEvents.ITEM_BUCKET_FILL_LAVA);
         runnerPreferencesGui.open();
     }
 
-    private static void changeSetting(ServerPlayerEntity player, SimpleGui gui, Setting setting, Item item, int slot, SoundEvent sound) {
+    private static void changeSetting(ServerPlayerEntity player, SimpleGui gui, Setting setting, Item item, SoundEvent sound) {
         List<ServerPlayerEntity> playerList = player.getServer().getPlayerManager().getPlayerList();
 
         String name = setting.getName().toLowerCase();
 
         List<Text> loreList = new ArrayList<>();
         loreList.add(Text.translatable("manhunt.lore." + name).formatted(Formatting.GRAY));
+
+        int slot = settingIndex.get(setting) - 1;
 
         if (setting.getDefaultValue() instanceof Boolean) {
             if (Boolean.parseBoolean(setting.get())) {
@@ -777,7 +882,7 @@ public class ManhuntGame {
                                 }
                             }
                         }
-                        changeSetting(player, gui, setting, item, slot, sound);
+                        changeSetting(player, gui, setting, item, sound);
                     })
             );
         }
@@ -843,7 +948,7 @@ public class ManhuntGame {
                             player.getServer().getPlayerManager().broadcast(Text.translatable("manhunt.chat.setting.set", Text.translatable("manhunt." + name).formatted(Formatting.WHITE), Text.translatable("manhunt." + name + "." + finalValue1.toLowerCase().replaceAll("\\s+","")).formatted(Formatting.GREEN)).formatted(Formatting.GRAY), false);
                             player.playSound(sound, SoundCategory.MASTER, 1.0F, 0.5F);
                         }
-                        changeSetting(player, gui, setting, item, slot, sound);
+                        changeSetting(player, gui, setting, item, sound);
                     })
             );
         }
@@ -854,6 +959,7 @@ public class ManhuntGame {
                 case "votesperplayer" -> "votes";
                 case "topvotedruns" -> "runs";
                 case "voteplaces" -> "places";
+                case "manhuntsoundsvolume" -> "percent";
                 default -> "blocks";
             };
 
@@ -864,7 +970,7 @@ public class ManhuntGame {
             } else if (dataType.equals("votes") || dataType.equals("runs") || dataType.equals("places")) {
                 loreList.add(Text.translatable("manhunt.lore.setting", setting.get(), dataType, "").formatted(Formatting.GREEN));
             } else {
-                loreList.add(Text.translatable("manhunt.lore.setting", setting.get(), dataType, "").formatted(Formatting.RED));
+                loreList.add(Text.translatable("manhunt.lore.setting", setting.get(), dataType, "").formatted(Formatting.GREEN));
             }
 
             gui.setSlot(slot, new GuiElementBuilder(item)
@@ -883,10 +989,10 @@ public class ManhuntGame {
 
                                                 setting.set(value);
                                                 if (Integer.parseInt(setting.get()) == 0) {
-                                                    player.getServer().getPlayerManager().broadcast(Text.translatable("manhunt.chat.setting.set", Text.translatable("manhunt." + name), Text.literal(setting.get() + " " + dataType + " (" + Text.translatable("manhunt.disabled").toString().toLowerCase() + ")").formatted(Formatting.RED)), false);
+                                                    player.getServer().getPlayerManager().broadcast(Text.translatable("manhunt.chat.setting.set", Text.translatable("manhunt." + name).formatted(Formatting.WHITE), Text.literal(setting.get() + " " + dataType + " (disabled)").formatted(Formatting.RED)).formatted(Formatting.GRAY), false);
                                                     player.playSound(sound, SoundCategory.MASTER, 1.0F, 0.5F);
                                                 } else {
-                                                    player.getServer().getPlayerManager().broadcast(Text.translatable("manhunt.chat.setting.set", Text.translatable("manhunt." + name), Text.literal(setting.get() + " " + dataType).formatted(Formatting.RED)), false);
+                                                    player.getServer().getPlayerManager().broadcast(Text.translatable("manhunt.chat.setting.set", Text.translatable("manhunt." + name).formatted(Formatting.WHITE), Text.literal(setting.get() + " " + dataType).formatted(Formatting.GREEN)).formatted(Formatting.GRAY), false);
                                                     player.playSound(sound, SoundCategory.MASTER, 1.0F, 1.0F);
                                                 }
                                             } catch (NumberFormatException e) {
@@ -906,7 +1012,24 @@ public class ManhuntGame {
         }
     }
 
-    private static void changePreferences(ServerPlayerEntity player, SimpleGui gui, Identifier preference, String name, Item item, int slot, SoundEvent sound) {
+    private static void changePreference(ServerPlayerEntity player, SimpleGui gui, Identifier preference, Item item, SoundEvent sound) {
+        int slot = 0;
+
+        for (Identifier identifier : personalPreferences) {
+            if (preference == identifier) {
+                slot = personalPreferencesIndex.get(preference);
+                break;
+            }
+        }
+        for (Identifier identifier : runnerPreferences) {
+            if (preference == identifier) {
+                slot = runnerPreferencesIndex.get(preference);
+                break;
+            }
+        }
+
+        String name = preference.getPath().replaceAll("_","");
+
         List<Text> loreList = new ArrayList<>();
         loreList.add(Text.translatable("manhunt.lore." + name).formatted(Formatting.GRAY));
         if (PlayerDataApi.getGlobalDataFor(player, preference) == NbtByte.ONE) {
@@ -929,28 +1052,28 @@ public class ManhuntGame {
                     .setCallback(() -> {
                         if (PlayerDataApi.getGlobalDataFor(player, preference) == NbtByte.ZERO) {
                             PlayerDataApi.setGlobalDataFor(player, preference, NbtByte.ONE);
-                            if (preference == allowBedExplosionsPreference) {
+                            if (preference == allowBedExplosions) {
                                 ALLOW_BED_EXPLOSIONS.set(true);
                                 player.playSound(sound, SoundCategory.MASTER, 0.2F, 1.0F);
                             } else {
                                 player.playSound(sound, SoundCategory.MASTER, 1.0F, 1.0F);
-                                if (preference == allowLavaPvpInNetherPreference) {
+                                if (preference == allowLavaPvpInNether) {
                                     ALLOW_LAVA_PVP_IN_THE_NETHER.set(true);
                                 }
                             }
                         } else if (PlayerDataApi.getGlobalDataFor(player, preference) == NbtByte.ONE) {
                             PlayerDataApi.setGlobalDataFor(player, preference, NbtByte.ZERO);
-                            if (preference == allowBedExplosionsPreference) {
+                            if (preference == allowBedExplosions) {
                                 ALLOW_BED_EXPLOSIONS.set(false);
                                 player.playSound(sound, SoundCategory.MASTER, 0.2F, 0.5F);
                             } else {
                                 player.playSound(sound, SoundCategory.MASTER, 1.0F, 0.5F);
-                                if (preference == allowLavaPvpInNetherPreference) {
+                                if (preference == allowLavaPvpInNether) {
                                     ALLOW_LAVA_PVP_IN_THE_NETHER.set(false);
                                 }
                             }
                         }
-                        changePreferences(player, gui, preference, name, item, slot, sound);
+                        changePreference(player, gui, preference, item, sound);
                     })
             );
         } else {
@@ -1053,78 +1176,6 @@ public class ManhuntGame {
         for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
             setPlayerSpawnXYZ(server.getWorld(overworldRegistryKey), player);
 
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.BOAT_ONE_CM));
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.ANIMALS_BRED));
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.AVIATE_ONE_CM));
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.BELL_RING));
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.CLEAN_ARMOR));
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.CLEAN_BANNER));
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.CLEAN_SHULKER_BOX));
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.CLIMB_ONE_CM));
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.CROUCH_ONE_CM));
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.DAMAGE_ABSORBED));
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.DAMAGE_BLOCKED_BY_SHIELD));
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.DAMAGE_DEALT));
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.DAMAGE_DEALT_ABSORBED));
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.DAMAGE_DEALT_RESISTED));
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.DAMAGE_TAKEN));
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.DEATHS));
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.DROP));
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.EAT_CAKE_SLICE));
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.ENCHANT_ITEM));
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.FALL_ONE_CM));
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.FILL_CAULDRON));
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.FISH_CAUGHT));
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.FLY_ONE_CM));
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.HORSE_ONE_CM));
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.INSPECT_DISPENSER));
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.INSPECT_DROPPER));
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.INSPECT_HOPPER));
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.INTERACT_WITH_ANVIL));
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.INTERACT_WITH_BEACON));
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.INTERACT_WITH_BREWINGSTAND));
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.INTERACT_WITH_BLAST_FURNACE));
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.INTERACT_WITH_CAMPFIRE));
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.INTERACT_WITH_CARTOGRAPHY_TABLE));
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.INTERACT_WITH_CRAFTING_TABLE));
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.INTERACT_WITH_FURNACE));
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.INTERACT_WITH_GRINDSTONE));
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.INTERACT_WITH_LECTERN));
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.INTERACT_WITH_LOOM));
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.INTERACT_WITH_SMITHING_TABLE));
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.INTERACT_WITH_SMOKER));
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.INTERACT_WITH_STONECUTTER));
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.JUMP));
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.LEAVE_GAME));
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.MINECART_ONE_CM));
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.MOB_KILLS));
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.OPEN_BARREL));
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.OPEN_CHEST));
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.OPEN_ENDERCHEST));
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.OPEN_SHULKER_BOX));
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.PIG_ONE_CM));
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.PLAY_NOTEBLOCK));
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.PLAY_RECORD));
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.PLAY_TIME));
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.PLAYER_KILLS));
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.POT_FLOWER));
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.RAID_TRIGGER));
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.RAID_WIN));
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.SLEEP_IN_BED));
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.SNEAK_TIME));
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.SPRINT_ONE_CM));
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.STRIDER_ONE_CM));
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.SWIM_ONE_CM));
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.TALKED_TO_VILLAGER));
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.TARGET_HIT));
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.TIME_SINCE_DEATH));
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.TIME_SINCE_REST));
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.TOTAL_WORLD_TIME));
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.TRADED_WITH_VILLAGER));
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.TRIGGER_TRAPPED_CHEST));
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.WALK_ON_WATER_ONE_CM));
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.WALK_ONE_CM));
-            player.resetStat(Stats.CUSTOM.getOrCreateStat(Stats.WALK_UNDER_WATER_ONE_CM));
             Stats.MINED.forEach(stat -> player.resetStat(stat.getType().getOrCreateStat(stat.getValue())));
             Stats.CRAFTED.forEach(stat -> player.resetStat(stat.getType().getOrCreateStat(stat.getValue())));
             Stats.USED.forEach(stat -> player.resetStat(stat.getType().getOrCreateStat(stat.getValue())));
@@ -1156,8 +1207,8 @@ public class ManhuntGame {
                 player.getScoreboard().removeScoreHolderFromTeam(player.getName().getString(), player.getScoreboard().getTeam("players"));
             }
 
-            if (!(PlayerDataApi.getGlobalDataFor(player, manhuntSoundsVolumePreference) == NbtInt.of(0))) {
-                float volume = (float) Integer.parseInt(String.valueOf(PlayerDataApi.getGlobalDataFor(player, manhuntSoundsVolumePreference))) / 100;
+            if (!(PlayerDataApi.getGlobalDataFor(player, manhuntSoundsVolume) == NbtInt.of(0))) {
+                float volume = (float) Integer.parseInt(String.valueOf(PlayerDataApi.getGlobalDataFor(player, manhuntSoundsVolume))) / 100;
                 if (volume >= 0.2f) {
                     player.playSound(SoundEvents.BLOCK_NOTE_BLOCK_PLING.value(), SoundCategory.BLOCKS, volume / 2, 1.5f);
                 }
@@ -1174,12 +1225,12 @@ public class ManhuntGame {
                 }
             }
 
-            if (PlayerDataApi.getGlobalDataFor(player, showWinnerTitlePreference) == NbtByte.ONE) {
+            if (PlayerDataApi.getGlobalDataFor(player, showWinnerTitle) == NbtByte.ONE) {
                 player.networkHandler.sendPacket(new TitleS2CPacket(Text.translatable("manhunt.title.name")));
                 player.networkHandler.sendPacket(new SubtitleS2CPacket(Text.translatable("manhunt.title.start").formatted(Formatting.GRAY)));
             }
 
-            if (PlayerDataApi.getGlobalDataFor(player, showSettingsAtStartPreference) == NbtByte.ONE) {
+            if (PlayerDataApi.getGlobalDataFor(player, showSettingsAtStart) == NbtByte.ONE) {
                 showSettings(player);
             }
 

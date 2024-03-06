@@ -42,13 +42,13 @@ public class OneRunnerCommand {
 
                 player.getServer().getPlayerManager().broadcast(Text.translatable("manhunt.chat.onerunner", Text.literal(player.getName().getString()), Text.literal("Runner").formatted(Formatting.GREEN), Text.literal("Hunter").formatted(Formatting.RED)), false);
 
-                if (PlayerDataApi.getGlobalDataFor(player, allowBedExplosionsPreference).equals(NbtByte.ZERO)) {
+                if (PlayerDataApi.getGlobalDataFor(player, allowBedExplosions) == NbtByte.ZERO) {
                     ALLOW_BED_EXPLOSIONS.set(false);
                 } else {
                     ALLOW_BED_EXPLOSIONS.set(true);
                 }
 
-                if (PlayerDataApi.getGlobalDataFor(player, allowLavaPvpInNetherPreference).equals(NbtByte.ZERO)) {
+                if (PlayerDataApi.getGlobalDataFor(player, allowLavaPvpInNether) == NbtByte.ZERO) {
                     ALLOW_LAVA_PVP_IN_THE_NETHER.set(false);
                 } else {
                     ALLOW_LAVA_PVP_IN_THE_NETHER.set(true);

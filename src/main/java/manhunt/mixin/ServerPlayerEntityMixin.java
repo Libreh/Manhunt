@@ -12,7 +12,9 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
+import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
+import net.minecraft.text.Texts;
 import net.minecraft.util.Formatting;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -94,41 +96,89 @@ public class ServerPlayerEntityMixin {
         if (player.getScoreboardTeam() != null) {
             if (player.getScoreboardTeam().isEqual(player.getScoreboard().getTeam("runners")) && player.getScoreboard().getTeam("runners").getPlayerList().size() == 1) {
                 manhuntState(POSTGAME, server);
-                for (ServerPlayerEntity serverPlayer : server.getPlayerManager().getPlayerList()) {
-                    updateGameMode(player);
-                    if (PlayerDataApi.getGlobalDataFor(serverPlayer, showWinnerTitlePreference).equals(NbtByte.ONE)) {
-                        player.networkHandler.sendPacket(new TitleS2CPacket(Text.translatable("manhunt.title.hunterswon").formatted(Formatting.RED)));
-                        player.networkHandler.sendPacket(new SubtitleS2CPacket(Text.translatable("manhunt.title.runnersdied").formatted(Formatting.DARK_RED)));
-                        if (!PlayerDataApi.getGlobalDataFor(player, manhuntSoundsVolumePreference).equals(NbtInt.of(0))) {
-                            float volume = (float) Integer.parseInt(String.valueOf(PlayerDataApi.getGlobalDataFor(player, manhuntSoundsVolumePreference))) / 100;
-                            if (volume >= 0.2f) {
-                                player.playSound(SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, SoundCategory.PLAYERS, volume / 2, 0.5f);
+                if (Boolean.parseBoolean(CHANGEABLE_PREFERENCES.get())) {
+                    for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+                        if (PlayerDataApi.getGlobalDataFor(player, showWinnerTitle) == NbtByte.ONE) {
+                            player.networkHandler.sendPacket(new TitleS2CPacket(Text.translatable("manhunt.title.runnerswon").formatted(Formatting.GREEN)));
+                            player.networkHandler.sendPacket(new SubtitleS2CPacket(Text.translatable("manhunt.title.dragondied").formatted(Formatting.DARK_GREEN)));
+                            if (!PlayerDataApi.getGlobalDataFor(player, manhuntSoundsVolume).equals(NbtInt.of(0))) {
+                                float volume = (float) Integer.parseInt(String.valueOf(PlayerDataApi.getGlobalDataFor(player, manhuntSoundsVolume))) / 100;
+                                if (volume >= 0.2f) {
+                                    player.playSound(SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, SoundCategory.PLAYERS, volume / 2, 2f);
+                                }
                             }
                         }
+                        if (PlayerDataApi.getGlobalDataFor(player, showDurationAtEnd) == NbtByte.ONE) {
+                            String hoursString;
+                            int hours = (int) Math.floor((double) player.getWorld().getTime() % (20 * 60 * 60 * 24) / (20 * 60 * 60));
+                            if (hours <= 9) {
+                                hoursString = "0" + hours;
+                            } else {
+                                hoursString = String.valueOf(hours);
+                            }
+                            String minutesString;
+                            int minutes = (int) Math.floor((double) player.getWorld().getTime() % (20 * 60 * 60) / (20 * 60));
+                            if (minutes <= 9) {
+                                minutesString = "0" + minutes;
+                            } else {
+                                minutesString = String.valueOf(minutes);
+                            }
+                            String secondsString;
+                            int seconds = (int) Math.floor((double) player.getWorld().getTime() % (20 * 60) / (20));
+                            if (seconds <= 9) {
+                                secondsString = "0" + seconds;
+                            } else {
+                                secondsString = String.valueOf(seconds);
+                            }
+                            previousDuration = hoursString + ":" + minutesString + ":" + secondsString;
+                            MutableText duration = Texts.bracketedCopyable(previousDuration);
+                            player.sendMessage(Text.translatable("manhunt.chat.show", Text.translatable("manhunt.duration"), duration), false);
+                        }
+                        if (PlayerDataApi.getGlobalDataFor(player, showSeedAtEnd) == (NbtByte.ONE)) {
+                            previousSeed = String.valueOf(player.getServerWorld().getSeed());
+                            MutableText seed = Texts.bracketedCopyable(previousSeed);
+                            player.sendMessage(Text.translatable("manhunt.chat.show", Text.translatable("manhunt.seed"), seed));
+                        }
                     }
-                    if (PlayerDataApi.getGlobalDataFor(serverPlayer, showDurationAtEndPreference).equals(NbtByte.ONE)) {
-                        String hoursString;
-                        int hours = (int) Math.floor((double) player.getWorld().getTime() % (20 * 60 * 60 * 24) / (20 * 60 * 60));
-                        if (hours <= 9) {
-                            hoursString = "0" + hours;
-                        } else {
-                            hoursString = String.valueOf(hours);
+                } else {
+                    for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+                        if (Boolean.parseBoolean(SHOW_WINNER_TITLE.get())) {
+                            player.networkHandler.sendPacket(new TitleS2CPacket(Text.translatable("manhunt.title.runnerswon").formatted(Formatting.GREEN)));
+                            player.networkHandler.sendPacket(new SubtitleS2CPacket(Text.translatable("manhunt.title.dragondied").formatted(Formatting.DARK_GREEN)));
+                            if (!PlayerDataApi.getGlobalDataFor(player, manhuntSoundsVolume).equals(NbtInt.of(0))) {
+                                float volume = (float) Integer.parseInt(String.valueOf(PlayerDataApi.getGlobalDataFor(player, manhuntSoundsVolume))) / 100;
+                                if (volume >= 0.2f) {
+                                    player.playSound(SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, SoundCategory.PLAYERS, volume / 2, 2f);
+                                }
+                            }
                         }
-                        String minutesString;
-                        int minutes = (int) Math.floor((double) player.getWorld().getTime() % (20 * 60 * 60) / (20 * 60));
-                        if (minutes <= 9) {
-                            minutesString = "0" + minutes;
-                        } else {
-                            minutesString = String.valueOf(minutes);
+                        if (Boolean.parseBoolean(SHOW_DURATION_AT_END.get())) {
+                            String hoursString;
+                            int hours = (int) Math.floor((double) player.getWorld().getTime() % (20 * 60 * 60 * 24) / (20 * 60 * 60));
+                            if (hours <= 9) {
+                                hoursString = "0" + hours;
+                            } else {
+                                hoursString = String.valueOf(hours);
+                            }
+                            String minutesString;
+                            int minutes = (int) Math.floor((double) player.getWorld().getTime() % (20 * 60 * 60) / (20 * 60));
+                            if (minutes <= 9) {
+                                minutesString = "0" + minutes;
+                            } else {
+                                minutesString = String.valueOf(minutes);
+                            }
+                            String secondsString;
+                            int seconds = (int) Math.floor((double) player.getWorld().getTime() % (20 * 60) / (20));
+                            if (seconds <= 9) {
+                                secondsString = "0" + seconds;
+                            } else {
+                                secondsString = String.valueOf(seconds);
+                            }
+                            player.sendMessage(Text.translatable("manhunt.chat.duration", hoursString, minutesString, secondsString));
                         }
-                        String secondsString;
-                        int seconds = (int) Math.floor((double) player.getWorld().getTime() % (20 * 60) / (20));
-                        if (seconds <= 9) {
-                            secondsString = "0" + seconds;
-                        } else {
-                            secondsString = String.valueOf(seconds);
+                        if (Boolean.parseBoolean(SHOW_SEED_AT_END.get())) {
+                            player.sendMessage(Text.translatable("manhunt.chat.seed", player.getServerWorld().getSeed()));
                         }
-                        serverPlayer.sendMessage(Text.translatable("manhunt.chat.duration", hoursString, minutesString, secondsString));
                     }
                 }
 

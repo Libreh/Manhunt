@@ -5,10 +5,13 @@ import com.mojang.brigadier.CommandDispatcher;
 import manhunt.game.ManhuntState;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
+import net.minecraft.text.Texts;
 import net.minecraft.util.Formatting;
 
 import static manhunt.game.ManhuntGame.gameState;
+import static manhunt.game.ManhuntGame.previousDuration;
 import static manhunt.game.ManhuntState.PLAYING;
 
 public class DurationCommand {
@@ -42,7 +45,9 @@ public class DurationCommand {
             } else {
                 secondsString = String.valueOf(seconds);
             }
-            source.sendFeedback(() -> Text.translatable("manhunt.chat.duration", Text.literal(hoursString), Text.literal(minutesString), Text.literal(secondsString)), false);
+            previousDuration = hoursString + ":" + minutesString + ":" + secondsString;
+            MutableText duration = Texts.bracketedCopyable(previousDuration);
+            source.sendFeedback(() -> Text.translatable("manhunt.chat.show", Text.translatable("manhunt.duration"), duration), false);
         } else if (gameState == ManhuntState.PREGAME) {
             source.sendFeedback(() -> Text.translatable("manhunt.chat.pregame").formatted(Formatting.RED), false);
         } else {
