@@ -111,10 +111,11 @@ public class ManhuntWorldManager {
             }
 
             server.getPlayerManager().removeFromOperators(player.getGameProfile());
-            player.teleport(server.getWorld(lobbyRegistryKey), 0, 63, 5.5, PositionFlag.ROT, 0.0F, 0.0F);
+            player.teleport(server.getWorld(lobbyRegistryKey), 0, 63, 5.5, PositionFlag.ROT, 0, 0);
             player.clearStatusEffects();
             player.getInventory().clear();
             player.setOnFire(false);
+            player.setFireTicks(0);
             player.setHealth(20);
             player.getHungerManager().setFoodLevel(20);
             player.getHungerManager().setSaturationLevel(5);
@@ -139,7 +140,7 @@ public class ManhuntWorldManager {
             scoreboard.addScoreHolderToTeam(player.getName().getString(), server.getScoreboard().getTeam("hunters"));
 
             if (!Boolean.getBoolean(String.valueOf(RUNNER_VOTING.get()))) {
-                if (SET_ROLES.get() == "All Runners" || PlayerDataApi.getGlobalDataFor(player, isRunner) == NbtByte.ONE) {
+                if (SET_ROLES.get().equals("All Runners") || PlayerDataApi.getGlobalDataFor(player, isRunner) == NbtByte.ONE) {
                     scoreboard.clearTeam(player.getName().getString());
                     scoreboard.addScoreHolderToTeam(player.getName().getString(), scoreboard.getTeam("players"));
                     scoreboard.addScoreHolderToTeam(player.getName().getString(), scoreboard.getTeam("runners"));

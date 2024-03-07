@@ -29,11 +29,11 @@ public class WorldMixin {
         //Checks if the 'shield.block' sound effect has been played because for some reason it shows it's been played, but no sound is outputted
         //if it has then we know the player is blocking with a shield
         if (sound.getId().toString().toLowerCase().contains("shield.break")) {
-            except.getWorld().playSound(x, y, z, SoundEvents.ITEM_SHIELD_BREAK, category, 1.0F, 0.8F + except.getWorld().random.nextFloat() * 0.4F, false);
+            except.getWorld().playSound(x, y, z, SoundEvents.ITEM_SHIELD_BREAK, category, 1, 0.8F + except.getWorld().random.nextFloat() * 0.4F, false);
             playedBreakSound = true;
         } else if (sound.getId().toString().toLowerCase().contains("shield.block")) {
             if (!playedBreakSound) {
-                except.getWorld().playSound(x, y, z, SoundEvents.ITEM_SHIELD_BLOCK, category, 1.0F, 0.8F + except.getWorld().random.nextFloat() * 0.4F, false);
+                except.getWorld().playSound(x, y, z, SoundEvents.ITEM_SHIELD_BLOCK, category, 1, 0.8F + except.getWorld().random.nextFloat() * 0.4F, false);
             } else {
                 playedBreakSound = false;
             }

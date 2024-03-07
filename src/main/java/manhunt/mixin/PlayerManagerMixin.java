@@ -36,14 +36,14 @@ public abstract class PlayerManagerMixin {
             nbt.put("Pos", position);
 
             NbtList rotation = new NbtList();
-            rotation.add(NbtFloat.of(0.0F));
-            rotation.add(NbtFloat.of(0.0F));
+            rotation.add(NbtFloat.of(0));
+            rotation.add(NbtFloat.of(0));
             nbt.put("Rotation", rotation);
 
             player.readNbt(nbt);
             ci.setReturnValue(nbt);
         }
-        if (gameState == PLAYING || gameState == POSTGAME) {
+        if (ci.getReturnValue() == null && gameState == PLAYING || ci.getReturnValue() == null &&   gameState == POSTGAME) {
             NbtCompound nbt = new NbtCompound();
             nbt.putString("Dimension", "manhunt:overworld");
 
@@ -59,8 +59,8 @@ public abstract class PlayerManagerMixin {
             nbt.put("Pos", position);
 
             NbtList rotation = new NbtList();
-            rotation.add(NbtFloat.of(0.0F));
-            rotation.add(NbtFloat.of(0.0F));
+            rotation.add(NbtFloat.of(0));
+            rotation.add(NbtFloat.of(0));
             nbt.put("Rotation", rotation);
 
             player.readNbt(nbt);

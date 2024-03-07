@@ -59,6 +59,6 @@ public class EndPortalBlockMixin {
     }
 
     private TeleportTarget getTeleportTarget(Entity entity, BlockPos teleport_pos) {
-        return new TeleportTarget(new Vec3d((double) teleport_pos.getX() + 0.5, teleport_pos.getY(), (double) teleport_pos.getZ() + 0.5), entity.getVelocity(), 90.0F, 0.0F);
+        return new TeleportTarget(new Vec3d((double) teleport_pos.getX() + 0.5, teleport_pos.getY(), (double) teleport_pos.getZ() + 0.5), entity.getVelocity(), 90, 0);
     }
 }

@@ -111,8 +111,8 @@ public class ManhuntGame {
     public static Identifier showWinnerTitle = new Identifier(MOD_ID, "show_winner_title");
     public static Identifier manhuntSoundsVolume = new Identifier(MOD_ID, "manhunt_sounds_volume");
     public static Identifier showSettingsAtStart = new Identifier(MOD_ID, "show_settings_at_start");
-    public static Identifier showDurationAtEnd = new Identifier(MOD_ID, "show_duration_at_end");
-    public static Identifier showSeedAtEnd = new Identifier(MOD_ID, "show_seed_at_end");
+    public static Identifier showDurationOnWin = new Identifier(MOD_ID, "show_duration_on_win");
+    public static Identifier showSeedOnWin = new Identifier(MOD_ID, "show_seed_on_win");
     public static Identifier allowBedExplosions = new Identifier(MOD_ID, "allow_bed_explosions");
     public static Identifier allowLavaPvpInNether = new Identifier(MOD_ID, "allow_lava_pvp_in_the_nether");
 
@@ -182,8 +182,8 @@ public class ManhuntGame {
         personalPreferences.add(showWinnerTitle);
         personalPreferences.add(manhuntSoundsVolume);
         personalPreferences.add(showSettingsAtStart);
-        personalPreferences.add(showDurationAtEnd);
-        personalPreferences.add(showSeedAtEnd);
+        personalPreferences.add(showDurationOnWin);
+        personalPreferences.add(showSeedOnWin);
 
         runnerPreferences.add(allowBedExplosions);
         runnerPreferences.add(allowLavaPvpInNether);
@@ -352,11 +352,12 @@ public class ManhuntGame {
 
         if (gameState == PREGAME) {
             server.getPlayerManager().removeFromOperators(player.getGameProfile());
-            player.teleport(server.getWorld(lobbyRegistryKey), 0, 63, 5.5, PositionFlag.ROT, 0.0F, 0.0F);
+            player.teleport(server.getWorld(lobbyRegistryKey), 0, 63, 5.5, PositionFlag.ROT, 0, 0);
             player.getInventory().clear();
             updateGameMode(player);
             player.setFireTicks(0);
             player.setOnFire(false);
+            player.setFireTicks(0);
             player.setHealth(20);
             player.getHungerManager().setFoodLevel(20);
             player.getHungerManager().setSaturationLevel(5);
@@ -390,7 +391,7 @@ public class ManhuntGame {
             int playerX = Integer.parseInt(String.valueOf(PlayerDataApi.getGlobalDataFor(player, playerSpawnX)));
             int playerY = Integer.parseInt(String.valueOf(PlayerDataApi.getGlobalDataFor(player, playerSpawnY)));
             int playerZ = Integer.parseInt(String.valueOf(PlayerDataApi.getGlobalDataFor(player, playerSpawnZ)));
-            player.setSpawnPoint(overworldRegistryKey, new BlockPos(playerX, playerY, playerZ), 0.0F, true, false);
+            player.setSpawnPoint(overworldRegistryKey, new BlockPos(playerX, playerY, playerZ), 0, true, false);
 
             if (player.isTeamPlayer(player.getScoreboard().getTeam("players"))) {
                 player.getScoreboard().removeScoreHolderFromTeam(player.getName().getString(), player.getScoreboard().getTeam("players"));
@@ -437,18 +438,18 @@ public class ManhuntGame {
                 PlayerDataApi.setGlobalDataFor(player, showSettingsAtStart, NbtByte.ZERO);
             }
         }
-        if (PlayerDataApi.getGlobalDataFor(player, showDurationAtEnd) == null) {
-            if (Boolean.parseBoolean(SHOW_DURATION_AT_END.get())) {
-                PlayerDataApi.setGlobalDataFor(player, showDurationAtEnd, NbtByte.ONE);
+        if (PlayerDataApi.getGlobalDataFor(player, showDurationOnWin) == null) {
+            if (Boolean.parseBoolean(SHOW_DURATION_ON_WIN.get())) {
+                PlayerDataApi.setGlobalDataFor(player, showDurationOnWin, NbtByte.ONE);
             } else {
-                PlayerDataApi.setGlobalDataFor(player, showDurationAtEnd, NbtByte.ZERO);
+                PlayerDataApi.setGlobalDataFor(player, showDurationOnWin, NbtByte.ZERO);
             }
         }
-        if (PlayerDataApi.getGlobalDataFor(player, showSeedAtEnd) == null) {
-            if (Boolean.parseBoolean(SHOW_SEED_AT_END.get())) {
-                PlayerDataApi.setGlobalDataFor(player, showSeedAtEnd, NbtByte.ONE);
+        if (PlayerDataApi.getGlobalDataFor(player, showSeedOnWin) == null) {
+            if (Boolean.parseBoolean(SHOW_SEED_ON_WIN.get())) {
+                PlayerDataApi.setGlobalDataFor(player, showSeedOnWin, NbtByte.ONE);
             } else {
-                PlayerDataApi.setGlobalDataFor(player, showSeedAtEnd, NbtByte.ZERO);
+                PlayerDataApi.setGlobalDataFor(player, showSeedOnWin, NbtByte.ZERO);
             }
         }
         if (PlayerDataApi.getGlobalDataFor(player, allowBedExplosions) == null) {
@@ -480,14 +481,14 @@ public class ManhuntGame {
                     nbt.put("display", new NbtCompound());
                     nbt.getCompound("display").putString("Name", "{\"translate\": \"manhunt.item.ready\",\"italic\": false,\"color\": \"green\"}");
 
-                    ItemStack item = new ItemStack(Items.LIME_CONCRETE);
-                    item.setNbt(nbt);
+                    ItemStack ready = new ItemStack(Items.LIME_CONCRETE);
+                    ready.setNbt(nbt);
 
                     int slotNumber = player.getInventory().getSlotWithStack(itemStack);
 
-                    player.getInventory().setStack(slotNumber, item);
+                    player.getInventory().setStack(slotNumber, ready);
 
-                    player.getItemCooldownManager().set(item.getItem(), 20);
+                    player.getItemCooldownManager().set(ready.getItem(), 20);
 
                     player.playSound(SoundEvents.BLOCK_STONE_PLACE, SoundCategory.BLOCKS, 0.5f, 1.5f);
 
@@ -514,12 +515,12 @@ public class ManhuntGame {
                     nbt.put("display", new NbtCompound());
                     nbt.getCompound("display").putString("Name", "{\"translate\": \"Unready\",\"italic\": false,\"color\": \"red\"}");
 
-                    ItemStack item = new ItemStack(Items.RED_CONCRETE);
-                    item.setNbt(nbt);
+                    ItemStack notReady = new ItemStack(Items.RED_CONCRETE);
+                    notReady.setNbt(nbt);
 
                     int slotNumber = player.getInventory().getSlotWithStack(itemStack);
 
-                    player.getInventory().setStack(slotNumber, item);
+                    player.getInventory().setStack(slotNumber, notReady);
 
                     player.playSound(SoundEvents.BLOCK_STONE_PLACE, SoundCategory.BLOCKS, 0.5f, 0.5f);
 
@@ -536,12 +537,12 @@ public class ManhuntGame {
                     nbt.put("display", new NbtCompound());
                     nbt.getCompound("display").putString("Name", "{\"translate\": \"Runner\",\"italic\": false,\"color\": \"green\"}");
 
-                    ItemStack item = new ItemStack(Items.CLOCK);
-                    item.setNbt(nbt);
+                    ItemStack chooseRunner = new ItemStack(Items.CLOCK);
+                    chooseRunner.setNbt(nbt);
 
                     int slotNumber = player.getInventory().getSlotWithStack(itemStack);
 
-                    player.getInventory().setStack(slotNumber, item);
+                    player.getInventory().setStack(slotNumber, chooseRunner);
 
                     itemStack.addEnchantment(Enchantments.VANISHING_CURSE, 1);
 
@@ -564,12 +565,12 @@ public class ManhuntGame {
                     nbt.put("display", new NbtCompound());
                     nbt.getCompound("display").putString("Name", "{\"translate\": \"Hunter\",\"italic\": false,\"color\": \"aqua\"}");
 
-                    ItemStack item = new ItemStack(Items.RECOVERY_COMPASS);
-                    item.setNbt(nbt);
+                    ItemStack chooseHunter = new ItemStack(Items.RECOVERY_COMPASS);
+                    chooseHunter.setNbt(nbt);
 
                     int slotNumber = player.getInventory().getSlotWithStack(itemStack);
 
-                    player.getInventory().setStack(slotNumber, item);
+                    player.getInventory().setStack(slotNumber, chooseHunter);
 
                     itemStack.addEnchantment(Enchantments.VANISHING_CURSE, 1);
 
@@ -611,7 +612,7 @@ public class ManhuntGame {
         }
 
         if (gameState == PLAYING) {
-            if (Boolean.parseBoolean(MANUAL_COMPASS_UPDATE.get()) && itemStack.getNbt() != null && itemStack.getNbt().getBoolean("Tracker") && !player.isSpectator() && player.isTeamPlayer(player.getScoreboard().getTeam("hunters")) && !player.getItemCooldownManager().isCoolingDown(itemStack.getItem())) {
+            if (Boolean.parseBoolean(TRACKER_UPDATE_METHOD.get()) && itemStack.getNbt() != null && itemStack.getNbt().getBoolean("Tracker") && !player.isSpectator() && player.isTeamPlayer(player.getScoreboard().getTeam("hunters")) && !player.getItemCooldownManager().isCoolingDown(itemStack.getItem())) {
                 player.getItemCooldownManager().set(itemStack.getItem(), 20);
                 if (!itemStack.getNbt().contains("Info")) {
                     itemStack.getNbt().put("Info", new NbtCompound());
@@ -635,14 +636,14 @@ public class ManhuntGame {
                 if ((player.getWorld().getRegistryKey() == theNetherRegistryKey || player.getWorld().getRegistryKey() == theEndRegistryKey) && itemStack.getItem().getName().getString().contains("bed")) {
                     if (player.isTeamPlayer(player.getScoreboard().getTeam("hunters"))) {
                         for (String playerName : player.getScoreboard().getTeam("runners").getPlayerList()) {
-                            if (player.distanceTo(player.getServer().getPlayerManager().getPlayer(playerName)) <= 9.0F) {
+                            if (player.distanceTo(player.getServer().getPlayerManager().getPlayer(playerName)) <= 9) {
                                 player.sendMessage(Text.translatable("manhunt.chat.allowbedexplosions").formatted(Formatting.RED), false);
                                 return TypedActionResult.fail(itemStack);
                             }
                         }
                     } else {
                         for (String playerName : player.getScoreboard().getTeam("hunters").getPlayerList()) {
-                            if (player.distanceTo(player.getServer().getPlayerManager().getPlayer(playerName)) <= 9.0F) {
+                            if (player.distanceTo(player.getServer().getPlayerManager().getPlayer(playerName)) <= 9) {
                                 player.sendMessage(Text.translatable("manhunt.chat.allowlavapvpinthenether").formatted(Formatting.RED), false);
                                 return TypedActionResult.fail(itemStack);
                             }
@@ -655,13 +656,13 @@ public class ManhuntGame {
                 if (player.getWorld().getRegistryKey() == theNetherRegistryKey && itemStack.getItem() == Items.LAVA_BUCKET) {
                     if (player.isTeamPlayer(player.getScoreboard().getTeam("hunters"))) {
                         for (String playerName : player.getScoreboard().getTeam("runners").getPlayerList()) {
-                            if (player.distanceTo(player.getServer().getPlayerManager().getPlayer(playerName)) <= 9.0F) {
+                            if (player.distanceTo(player.getServer().getPlayerManager().getPlayer(playerName)) <= 9) {
                                 return TypedActionResult.fail(itemStack);
                             }
                         }
                     } else {
                         for (String playerName : player.getScoreboard().getTeam("hunters").getPlayerList()) {
-                            if (player.distanceTo(player.getServer().getPlayerManager().getPlayer(playerName)) <= 9.0F) {
+                            if (player.distanceTo(player.getServer().getPlayerManager().getPlayer(playerName)) <= 9) {
                                 return TypedActionResult.fail(itemStack);
                             }
                         }
@@ -736,7 +737,7 @@ public class ManhuntGame {
         changeSetting(player, settingsGui, SET_ROLES, Items.FLETCHING_TABLE, SoundEvents.ENTITY_VILLAGER_WORK_FLETCHER);
         changeSetting(player, settingsGui, HUNTER_FREEZE_SECONDS, Items.ICE, SoundEvents.BLOCK_GLASS_BREAK);
         changeSetting(player, settingsGui, TIME_LIMIT_MINUTES, Items.CLOCK, SoundEvents.ENTITY_FISHING_BOBBER_THROW);
-        changeSetting(player, settingsGui, MANUAL_COMPASS_UPDATE, Items.COMPASS, SoundEvents.ITEM_LODESTONE_COMPASS_LOCK);
+        changeSetting(player, settingsGui, TRACKER_UPDATE_METHOD, Items.COMPASS, SoundEvents.ITEM_LODESTONE_COMPASS_LOCK);
         changeSetting(player, settingsGui, SHOW_TEAM_COLOR, Items.LEATHER_CHESTPLATE, SoundEvents.ITEM_ARMOR_EQUIP_LEATHER);
         changeSetting(player, settingsGui, WORLD_DIFFICULTY, Items.CREEPER_HEAD, SoundEvents.ENTITY_CREEPER_HURT);
         changeSetting(player, settingsGui, WORLD_BORDER_BLOCKS, Items.STRUCTURE_VOID, SoundEvents.BLOCK_DEEPSLATE_BREAK);
@@ -746,8 +747,8 @@ public class ManhuntGame {
         changeSetting(player, settingsGui, SHOW_WINNER_TITLE, Items.OAK_SIGN, SoundEvents.BLOCK_WOOD_PLACE);
         changeSetting(player, settingsGui, MANHUNT_SOUNDS_VOLUME, Items.PLAYER_HEAD, SoundEvents.ENTITY_PLAYER_BURP);
         changeSetting(player, settingsGui, SHOW_SETTINGS_AT_START, Items.IRON_BLOCK, SoundEvents.BLOCK_METAL_PLACE);
-        changeSetting(player, settingsGui, SHOW_DURATION_AT_END, Items.GRAY_WOOL, SoundEvents.BLOCK_WOOL_BREAK);
-        changeSetting(player, settingsGui, SHOW_SEED_AT_END, Items.WHEAT_SEEDS, SoundEvents.BLOCK_GRASS_BREAK);
+        changeSetting(player, settingsGui, SHOW_DURATION_ON_WIN, Items.GRAY_WOOL, SoundEvents.BLOCK_WOOL_BREAK);
+        changeSetting(player, settingsGui, SHOW_SEED_ON_WIN, Items.WHEAT_SEEDS, SoundEvents.BLOCK_GRASS_BREAK);
         settingsGui.open();
     }
 
@@ -801,8 +802,8 @@ public class ManhuntGame {
         changePreference(player, personalPreferencesGui, showWinnerTitle, Items.OAK_SIGN, SoundEvents.BLOCK_WOOD_PLACE);
         changePreference(player, personalPreferencesGui, manhuntSoundsVolume, Items.PLAYER_HEAD, SoundEvents.ENTITY_PLAYER_BURP);
         changePreference(player, personalPreferencesGui, showSettingsAtStart, Items.IRON_BLOCK, SoundEvents.BLOCK_METAL_PLACE);
-        changePreference(player, personalPreferencesGui, showDurationAtEnd, Items.GRAY_WOOL, SoundEvents.BLOCK_WOOL_BREAK);
-        changePreference(player, personalPreferencesGui, showSeedAtEnd, Items.WHEAT_SEEDS, SoundEvents.BLOCK_GRASS_BREAK);
+        changePreference(player, personalPreferencesGui, showDurationOnWin, Items.GRAY_WOOL, SoundEvents.BLOCK_WOOL_BREAK);
+        changePreference(player, personalPreferencesGui, showSeedOnWin, Items.WHEAT_SEEDS, SoundEvents.BLOCK_GRASS_BREAK);
         personalPreferencesGui.open();
     }
 
@@ -857,9 +858,9 @@ public class ManhuntGame {
                             setting.set(true);
                             player.getServer().getPlayerManager().broadcast(Text.translatable("manhunt.chat.setting.set", Text.translatable("manhunt." + name).formatted(Formatting.WHITE), Text.translatable("manhunt.enabled").formatted(Formatting.GREEN)).formatted(Formatting.GRAY), false);
                             if (name.equals("allowbedexplosions")) {
-                                player.playSound(sound, SoundCategory.MASTER, 0.2F, 1.0F);
+                                player.playSound(sound, SoundCategory.MASTER, 0.2F, 1);
                             } else {
-                                player.playSound(sound, SoundCategory.MASTER, 1.0F, 1.0F);
+                                player.playSound(sound, SoundCategory.MASTER, 1, 1);
                             }
                         } else {
                             setting.set(false);
@@ -867,7 +868,7 @@ public class ManhuntGame {
                             if (name.equals("allowbedexplosions")) {
                                 player.playSound(sound, SoundCategory.MASTER, 0.2F, 0.5F);
                             } else {
-                                player.playSound(sound, SoundCategory.MASTER, 1.0F, 0.5F);
+                                player.playSound(sound, SoundCategory.MASTER, 1, 0.5F);
                             }
 
                             if (name.equals("runnervoting")) {
@@ -897,6 +898,12 @@ public class ManhuntGame {
                 value3 = "All Runners";
             }
 
+            if (name.equals("trackerupdatemethod")) {
+                value1 = "Manual Click";
+                value2 = "Basic Update";
+                value3 = "Smart Rate";
+            }
+
             if (name.equals("worlddifficulty")) {
                 value1 = "Easy";
                 value2 = "Normal";
@@ -922,7 +929,7 @@ public class ManhuntGame {
                         if (setting.get().equals(finalValue1)) {
                             setting.set(finalValue2);
                             player.getServer().getPlayerManager().broadcast(Text.translatable("manhunt.chat.setting.set", Text.translatable("manhunt." + name).formatted(Formatting.WHITE), Text.translatable("manhunt." + name + "." + finalValue2.toLowerCase().replaceAll("\\s+","")).formatted(Formatting.YELLOW)).formatted(Formatting.GRAY), false);
-                            player.playSound(sound, SoundCategory.MASTER, 1.0F, 1.0F);
+                            player.playSound(sound, SoundCategory.MASTER, 1, 1);
                             if (name.equals("setroles")) {
                                 for (ServerPlayerEntity serverPlayer : playerList) {
                                     player.getScoreboard().clearTeam(player.getName().getString());
@@ -934,7 +941,7 @@ public class ManhuntGame {
                         } else if (setting.get().equals(finalValue2)) {
                             setting.set(finalValue3);
                             player.getServer().getPlayerManager().broadcast(Text.translatable("manhunt.chat.setting.set", Text.translatable("manhunt." + name).formatted(Formatting.WHITE), Text.translatable("manhunt." + name + "." + finalValue3.toLowerCase().replaceAll("\\s+","")).formatted(Formatting.RED)).formatted(Formatting.GRAY), false);
-                            player.playSound(sound, SoundCategory.MASTER, 1.0F, 1.5F);
+                            player.playSound(sound, SoundCategory.MASTER, 1, 1.5F);
                             if (name.equals("setroles")) {
                                 for (ServerPlayerEntity serverPlayer : playerList) {
                                     player.getScoreboard().clearTeam(player.getName().getString());
@@ -946,7 +953,7 @@ public class ManhuntGame {
                         } else {
                             setting.set(finalValue1);
                             player.getServer().getPlayerManager().broadcast(Text.translatable("manhunt.chat.setting.set", Text.translatable("manhunt." + name).formatted(Formatting.WHITE), Text.translatable("manhunt." + name + "." + finalValue1.toLowerCase().replaceAll("\\s+","")).formatted(Formatting.GREEN)).formatted(Formatting.GRAY), false);
-                            player.playSound(sound, SoundCategory.MASTER, 1.0F, 0.5F);
+                            player.playSound(sound, SoundCategory.MASTER, 1, 0.5F);
                         }
                         changeSetting(player, gui, setting, item, sound);
                     })
@@ -990,10 +997,10 @@ public class ManhuntGame {
                                                 setting.set(value);
                                                 if (Integer.parseInt(setting.get()) == 0) {
                                                     player.getServer().getPlayerManager().broadcast(Text.translatable("manhunt.chat.setting.set", Text.translatable("manhunt." + name).formatted(Formatting.WHITE), Text.literal(setting.get() + " " + dataType + " (disabled)").formatted(Formatting.RED)).formatted(Formatting.GRAY), false);
-                                                    player.playSound(sound, SoundCategory.MASTER, 1.0F, 0.5F);
+                                                    player.playSound(sound, SoundCategory.MASTER, 1, 0.5F);
                                                 } else {
                                                     player.getServer().getPlayerManager().broadcast(Text.translatable("manhunt.chat.setting.set", Text.translatable("manhunt." + name).formatted(Formatting.WHITE), Text.literal(setting.get() + " " + dataType).formatted(Formatting.GREEN)).formatted(Formatting.GRAY), false);
-                                                    player.playSound(sound, SoundCategory.MASTER, 1.0F, 1.0F);
+                                                    player.playSound(sound, SoundCategory.MASTER, 1, 1);
                                                 }
                                             } catch (NumberFormatException e) {
                                                 player.sendMessage(Text.translatable("manhunt.chat.invalid").formatted(Formatting.RED));
@@ -1054,9 +1061,9 @@ public class ManhuntGame {
                             PlayerDataApi.setGlobalDataFor(player, preference, NbtByte.ONE);
                             if (preference == allowBedExplosions) {
                                 ALLOW_BED_EXPLOSIONS.set(true);
-                                player.playSound(sound, SoundCategory.MASTER, 0.2F, 1.0F);
+                                player.playSound(sound, SoundCategory.MASTER, 0.2F, 1);
                             } else {
-                                player.playSound(sound, SoundCategory.MASTER, 1.0F, 1.0F);
+                                player.playSound(sound, SoundCategory.MASTER, 1, 1);
                                 if (preference == allowLavaPvpInNether) {
                                     ALLOW_LAVA_PVP_IN_THE_NETHER.set(true);
                                 }
@@ -1067,7 +1074,7 @@ public class ManhuntGame {
                                 ALLOW_BED_EXPLOSIONS.set(false);
                                 player.playSound(sound, SoundCategory.MASTER, 0.2F, 0.5F);
                             } else {
-                                player.playSound(sound, SoundCategory.MASTER, 1.0F, 0.5F);
+                                player.playSound(sound, SoundCategory.MASTER, 1, 0.5F);
                                 if (preference == allowLavaPvpInNether) {
                                     ALLOW_LAVA_PVP_IN_THE_NETHER.set(false);
                                 }
@@ -1190,8 +1197,8 @@ public class ManhuntGame {
             double playerX = Double.parseDouble(String.valueOf(PlayerDataApi.getGlobalDataFor(player, playerSpawnX)));
             double playerY = Double.parseDouble(String.valueOf(PlayerDataApi.getGlobalDataFor(player, playerSpawnY)));
             double playerZ = Double.parseDouble(String.valueOf(PlayerDataApi.getGlobalDataFor(player, playerSpawnZ)));
-            player.teleport(world, playerX, playerY, playerZ, 0.0F, 0.0F);
-            player.setSpawnPoint(overworldRegistryKey, new BlockPos((int) playerX, (int) playerY, (int) playerZ), 0.0F, true, false);
+            player.teleport(world, playerX, playerY, playerZ, 0, 0);
+            player.setSpawnPoint(overworldRegistryKey, new BlockPos((int) playerX, (int) playerY, (int) playerZ), 0, true, false);
             player.clearStatusEffects();
             player.getInventory().clear();
             player.setFireTicks(0);
@@ -1382,10 +1389,17 @@ public class ManhuntGame {
             player.sendMessage(Text.translatable("manhunt.chat.setting.is", Text.translatable("manhunt.timelimitminutes").formatted(Formatting.AQUA), Text.literal(TIME_LIMIT_MINUTES.get() + " minutes").formatted(Formatting.RED)));
         }
 
-        if (Boolean.parseBoolean(MANUAL_COMPASS_UPDATE.get())) {
-            player.sendMessage(Text.translatable("manhunt.chat.setting.is", Text.translatable("manhunt.manualcompassupdate").formatted(Formatting.AQUA), Text.translatable("manhunt.enabled").formatted(Formatting.GREEN)));
+        if (Boolean.parseBoolean(TRACKER_UPDATE_METHOD.get())) {
+            player.sendMessage(Text.translatable("manhunt.chat.setting.is", Text.translatable("manhunt.trackerupdatemethod").formatted(Formatting.AQUA), Text.translatable("manhunt.enabled").formatted(Formatting.GREEN)));
         } else {
-            player.sendMessage(Text.translatable("manhunt.chat.setting.is", Text.translatable("manhunt.manualcompassupdate").formatted(Formatting.AQUA), Text.translatable("manhunt.disabled").formatted(Formatting.RED)));
+            player.sendMessage(Text.translatable("manhunt.chat.setting.is", Text.translatable("manhunt.trackerupdatemethod").formatted(Formatting.AQUA), Text.translatable("manhunt.disabled").formatted(Formatting.RED)));
+        }
+        if (TRACKER_UPDATE_METHOD.get().equals("Manual Click")) {
+            player.sendMessage(Text.translatable("manhunt.chat.setting.is", Text.translatable("manhunt.trackerupdatemethod").formatted(Formatting.AQUA), Text.translatable("manhunt.trackerupdatemethod.manualclick").formatted(Formatting.GREEN)));
+        } else if (TRACKER_UPDATE_METHOD.get().equals("Basic Update")) {
+            player.sendMessage(Text.translatable("manhunt.chat.setting.is", Text.translatable("manhunt.trackerupdatemethod").formatted(Formatting.AQUA), Text.translatable("manhunt.trackerupdatemethod.basicupdate").formatted(Formatting.YELLOW)));
+        } else {
+            player.sendMessage(Text.translatable("manhunt.chat.setting.is", Text.translatable("manhunt.trackerupdatemethod").formatted(Formatting.AQUA), Text.translatable("manhunt.trackerupdatemethod.smartrate").formatted(Formatting.RED)));
         }
 
         if (Boolean.parseBoolean(SHOW_TEAM_COLOR.get())) {

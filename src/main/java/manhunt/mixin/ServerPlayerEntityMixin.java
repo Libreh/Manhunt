@@ -42,7 +42,8 @@ public class ServerPlayerEntityMixin {
     public MinecraftServer server;
 
     private long lastDelay = System.currentTimeMillis();
-    private ServerPlayerEntity player = (ServerPlayerEntity) (Object) this;
+    private long rate = 1000;
+    private final ServerPlayerEntity player = (ServerPlayerEntity) (Object) this;
 
     @Inject(method = "tick", at = @At("HEAD"))
     public void tick(CallbackInfo ci) {
@@ -64,23 +65,41 @@ public class ServerPlayerEntityMixin {
                     tracker.addEnchantment(Enchantments.VANISHING_CURSE, 1);
 
                     player.giveItemStack(tracker);
-                } else if (!Boolean.parseBoolean(MANUAL_COMPASS_UPDATE.get()) && System.currentTimeMillis() - lastDelay > ((long) 1000)) {
-                    for (ItemStack item : player.getInventory().main) {
-                        if (item.getItem().equals(Items.COMPASS) && item.getNbt() != null && item.getNbt().getBoolean("Tracker")) {
-                            if (!item.getNbt().contains("Info")) {
-                                item.getNbt().put("Info", new NbtCompound());
+                } else if (!TRACKER_UPDATE_METHOD.get().equals("Manual Click") && System.currentTimeMillis() - lastDelay > rate) {
+                    for (ItemStack itemStack : player.getInventory().main) {
+                        if (itemStack.getItem().equals(Items.COMPASS) && itemStack.getNbt() != null && itemStack.getNbt().getBoolean("Tracker")) {
+                            if (!itemStack.getNbt().contains("Info")) {
+                                itemStack.getNbt().put("Info", new NbtCompound());
                             }
 
-                            NbtCompound info = item.getNbt().getCompound("Info");
+                            NbtCompound info = itemStack.getNbt().getCompound("Info");
 
                             if (!info.contains("Name", NbtElement.STRING_TYPE) && !allRunners.isEmpty()) {
                                 info.putString("Name", allRunners.get(0).getName().getString());
                             }
 
-                            ServerPlayerEntity trackedPlayer = server.getPlayerManager().getPlayer(item.getNbt().getCompound("Info").getString("Name"));
+                            ServerPlayerEntity trackedPlayer = server.getPlayerManager().getPlayer(itemStack.getNbt().getCompound("Info").getString("Name"));
 
                             if (trackedPlayer != null) {
-                                updateCompass(server.getPlayerManager().getPlayer(player.getName().getString()), item.getNbt(), trackedPlayer);
+                                if (TRACKER_UPDATE_METHOD.get().equals("Smart Rate")) {
+                                    if (player.distanceTo(trackedPlayer) <= 64) {
+                                        rate = 100;
+                                    } else if (player.distanceTo(trackedPlayer) <= 192) {
+                                        rate = 250;
+                                    } else if (player.distanceTo(trackedPlayer) <= 384) {
+                                        rate = 500;
+                                    } else if (player.distanceTo(trackedPlayer) <= 768) {
+                                        rate = 1000;
+                                    } else if (player.distanceTo(trackedPlayer) <= 1536) {
+                                        rate = 2000;
+                                    } else {
+                                        rate = 4000;
+                                    }
+                                } else {
+                                    rate = 1000;
+                                }
+
+                                updateCompass(server.getPlayerManager().getPlayer(player.getName().getString()), itemStack.getNbt(), trackedPlayer);
                             }
                         }
                     }
@@ -92,12 +111,12 @@ public class ServerPlayerEntityMixin {
 
     @Inject(at = @At("HEAD"), method = "onDeath")
     public void onDeath(DamageSource source, CallbackInfo ci) {
-
         if (player.getScoreboardTeam() != null) {
             if (player.getScoreboardTeam().isEqual(player.getScoreboard().getTeam("runners")) && player.getScoreboard().getTeam("runners").getPlayerList().size() == 1) {
                 manhuntState(POSTGAME, server);
                 if (Boolean.parseBoolean(CHANGEABLE_PREFERENCES.get())) {
                     for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+                        updateGameMode(player);
                         if (PlayerDataApi.getGlobalDataFor(player, showWinnerTitle) == NbtByte.ONE) {
                             player.networkHandler.sendPacket(new TitleS2CPacket(Text.translatable("manhunt.title.runnerswon").formatted(Formatting.GREEN)));
                             player.networkHandler.sendPacket(new SubtitleS2CPacket(Text.translatable("manhunt.title.dragondied").formatted(Formatting.DARK_GREEN)));
@@ -108,7 +127,7 @@ public class ServerPlayerEntityMixin {
                                 }
                             }
                         }
-                        if (PlayerDataApi.getGlobalDataFor(player, showDurationAtEnd) == NbtByte.ONE) {
+                        if (PlayerDataApi.getGlobalDataFor(player, showDurationOnWin) == NbtByte.ONE) {
                             String hoursString;
                             int hours = (int) Math.floor((double) player.getWorld().getTime() % (20 * 60 * 60 * 24) / (20 * 60 * 60));
                             if (hours <= 9) {
@@ -134,7 +153,7 @@ public class ServerPlayerEntityMixin {
                             MutableText duration = Texts.bracketedCopyable(previousDuration);
                             player.sendMessage(Text.translatable("manhunt.chat.show", Text.translatable("manhunt.duration"), duration), false);
                         }
-                        if (PlayerDataApi.getGlobalDataFor(player, showSeedAtEnd) == (NbtByte.ONE)) {
+                        if (PlayerDataApi.getGlobalDataFor(player, showSeedOnWin) == (NbtByte.ONE)) {
                             previousSeed = String.valueOf(player.getServerWorld().getSeed());
                             MutableText seed = Texts.bracketedCopyable(previousSeed);
                             player.sendMessage(Text.translatable("manhunt.chat.show", Text.translatable("manhunt.seed"), seed));
@@ -152,7 +171,7 @@ public class ServerPlayerEntityMixin {
                                 }
                             }
                         }
-                        if (Boolean.parseBoolean(SHOW_DURATION_AT_END.get())) {
+                        if (Boolean.parseBoolean(SHOW_DURATION_ON_WIN.get())) {
                             String hoursString;
                             int hours = (int) Math.floor((double) player.getWorld().getTime() % (20 * 60 * 60 * 24) / (20 * 60 * 60));
                             if (hours <= 9) {
@@ -176,7 +195,7 @@ public class ServerPlayerEntityMixin {
                             }
                             player.sendMessage(Text.translatable("manhunt.chat.duration", hoursString, minutesString, secondsString));
                         }
-                        if (Boolean.parseBoolean(SHOW_SEED_AT_END.get())) {
+                        if (Boolean.parseBoolean(SHOW_SEED_ON_WIN.get())) {
                             player.sendMessage(Text.translatable("manhunt.chat.seed", player.getServerWorld().getSeed()));
                         }
                     }
@@ -193,20 +212,20 @@ public class ServerPlayerEntityMixin {
     }
 
     private static boolean hasTracker(ServerPlayerEntity player) {
-        boolean bool = false;
+        boolean n = false;
         for (ItemStack itemStack : player.getInventory().main) {
             if (itemStack.getItem().equals(Items.COMPASS) && itemStack.getNbt() != null && itemStack.getNbt().getBoolean("Tracker")) {
-                bool = true;
+                n = true;
                 break;
             }
         }
 
         if (player.playerScreenHandler.getCursorStack().getNbt() != null && player.playerScreenHandler.getCursorStack().getNbt().getBoolean("Tracker")) {
-            bool = true;
+            n = true;
         } else if (player.getOffHandStack().getNbt() != null && player.getOffHandStack().getNbt().getBoolean("Tracker")) {
-            bool = true;
+            n = true;
         }
-        return bool;
+        return n;
     }
 
     private static void updateCompass(ServerPlayerEntity player, NbtCompound nbt, ServerPlayerEntity trackedPlayer) {

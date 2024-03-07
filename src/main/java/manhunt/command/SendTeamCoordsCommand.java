@@ -28,15 +28,15 @@ public class SendTeamCoordsCommand {
             if (player.isTeamPlayer(scoreboard.getTeam("hunters"))) {
                 player.sendMessage(Text.translatable("manhunt.chat.sendteamcoords", Text.literal("[hunters]").formatted(Formatting.RED), Text.literal(player.getName().getString()).formatted(Formatting.RED), Text.literal(String.valueOf(player.getX())), Text.literal(String.valueOf(player.getY())), Text.literal(String.valueOf(player.getZ()))));
                 for (ServerPlayerEntity serverPlayer : player.getServer().getPlayerManager().getPlayerList()) {
-                    if (serverPlayer.isTeamPlayer(scoreboard.getTeam("hunters"))) {
-                        player.sendMessage(Text.translatable("manhunt.chat.teamcoords", Text.literal("[hunters]").formatted(Formatting.RED), Text.literal(player.getName().getString()).formatted(Formatting.RED), Text.literal(String.valueOf(player.getX())), Text.literal(String.valueOf(player.getY())), Text.literal(String.valueOf(player.getZ()))));
+                    if (serverPlayer.isTeamPlayer(scoreboard.getTeam("hunters")) && serverPlayer.getName() != player.getName()) {
+                        serverPlayer.sendMessage(Text.translatable("manhunt.chat.teamcoords", Text.literal("[hunters]").formatted(Formatting.RED), Text.literal(player.getName().getString()).formatted(Formatting.RED), Text.literal(String.valueOf(player.getX())), Text.literal(String.valueOf(player.getY())), Text.literal(String.valueOf(player.getZ()))));
                     }
                 }
             } else {
                 player.sendMessage(Text.translatable("manhunt.chat.sendteamcoords", Text.literal("[runners]").formatted(Formatting.GREEN), Text.literal(player.getName().getString()).formatted(Formatting.GREEN), Text.literal(String.valueOf(player.getX())), Text.literal(String.valueOf(player.getY())), Text.literal(String.valueOf(player.getZ()))));
                 for (ServerPlayerEntity serverPlayer : player.getServer().getPlayerManager().getPlayerList()) {
-                    if (serverPlayer.isTeamPlayer(scoreboard.getTeam("runners"))) {
-                        player.sendMessage(Text.translatable("manhunt.chat.teamcoords", Text.literal("[runners]").formatted(Formatting.GREEN), Text.literal(player.getName().getString()).formatted(Formatting.GREEN), Text.literal(String.valueOf(player.getX())), Text.literal(String.valueOf(player.getY())), Text.literal(String.valueOf(player.getZ()))));
+                    if (serverPlayer.isTeamPlayer(scoreboard.getTeam("runners")) && serverPlayer.getName() != player.getName()) {
+                        serverPlayer.sendMessage(Text.translatable("manhunt.chat.teamcoords", Text.literal("[runners]").formatted(Formatting.GREEN), Text.literal(player.getName().getString()).formatted(Formatting.GREEN), Text.literal(String.valueOf(player.getX())), Text.literal(String.valueOf(player.getY())), Text.literal(String.valueOf(player.getZ()))));
                     }
                 }
             }

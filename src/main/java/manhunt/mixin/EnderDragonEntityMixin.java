@@ -35,13 +35,14 @@ public abstract class EnderDragonEntityMixin {
     @Inject(method = "tickMovement", at = @At("TAIL"))
     private void runnersWon(CallbackInfo ci) {
         EnderDragonEntity dragon = ((EnderDragonEntity) (Object) this);
-        if (dragon.getHealth() == 1.0F) {
+        if (dragon.getHealth() == 1) {
             MinecraftServer server = dragon.getServer();
 
             manhuntState(POSTGAME, server);
-            dragon.setHealth(0.0F);
+            dragon.setHealth(0);
             if (Boolean.parseBoolean(CHANGEABLE_PREFERENCES.get())) {
                 for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+                    updateGameMode(player);
                     if (PlayerDataApi.getGlobalDataFor(player, showWinnerTitle) == NbtByte.ONE) {
                         player.networkHandler.sendPacket(new TitleS2CPacket(Text.translatable("manhunt.title.runnerswon").formatted(Formatting.GREEN)));
                         player.networkHandler.sendPacket(new SubtitleS2CPacket(Text.translatable("manhunt.title.dragondied").formatted(Formatting.DARK_GREEN)));
@@ -52,7 +53,7 @@ public abstract class EnderDragonEntityMixin {
                             }
                         }
                     }
-                    if (PlayerDataApi.getGlobalDataFor(player, showDurationAtEnd) == NbtByte.ONE) {
+                    if (PlayerDataApi.getGlobalDataFor(player, showDurationOnWin) == NbtByte.ONE) {
                         String hoursString;
                         int hours = (int) Math.floor((double) dragon.getWorld().getTime() % (20 * 60 * 60 * 24) / (20 * 60 * 60));
                         if (hours <= 9) {
@@ -78,7 +79,7 @@ public abstract class EnderDragonEntityMixin {
                         MutableText duration = Texts.bracketedCopyable(previousDuration);
                         player.sendMessage(Text.translatable("manhunt.chat.show", Text.translatable("manhunt.duration"), duration), false);
                     }
-                    if (PlayerDataApi.getGlobalDataFor(player, showSeedAtEnd) == (NbtByte.ONE)) {
+                    if (PlayerDataApi.getGlobalDataFor(player, showSeedOnWin) == (NbtByte.ONE)) {
                         previousSeed = String.valueOf(player.getServerWorld().getSeed());
                         MutableText seed = Texts.bracketedCopyable(previousSeed);
                         player.sendMessage(Text.translatable("manhunt.chat.show", Text.translatable("manhunt.seed"), seed));
@@ -96,7 +97,7 @@ public abstract class EnderDragonEntityMixin {
                             }
                         }
                     }
-                    if (Boolean.parseBoolean(SHOW_DURATION_AT_END.get())) {
+                    if (Boolean.parseBoolean(SHOW_DURATION_ON_WIN.get())) {
                         String hoursString;
                         int hours = (int) Math.floor((double) dragon.getWorld().getTime() % (20 * 60 * 60 * 24) / (20 * 60 * 60));
                         if (hours <= 9) {
@@ -120,7 +121,7 @@ public abstract class EnderDragonEntityMixin {
                         }
                         player.sendMessage(Text.translatable("manhunt.chat.duration", hoursString, minutesString, secondsString));
                     }
-                    if (Boolean.parseBoolean(SHOW_SEED_AT_END.get())) {
+                    if (Boolean.parseBoolean(SHOW_SEED_ON_WIN.get())) {
                         player.sendMessage(Text.translatable("manhunt.chat.seed", player.getServerWorld().getSeed()));
                     }
                 }

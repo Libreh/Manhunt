@@ -22,7 +22,7 @@ public class ManhuntConfig {
     public static Setting SET_ROLES;
     public static Setting HUNTER_FREEZE_SECONDS;
     public static Setting TIME_LIMIT_MINUTES;
-    public static Setting MANUAL_COMPASS_UPDATE;
+    public static Setting TRACKER_UPDATE_METHOD;
     public static Setting SHOW_TEAM_COLOR;
     public static Setting WORLD_DIFFICULTY;
     public static Setting WORLD_BORDER_BLOCKS;
@@ -32,8 +32,8 @@ public class ManhuntConfig {
     public static Setting SHOW_WINNER_TITLE;
     public static Setting MANHUNT_SOUNDS_VOLUME;
     public static Setting SHOW_SETTINGS_AT_START;
-    public static Setting SHOW_DURATION_AT_END;
-    public static Setting SHOW_SEED_AT_END;
+    public static Setting SHOW_DURATION_ON_WIN;
+    public static Setting SHOW_SEED_ON_WIN;
 
     public static void setDefaults() {
         ConfigBuilder builder = new ConfigBuilder();
@@ -50,7 +50,7 @@ public class ManhuntConfig {
         SET_ROLES = builder.createSetting("setRoles", "How the roles should be choosen\n# Available options are \"Free Select\", \"All Hunters\", and \"All Runners\"", "Free Select");
         HUNTER_FREEZE_SECONDS = builder.createSetting("hunterFreezeSeconds", "Freezes the hunters at start", 0);
         TIME_LIMIT_MINUTES = builder.createSetting("timeLimitMinutes", "Hunters win at the limit", 0);
-        MANUAL_COMPASS_UPDATE = builder.createSetting("manualCompassUpdate", "Right click on compass or if false then automatically update it", false);
+        TRACKER_UPDATE_METHOD = builder.createSetting("trackerUpdateMethod", "Set update method for the tracker\n# Available options are \"Manual Click\" (right click manually), \"Basic Update\" (update every second), and \"Smart Rate\" (update based on distance to runner)", "Smart Rate");
         SHOW_TEAM_COLOR = builder.createSetting("showTeamColor", "The color of nametags depend on team", true);
         WORLD_DIFFICULTY = builder.createSetting("worldDifficulty", "The world difficulty\n# Available options are \"Easy\", \"Normal\", and \"Hard\"", "Easy");
         WORLD_BORDER_BLOCKS = builder.createSetting("worldBorderBlocks", "Set border size in blocks\n# It defaults to the maximum if it's higher than it (59999968)", 59999968);
@@ -60,8 +60,8 @@ public class ManhuntConfig {
         SHOW_WINNER_TITLE = builder.createSetting("showWinnerTitle", "Default preference value", true);
         MANHUNT_SOUNDS_VOLUME = builder.createSetting("manhuntSoundsVolume", "Default preference value in percent", 100);
         SHOW_SETTINGS_AT_START = builder.createSetting("showSettingsAtStart", "Default preference value in percent", true);
-        SHOW_DURATION_AT_END = builder.createSetting("showDurationAtEnd", "Default preference value in percent", true);
-        SHOW_SEED_AT_END = builder.createSetting("showSeedAtEnd", "Default preference value", true);
+        SHOW_DURATION_ON_WIN = builder.createSetting("showDurationOnWin", "Default preference value in percent", true);
+        SHOW_SEED_ON_WIN = builder.createSetting("showSeedOnWin", "Default preference value", true);
         builder.finish();
     }
 

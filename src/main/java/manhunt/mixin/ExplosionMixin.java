@@ -54,7 +54,7 @@ public class ExplosionMixin {
             if (nearEntity.isAlive()) {
                 double distance = Math.sqrt(nearEntity.squaredDistanceTo(pos));
                 if (distance < maxDistance && checkShieldState(nearEntity)) {
-                    world.playSound(nearEntity.getX(), nearEntity.getY(), nearEntity.getZ(), SoundEvents.ITEM_SHIELD_BLOCK, nearEntity.getSoundCategory(), 1.0F, 0.8F + world.random.nextFloat() * 0.4F, false);
+                    world.playSound(nearEntity.getX(), nearEntity.getY(), nearEntity.getZ(), SoundEvents.ITEM_SHIELD_BLOCK, nearEntity.getSoundCategory(), 1, 0.8F + world.random.nextFloat() * 0.4F, false);
                 }
             }
         }
