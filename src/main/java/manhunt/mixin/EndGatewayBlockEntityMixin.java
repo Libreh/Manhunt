@@ -7,8 +7,6 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
-// Thanks to https://github.com/sakurawald/fuji-fabric
-
 @Mixin(EndGatewayBlockEntity.class)
 public abstract class EndGatewayBlockEntityMixin {
 

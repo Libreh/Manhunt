@@ -1,10 +1,11 @@
 package manhunt.mixin;
 
+import manhunt.ManhuntMod;
 import net.minecraft.entity.Entity;
 import net.minecraft.registry.RegistryKey;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
@@ -20,11 +21,6 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.Optional;
-
-import static manhunt.game.ManhuntGame.overworldRegistryKey;
-import static manhunt.game.ManhuntGame.theNetherRegistryKey;
-
-// Thanks to https://github.com/Tater-Certified/Carpet-Sky-Additionals
 
 @Mixin(Entity.class)
 public abstract class EntityMixin {
@@ -48,30 +44,29 @@ public abstract class EntityMixin {
 
     @Redirect(method = "tickPortal", at = @At(value = "FIELD", target = "Lnet/minecraft/world/World;OVERWORLD:Lnet/minecraft/registry/RegistryKey;", opcode = Opcodes.GETSTATIC))
     private RegistryKey<World> redirectPortalOverworldRegistryKey() {
-        return overworldRegistryKey;
+        return ManhuntMod.overworldKey;
     }
 
     @Redirect(method = "tickPortal", at = @At(value = "FIELD", target = "Lnet/minecraft/world/World;NETHER:Lnet/minecraft/registry/RegistryKey;", opcode = Opcodes.GETSTATIC))
     private RegistryKey<World> redirectPortalNetherRegistryKey() {
-        return theNetherRegistryKey;
+        return ManhuntMod.theNetherKey;
     }
 
     @Redirect(method = "getTeleportTarget", at = @At(value = "FIELD", target = "Lnet/minecraft/world/World;OVERWORLD:Lnet/minecraft/registry/RegistryKey;", opcode = Opcodes.GETSTATIC))
     private RegistryKey<World> redirectTeleportOverworldRegistryKey() {
-        return overworldRegistryKey;
+        return ManhuntMod.overworldKey;
     }
 
     @Redirect(method = "getTeleportTarget", at = @At(value = "FIELD", target = "Lnet/minecraft/world/World;NETHER:Lnet/minecraft/registry/RegistryKey;", opcode = Opcodes.GETSTATIC))
     private RegistryKey<World> redirectTeleportNetherRegistryKey() {
-        return theNetherRegistryKey;
+        return ManhuntMod.theNetherKey;
     }
 
     @Inject(method = "tickPortal()V", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/Entity;moveToWorld(Lnet/minecraft/server/world/ServerWorld;)Lnet/minecraft/entity/Entity;"))
     private void giveAdvancement(CallbackInfo ci) {
-        Entity entity = ((Entity) (Object)this);
+        Entity entity = (Entity) (Object)this;
         if (entity instanceof ServerPlayerEntity) {
-            MinecraftServer server = entity.getServer();
-            server.getCommandManager().executeWithPrefix(server.getCommandSource().withSilent().withLevel(2), "advancement grant " + entity.getName().getString() + " only minecraft:story/enter_the_nether");
+            ((ServerPlayerEntity) entity).getAdvancementTracker().grantCriterion(entity.getServer().getAdvancementLoader().get(new Identifier("minecraft:story/enter_the_nether")), "entered_nether");
         }
     }
 }

@@ -10,8 +10,6 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 
 import java.util.Map;
 
-// Thanks to https://github.com/NucleoidMC/fantasy
-
 @Mixin(MinecraftServer.class)
 public interface MinecraftServerAccessInterface {
     @Accessor

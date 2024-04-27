@@ -1,16 +1,15 @@
 package manhunt.world;
 
-import eu.pb4.playerdata.api.PlayerDataApi;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
+import manhunt.ManhuntMod;
 import manhunt.mixin.MinecraftServerAccessInterface;
+import manhunt.world.interfaces.SimpleRegistryInterface;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
 import net.minecraft.advancement.AdvancementEntry;
 import net.minecraft.advancement.AdvancementProgress;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
-import net.minecraft.nbt.NbtByte;
-import net.minecraft.nbt.NbtInt;
 import net.minecraft.network.packet.s2c.play.PositionFlag;
 import net.minecraft.registry.DynamicRegistryManager;
 import net.minecraft.registry.RegistryKey;
@@ -20,7 +19,6 @@ import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.world.GameRules;
 import net.minecraft.world.World;
@@ -30,13 +28,10 @@ import net.minecraft.world.level.storage.LevelStorage;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
-import static manhunt.config.ManhuntConfig.*;
-import static manhunt.game.ManhuntGame.*;
-
-// Thanks to https://github.com/sakurawald/fuji-fabric
+import static manhunt.ManhuntMod.config;
+import static manhunt.game.ManhuntGame.updateGameMode;
 
 public class ManhuntWorldManager {
     private static final Set<ServerWorld> deletionQueue = new ReferenceOpenHashSet<>();
@@ -69,15 +64,11 @@ public class ManhuntWorldManager {
     }
 
     private static void kickPlayers(ServerWorld world) {
-        if (world.getPlayers().isEmpty()) {
-            return;
-        }
-
         MinecraftServer server = world.getServer();
 
         Scoreboard scoreboard = world.getScoreboard();
 
-        var lobbyWorld = server.getWorld(lobbyRegistryKey);
+        ServerWorld lobbyWorld = server.getWorld(ManhuntMod.lobbyKey);
 
         lobbyWorld.getGameRules().get(GameRules.ANNOUNCE_ADVANCEMENTS).set(false, server);
         lobbyWorld.getGameRules().get(GameRules.DO_FIRE_TICK).set(false, server);
@@ -96,22 +87,16 @@ public class ManhuntWorldManager {
 
         List<ServerPlayerEntity> players = new ArrayList<>(world.getServer().getPlayerManager().getPlayerList());
 
-        isReady.clear();
-
-        server.getScoreboard().getTeam("hunters").setColor(Formatting.RED);
-        server.getScoreboard().getTeam("runners").setColor(Formatting.GREEN);
+        if (config.isTeamColor()) {
+            server.getScoreboard().getTeam("hunters").setColor(config.getHuntersColor());
+            server.getScoreboard().getTeam("runners").setColor(config.getRunnersColor());
+        } else {
+            server.getScoreboard().getTeam("hunters").setColor(Formatting.RESET);
+            server.getScoreboard().getTeam("runners").setColor(Formatting.RESET);
+        }
 
         for (ServerPlayerEntity player : players) {
-            if (player.isTeamPlayer(scoreboard.getTeam("runners")) && player.isDisconnected()) {
-                scoreboard.clearTeam(player.getName().getString());
-            }
-
-            if (!(player.isTeamPlayer(player.getScoreboard().getTeam("hunters")) || player.isTeamPlayer(player.getScoreboard().getTeam("runners")))) {
-                player.getScoreboard().addScoreHolderToTeam(player.getName().getString(), player.getScoreboard().getTeam("hunters"));
-            }
-
-            server.getPlayerManager().removeFromOperators(player.getGameProfile());
-            player.teleport(server.getWorld(lobbyRegistryKey), 0, 63, 5.5, PositionFlag.ROT, 0, 0);
+            player.teleport(server.getWorld(ManhuntMod.lobbyKey), 0.5, 63, 0.5, PositionFlag.ROT, 0, 0);
             player.clearStatusEffects();
             player.getInventory().clear();
             player.setOnFire(false);
@@ -135,35 +120,14 @@ public class ManhuntWorldManager {
 
             updateGameMode(player);
 
-            scoreboard.clearTeam(player.getName().getString());
             scoreboard.addScoreHolderToTeam(player.getName().getString(), scoreboard.getTeam("players"));
-            scoreboard.addScoreHolderToTeam(player.getName().getString(), server.getScoreboard().getTeam("hunters"));
 
-            if (!Boolean.getBoolean(String.valueOf(RUNNER_VOTING.get()))) {
-                if (SET_ROLES.get().equals("All Runners") || PlayerDataApi.getGlobalDataFor(player, isRunner) == NbtByte.ONE) {
-                    scoreboard.clearTeam(player.getName().getString());
-                    scoreboard.addScoreHolderToTeam(player.getName().getString(), scoreboard.getTeam("players"));
-                    scoreboard.addScoreHolderToTeam(player.getName().getString(), scoreboard.getTeam("runners"));
-                }
-            } else {
-                if (PlayerDataApi.getGlobalDataFor(player, isRunner) == NbtByte.ONE) {
-                    if (!(PlayerDataApi.getGlobalDataFor(player, votesLeft) == NbtInt.of(0))) {
-                        PlayerDataApi.setGlobalDataFor(player, votesLeft, NbtInt.of(Integer.parseInt(String.valueOf(PlayerDataApi.getGlobalDataFor(player, votesLeft))) - 1));
-                    } else {
-                        topVoted.remove(player);
-                        if (!topVoted.isEmpty()) {
-                            for (Object e : topVoted.entrySet().toArray()) {
-                                scoreboard.clearTeam(((Map.Entry<ServerPlayerEntity, Integer>) e).getKey().getName().getString());
-                                scoreboard.addScoreHolderToTeam(((Map.Entry<ServerPlayerEntity, Integer>) e).getKey().getName().getString(), scoreboard.getTeam("players"));
-                                scoreboard.addScoreHolderToTeam(((Map.Entry<ServerPlayerEntity, Integer>) e).getKey().getName().getString(), scoreboard.getTeam("runners"));
-                            }
-                        } else {
-                            AUTO_START.set(false);
+            if (ManhuntMod.isRunner.get(player)) {
+                player.getScoreboard().addScoreHolderToTeam(player.getName().getString(), player.getScoreboard().getTeam("runners"));
+            }
 
-                            server.getPlayerManager().broadcast(Text.translatable("manhunt.chat.runnercycle").formatted(Formatting.GREEN), false);
-                        }
-                    }
-                }
+            if (!player.isTeamPlayer(player.getScoreboard().getTeam("hunters")) && !player.isTeamPlayer(player.getScoreboard().getTeam("runners"))) {
+                player.getScoreboard().addScoreHolderToTeam(player.getName().getString(), player.getScoreboard().getTeam("hunters"));
             }
         }
     }
@@ -206,5 +170,4 @@ public class ManhuntWorldManager {
             }
         }
     }
-
 }

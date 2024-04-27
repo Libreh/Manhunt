@@ -1,7 +1,7 @@
 package manhunt.mixin;
 
-import manhunt.world.DimensionOptionsInterface;
 import manhunt.world.FilteredRegistry;
+import manhunt.world.interfaces.DimensionOptionsInterface;
 import net.minecraft.registry.Registry;
 import net.minecraft.world.dimension.DimensionOptions;
 import net.minecraft.world.dimension.DimensionOptionsRegistryHolder;
@@ -10,8 +10,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
 
 import java.util.function.Function;
-
-// Thanks to https://github.com/sakurawald/fuji-fabric
 
 @Mixin(DimensionOptionsRegistryHolder.class)
 public class DimensionOptionsRegistryHolderMixin {

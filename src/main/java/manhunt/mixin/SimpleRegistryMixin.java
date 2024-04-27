@@ -3,7 +3,7 @@ package manhunt.mixin;
 import com.mojang.serialization.Lifecycle;
 import it.unimi.dsi.fastutil.objects.ObjectList;
 import it.unimi.dsi.fastutil.objects.Reference2IntMap;
-import manhunt.world.SimpleRegistryInterface;
+import manhunt.world.interfaces.SimpleRegistryInterface;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.SimpleRegistry;
 import net.minecraft.registry.entry.RegistryEntry;

@@ -22,12 +22,6 @@ import java.util.Objects;
 
 @Mixin(Explosion.class)
 public class ExplosionMixin {
-
-    /**
-     * Full credit goes to uku3lig for this class of code
-     * https://github.com/uku3lig/bettershields/blob/1.19.4/src/main/java/net/uku3lig/bettershields/mixin/MixinExplosion.java
-     */
-
     @Shadow @Final private double x;
     @Shadow @Final
     private double y;

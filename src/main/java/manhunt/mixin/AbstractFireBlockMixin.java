@@ -6,14 +6,11 @@ import net.minecraft.world.dimension.DimensionTypes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 
-// Thanks to https://github.com/Tater-Certified/CMP
-
 @Mixin(AbstractFireBlock.class)
 public class AbstractFireBlockMixin {
-
     /**
-     * @author QPCrummer
-     * @reason Redirect to use a Partition's Nether
+     * @author Libreh
+     * @reason Redirect to use Manhunt world's Nether
      */
     @Overwrite
     private static boolean isOverworldOrNether(World world) {

@@ -2,9 +2,11 @@ package manhunt.world;
 
 import com.google.common.collect.ImmutableList;
 import com.mojang.serialization.Lifecycle;
+import manhunt.ManhuntMod;
 import manhunt.mixin.MinecraftServerAccessInterface;
+import manhunt.world.interfaces.DimensionOptionsInterface;
+import manhunt.world.interfaces.SimpleRegistryInterface;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.entity.boss.dragon.EnderDragonFight;
 import net.minecraft.registry.DynamicRegistryManager;
 import net.minecraft.registry.RegistryKey;
@@ -28,41 +30,30 @@ import net.minecraft.world.gen.chunk.ChunkGenerator;
 import org.apache.commons.io.FileUtils;
 import org.popcraft.chunky.ChunkyProvider;
 import org.popcraft.chunky.api.ChunkyAPI;
-import org.popcraft.chunky.api.event.task.GenerationCompleteEvent;
 
 import java.io.IOException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import static manhunt.ManhuntMod.LOGGER;
-import static manhunt.config.ManhuntConfig.PRELOADING;
-import static manhunt.config.ManhuntConfig.WORLD_SEED;
-import static manhunt.game.ManhuntGame.setHasPreloaded;
-import static manhunt.game.ManhuntGame.worldSpawnPos;
-
-// Thanks to https://github.com/sakurawald/fuji-fabric
+import static manhunt.ManhuntMod.*;
 
 public class ManhuntWorldModule {
-    private static final String DEFAULT_MANHUNT_WORLD_NAMESPACE = "manhunt";
-    private final String DEFAULT_OVERWORLD_PATH = "overworld";
-    private final String DEFAULT_THE_NETHER_PATH = "the_nether";
-    private final String DEFAULT_THE_END_PATH = "the_end";
-
     public void resetWorlds(MinecraftServer server) {
-        server.getPlayerManager().broadcast(Text.translatable("manhunt.world", Text.translatable("manhunt.begin"), Text.translatable("manhunt.deleting")).formatted(Formatting.RED), false);
-        WORLD_SEED.set(RandomSeed.getSeed());
-        deleteWorld(server, DEFAULT_OVERWORLD_PATH);
-        deleteWorld(server, DEFAULT_THE_NETHER_PATH);
-        deleteWorld(server, DEFAULT_THE_END_PATH);
+        server.getPlayerManager().broadcast(Text.translatable("manhunt.world", Text.translatable("manhunt.start"), Text.translatable("manhunt.deleting")).formatted(Formatting.RED), false);
+        config.setWorldSeed(RandomSeed.getSeed());
+        config.save();
+        deleteWorld(server, OVERWORLD);
+        deleteWorld(server, THE_NETHER);
+        deleteWorld(server, THE_END);
     }
 
     public void loadWorlds(MinecraftServer server) {
-        long seed = Long.parseLong(WORLD_SEED.get());
+        long seed = config.getWorldSeed();
 
-        createWorld(server, DimensionTypes.OVERWORLD, DEFAULT_OVERWORLD_PATH, seed);
-        createWorld(server, DimensionTypes.THE_NETHER, DEFAULT_THE_NETHER_PATH, seed);
-        createWorld(server, DimensionTypes.THE_END, DEFAULT_THE_END_PATH, seed);
+        createWorld(server, DimensionTypes.OVERWORLD, OVERWORLD, seed);
+        createWorld(server, DimensionTypes.THE_NETHER, THE_NETHER, seed);
+        createWorld(server, DimensionTypes.THE_END, THE_END, seed);
     }
 
     @SuppressWarnings("DataFlowIssue")
@@ -90,10 +81,12 @@ public class ManhuntWorldModule {
     }
 
     private RegistryKey<DimensionType> getDimensionTypeRegistryKeyByPath(String path) {
-        if (path.equals(DEFAULT_OVERWORLD_PATH)) return DimensionTypes.OVERWORLD;
-        if (path.equals(DEFAULT_THE_NETHER_PATH)) return DimensionTypes.THE_NETHER;
-        if (path.equals(DEFAULT_THE_END_PATH)) return DimensionTypes.THE_END;
-        return null;
+        return switch (path) {
+            case OVERWORLD -> DimensionTypes.OVERWORLD;
+            case THE_NETHER -> DimensionTypes.THE_NETHER;
+            case THE_END -> DimensionTypes.THE_END;
+            default -> null;
+        };
     }
 
 
@@ -105,7 +98,7 @@ public class ManhuntWorldModule {
     @SuppressWarnings("deprecation")
     private void createWorld(MinecraftServer server, RegistryKey<DimensionType> dimensionTypeRegistryKey, String path, long seed) {
         ManhuntWorldProperties manhuntWorldProperties = new ManhuntWorldProperties(server.getSaveProperties(), seed);
-        RegistryKey<World> worldRegistryKey = RegistryKey.of(RegistryKeys.WORLD, new Identifier(DEFAULT_MANHUNT_WORLD_NAMESPACE, path));
+        RegistryKey<World> worldRegistryKey = RegistryKey.of(RegistryKeys.WORLD, new Identifier(MOD_ID, path));
         DimensionOptions dimensionOptions = createDimensionOptions(server, dimensionTypeRegistryKey);
         MinecraftServerAccessInterface serverAccessor = (MinecraftServerAccessInterface) server;
         ServerWorld world = new ManhuntWorld(server,
@@ -140,22 +133,21 @@ public class ManhuntWorldModule {
         ServerWorldEvents.LOAD.invoker().onWorldLoad(server, world);
         world.tick(() -> true);
 
-        if (path.equals(DEFAULT_THE_END_PATH)) {
-            server.getPlayerManager().broadcast(Text.translatable("manhunt.world", Text.translatable("manhunt.finished"), Text.translatable("manhunt.creating")).formatted(Formatting.GREEN), false);
+        if (path.equals(THE_END)) {
+            server.getPlayerManager().broadcast(Text.translatable("manhunt.world", Text.translatable("manhunt.done"), Text.translatable("manhunt.creating")).formatted(Formatting.GOLD), false);
+            setWorldSpawnPos(new BlockPos(0, 0, 0));
 
-            worldSpawnPos = new BlockPos(0, 0, 0);
+            if (isChunkyIntegration()) {
+                ManhuntMod.setPreloaded(false);
 
-            setHasPreloaded(!Boolean.parseBoolean(PRELOADING.get()));
-
-            if (Boolean.parseBoolean(PRELOADING.get())) {
                 ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
-                scheduledExecutorService.schedule(() -> startPreload(server), 1, TimeUnit.SECONDS);
+                scheduledExecutorService.schedule(() -> startPreload(server), 500, TimeUnit.MILLISECONDS);
             }
         }
     }
 
     private ServerWorld getManhuntWorldByPath(MinecraftServer server, String path) {
-        RegistryKey<World> worldKey = RegistryKey.of(RegistryKeys.WORLD, new Identifier(DEFAULT_MANHUNT_WORLD_NAMESPACE, path));
+        RegistryKey<World> worldKey = RegistryKey.of(RegistryKeys.WORLD, new Identifier(MOD_ID, path));
         return server.getWorld(worldKey);
     }
 
@@ -171,52 +163,34 @@ public class ManhuntWorldModule {
         if (server.isRunning()) {
             String namespace = world.getRegistryKey().getValue().getNamespace();
             String path = world.getRegistryKey().getValue().getPath();
-            if (!namespace.equals(DEFAULT_MANHUNT_WORLD_NAMESPACE)) return;
+            if (!namespace.equals(MOD_ID)) return;
 
-            long seed = Long.parseLong(WORLD_SEED.get());
+            long seed = config.getWorldSeed();
             this.createWorld(server, this.getDimensionTypeRegistryKeyByPath(path), path, seed);
         }
     }
 
     private void startPreload(MinecraftServer server) {
-        server.getPlayerManager().broadcast(Text.translatable("manhunt.world", Text.translatable("manhunt.begin"), Text.translatable("manhunt.value.preloading")), false);
-
-        try {
-            FileUtils.deleteDirectory(FabricLoader.getInstance().getConfigDir().resolve("chunky/tasks").toFile());
-        } catch (IOException ignored) {
-        }
-
-        int radius = server.getPlayerManager().getViewDistance() * 16;
+        server.getPlayerManager().broadcast(Text.translatable("manhunt.world", Text.translatable("manhunt.begin"), Text.translatable("manhunt.preloading")).formatted(Formatting.YELLOW), false);
 
         ChunkyAPI chunky = ChunkyProvider.get().getApi();
 
-        if (chunky.version() == 0) {
-            chunky.cancelTask("manhunt:overworld");
-            chunky.cancelTask("manhunt:the_nether");
-            chunky.cancelTask("manhunt:the_end");
-            chunky.startTask("manhunt:overworld", "square", worldSpawnPos.getX(), worldSpawnPos.getZ(), radius, radius, "concrentric");
-            chunky.startTask("manhunt:the_nether", "square", (double) worldSpawnPos.getX() / 8, (double) worldSpawnPos.getZ() / 4, (double) radius / 4, (double) radius / 4, "concrentric");
-            chunky.startTask("manhunt:the_end", "square", 0, 0, 64, 64, "concrentric");
-            chunky.onGenerationComplete(event -> finishPreload(event, server));
-        }
-    }
+        chunky.cancelTask("manhunt:overworld");
+        chunky.cancelTask("manhunt:the_nether");
 
-    private void finishPreload(GenerationCompleteEvent event, MinecraftServer server) {
-        LOGGER.info("Generation completed for " + event.world());
+        try {
+            FileUtils.deleteDirectory(getGameDir().resolve("config/chunky/tasks").toFile());
+        } catch (IOException ignored) {}
 
-        if (event.world().equals("manhunt:overworld")) {
-            setHasPreloaded(true);
+        chunky.startTask("manhunt:overworld", "square", 0, 0, 8000, 8000, "concentric");
+        chunky.startTask("manhunt:the_nether", "square", 0, 0, 1000, 1000, "concentric");
 
-            server.getPlayerManager().broadcast(Text.translatable("manhunt.world", Text.translatable("manhunt.finished"), Text.translatable("manhunt.preloading")).formatted(Formatting.GREEN), false);
+        chunky.onGenerationComplete(event -> {
+            if (event.world().equals("manhunt:overworld") && !isPreloaded()) {
+                setPreloaded(true);
 
-            try {
-                FileUtils.deleteDirectory(FabricLoader.getInstance().getConfigDir().resolve("chunky/tasks").toFile());
-            } catch (IOException ignored) {
+                server.getPlayerManager().broadcast(Text.translatable("manhunt.world", Text.translatable("manhunt.finished"), Text.translatable("manhunt.preloading")).formatted(Formatting.GREEN), false);
             }
-
-//            if (gameState == PREGAME && Boolean.parseBoolean(AUTO_START.get())) {
-//                startGame(server);
-//            }
-        }
+        });
     }
 }

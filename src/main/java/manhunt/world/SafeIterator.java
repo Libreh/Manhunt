@@ -3,8 +3,6 @@ package manhunt.world;
 import java.util.Collection;
 import java.util.Iterator;
 
-// Thanks to https://github.com/sakurawald/fuji-fabric
-
 public final class SafeIterator<T> implements Iterator<T> {
     private final Object[] values;
     private int index = 0;
@@ -18,7 +16,6 @@ public final class SafeIterator<T> implements Iterator<T> {
         return this.values.length > this.index;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public T next() {
         return (T) this.values[this.index++];

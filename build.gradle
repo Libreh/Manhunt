@@ -1,5 +1,5 @@
 plugins {
-	id 'fabric-loom' version '1.5-SNAPSHOT'
+	id 'fabric-loom' version '1.6-SNAPSHOT'
 	id 'maven-publish'
 }
 
@@ -15,6 +15,7 @@ repositories {
 	maven { url 'https://maven.nucleoid.xyz' }
 	maven { url 'https://jitpack.io' }
 	maven { url "https://repo.codemc.io/repository/maven-public/" }
+	maven { url "https://api.modrinth.com/maven" }
 }
 
 dependencies {
@@ -23,13 +24,22 @@ dependencies {
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-	modImplementation include("xyz.nucleoid:server-translations-api:2.2.0+1.20.3-rc1")
+	modImplementation "xyz.nucleoid:server-translations-api:2.2.0+1.20.3-rc1"
 
-	modImplementation include("eu.pb4:sgui:${project.sgui_version}")
+	modImplementation "eu.pb4:sgui:${project.sgui_version}"
 
-	modImplementation include("eu.pb4:player-data-api:${project.player_data_api_version}")
+	modImplementation "maven.modrinth:sqlib:${project.sqlib_version}"
 
-	compileOnly "org.popcraft:chunky-common:${project.chunky_common_version}"
+	modImplementation "me.lucko:fabric-permissions-api:${project.permissions_api_version}"
+
+	modImplementation "org.popcraft:chunky-common:${project.chunky_common_version}"
+}
+
+tasks.register('manhuntDatapack', Zip) {
+	from 'datapack'
+	include '**/*'
+	archiveFileName.set('datapack.zip')
+	destinationDirectory.set(file('src/main/resources/manhunt'))
 }
 
 processResources {

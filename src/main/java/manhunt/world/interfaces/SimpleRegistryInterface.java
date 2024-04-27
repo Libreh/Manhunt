@@ -1,14 +1,11 @@
-package manhunt.world;
+package manhunt.world.interfaces;
 
 import net.minecraft.registry.SimpleRegistry;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.ApiStatus;
 
-// Thanks to https://github.com/sakurawald/fuji-fabric
-
 @ApiStatus.Internal
 public interface SimpleRegistryInterface<T> {
-    @SuppressWarnings("unchecked")
     static <T> void remove(SimpleRegistry<T> registry, Identifier key) {
         ((SimpleRegistryInterface<T>) registry).manhunt$remove(key);
     }

@@ -13,14 +13,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(World.class)
 public class WorldMixin {
-
-    // Thanks to https://github.com/Walksy/ShieldFixes for the mixin
-
-    /**
-     * Fixes Minecraft Bug MC-98271 -- https://bugs.mojang.com/browse/MC-105068
-     * --Walksy
-     */
-
     @Unique
     private boolean playedBreakSound = false;
 

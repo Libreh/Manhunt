@@ -18,8 +18,6 @@ import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-// Thanks to https://github.com/sakurawald/fuji-fabric
-
 @SuppressWarnings({"unused", "InfiniteRecursion"})
 public class FilteredRegistry<T> extends SimpleRegistry<T> {
     private final Registry<T> source;

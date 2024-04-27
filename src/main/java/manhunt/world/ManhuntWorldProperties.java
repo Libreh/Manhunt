@@ -3,8 +3,6 @@ package manhunt.world;
 import net.minecraft.world.SaveProperties;
 import net.minecraft.world.level.UnmodifiableLevelProperties;
 
-// Thanks to https://github.com/sakurawald/fuji-fabric
-
 public final class ManhuntWorldProperties extends UnmodifiableLevelProperties {
 
     private final long seed;

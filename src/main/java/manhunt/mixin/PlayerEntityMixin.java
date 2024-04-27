@@ -16,8 +16,6 @@ import java.util.Objects;
 
 import static manhunt.ManhuntMod.LOGGER;
 
-// Thanks to https://github.com/Ivan-Khar/manhunt-fabricated
-
 @Mixin(PlayerEntity.class)
 public class PlayerEntityMixin {
     NbtList positions = new NbtList();

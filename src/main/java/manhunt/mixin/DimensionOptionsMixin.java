@@ -1,11 +1,9 @@
 package manhunt.mixin;
 
-import manhunt.world.DimensionOptionsInterface;
+import manhunt.world.interfaces.DimensionOptionsInterface;
 import net.minecraft.world.dimension.DimensionOptions;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
-
-// Thanks to https://github.com/sakurawald/fuji-fabric
 
 @Mixin(DimensionOptions.class)
 public class DimensionOptionsMixin implements DimensionOptionsInterface {
