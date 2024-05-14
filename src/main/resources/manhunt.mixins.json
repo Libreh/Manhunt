@@ -4,22 +4,16 @@
 	"compatibilityLevel": "JAVA_17",
 	"mixins": [
 		"AbstractFireBlockMixin",
-		"MinecraftServerAccessInterface",
-		"DimensionOptionsMixin",
-		"DimensionOptionsRegistryHolderMixin",
 		"EnderDragonEntityMixin",
 		"EndGatewayBlockEntityMixin",
 		"EndPortalBlockMixin",
 		"EntityMixin",
 		"ExplosionMixin",
 		"LivingEntityMixin",
-		"MinecraftServerMixin",
 		"PlayerEntityMixin",
 		"PlayerManagerMixin",
 		"ServerPlayerEntityMixin",
-		"ServerWorldInterface",
-		"ServerWorldMixin",
-		"SimpleRegistryMixin",
+		"ServerWorldAccessor",
 		"WorldMixin"
 	],
 	"injectors": {

@@ -3,7 +3,7 @@ plugins {
 	id 'maven-publish'
 }
 
-version = project.mod_version
+version = project.mod_version + "+" + project.minecraft_version
 group = project.maven_group
 
 base {
@@ -13,7 +13,6 @@ base {
 repositories {
 	mavenCentral()
 	maven { url 'https://maven.nucleoid.xyz' }
-	maven { url 'https://jitpack.io' }
 	maven { url "https://repo.codemc.io/repository/maven-public/" }
 	maven { url "https://api.modrinth.com/maven" }
 }
@@ -24,15 +23,19 @@ dependencies {
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-	modImplementation "xyz.nucleoid:server-translations-api:2.2.0+1.20.3-rc1"
+	modImplementation include("xyz.nucleoid:server-translations-api:${project.server_translations_api_version}")
 
-	modImplementation "eu.pb4:sgui:${project.sgui_version}"
+	modImplementation include ("xyz.nucleoid:fantasy:${project.fantasy_version}")
+
+	modImplementation include("eu.pb4:sgui:${project.sgui_version}")
 
 	modImplementation "maven.modrinth:sqlib:${project.sqlib_version}"
 
 	modImplementation "me.lucko:fabric-permissions-api:${project.permissions_api_version}"
 
 	modImplementation "org.popcraft:chunky-common:${project.chunky_common_version}"
+
+	modImplementation include("eu.pb4:polymer-virtual-entity:${project.polymer_virtual_entity_version}")
 }
 
 tasks.register('manhuntDatapack', Zip) {

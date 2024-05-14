@@ -6,17 +6,18 @@ import manhunt.ManhuntMod;
 import manhunt.game.GameState;
 import manhunt.game.ManhuntGame;
 import me.lucko.fabric.api.permissions.v0.Permissions;
-import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import org.popcraft.chunky.ChunkyProvider;
 import org.popcraft.chunky.api.ChunkyAPI;
 
+import static net.minecraft.server.command.CommandManager.literal;
+
 public class StartCommand {
 
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
-        dispatcher.register(CommandManager.literal("start")
+        dispatcher.register(literal("start")
                 .requires(source -> source.isExecutedByPlayer() && ManhuntMod.getGameState() == GameState.PREGAME && (Permissions.check(source.getPlayer(), "manhunt.start") || (source.hasPermissionLevel(1) || source.hasPermissionLevel(2) || source.hasPermissionLevel(3) || source.hasPermissionLevel(4))))
                 .executes(context -> executeStart(context.getSource()))
         );

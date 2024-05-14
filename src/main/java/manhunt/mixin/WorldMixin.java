@@ -18,8 +18,6 @@ public class WorldMixin {
 
     @Inject(at = @At("HEAD"), method = "playSound(Lnet/minecraft/entity/player/PlayerEntity;DDDLnet/minecraft/sound/SoundEvent;Lnet/minecraft/sound/SoundCategory;FF)V")
     private void onSoundPlay(PlayerEntity except, double x, double y, double z, SoundEvent sound, SoundCategory category, float volume, float pitch, CallbackInfo ci) {
-        //Checks if the 'shield.block' sound effect has been played because for some reason it shows it's been played, but no sound is outputted
-        //if it has then we know the player is blocking with a shield
         if (sound.getId().toString().toLowerCase().contains("shield.break")) {
             except.getWorld().playSound(x, y, z, SoundEvents.ITEM_SHIELD_BREAK, category, 1, 0.8F + except.getWorld().random.nextFloat() * 0.4F, false);
             playedBreakSound = true;

@@ -1,6 +1,5 @@
 package manhunt.mixin;
 
-import manhunt.ManhuntMod;
 import net.minecraft.entity.Entity;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -21,6 +20,9 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.Optional;
+
+import static manhunt.ManhuntMod.netherWorld;
+import static manhunt.ManhuntMod.overworldWorld;
 
 @Mixin(Entity.class)
 public abstract class EntityMixin {
@@ -44,22 +46,22 @@ public abstract class EntityMixin {
 
     @Redirect(method = "tickPortal", at = @At(value = "FIELD", target = "Lnet/minecraft/world/World;OVERWORLD:Lnet/minecraft/registry/RegistryKey;", opcode = Opcodes.GETSTATIC))
     private RegistryKey<World> redirectPortalOverworldRegistryKey() {
-        return ManhuntMod.overworldKey;
+        return overworldWorld.getRegistryKey();
     }
 
     @Redirect(method = "tickPortal", at = @At(value = "FIELD", target = "Lnet/minecraft/world/World;NETHER:Lnet/minecraft/registry/RegistryKey;", opcode = Opcodes.GETSTATIC))
     private RegistryKey<World> redirectPortalNetherRegistryKey() {
-        return ManhuntMod.theNetherKey;
+        return netherWorld.getRegistryKey();
     }
 
     @Redirect(method = "getTeleportTarget", at = @At(value = "FIELD", target = "Lnet/minecraft/world/World;OVERWORLD:Lnet/minecraft/registry/RegistryKey;", opcode = Opcodes.GETSTATIC))
     private RegistryKey<World> redirectTeleportOverworldRegistryKey() {
-        return ManhuntMod.overworldKey;
+        return overworldWorld.getRegistryKey();
     }
 
     @Redirect(method = "getTeleportTarget", at = @At(value = "FIELD", target = "Lnet/minecraft/world/World;NETHER:Lnet/minecraft/registry/RegistryKey;", opcode = Opcodes.GETSTATIC))
     private RegistryKey<World> redirectTeleportNetherRegistryKey() {
-        return ManhuntMod.theNetherKey;
+        return netherWorld.getRegistryKey();
     }
 
     @Inject(method = "tickPortal()V", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/Entity;moveToWorld(Lnet/minecraft/server/world/ServerWorld;)Lnet/minecraft/entity/Entity;"))

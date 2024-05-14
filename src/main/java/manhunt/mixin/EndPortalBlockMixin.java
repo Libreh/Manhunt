@@ -1,6 +1,5 @@
 package manhunt.mixin;
 
-import manhunt.ManhuntMod;
 import net.fabricmc.fabric.api.dimension.v1.FabricDimensions;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.EndPortalBlock;
@@ -17,6 +16,8 @@ import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 
+import static manhunt.ManhuntMod.*;
+
 @Mixin(EndPortalBlock.class)
 public class EndPortalBlockMixin {
     /**
@@ -28,8 +29,8 @@ public class EndPortalBlockMixin {
         if (world instanceof ServerWorld && entity.canUsePortals() && VoxelShapes.matchesAnywhere(VoxelShapes.cuboid(entity.getBoundingBox().offset(-pos.getX(), -pos.getY(), -pos.getZ())), state.getOutlineShape(world, pos), BooleanBiFunction.AND)) {
             ServerWorld serverWorld;
             BlockPos blockPos;
-            if (world.getRegistryKey() == ManhuntMod.theEndKey) {
-                serverWorld = entity.getServer().getWorld(ManhuntMod.overworldKey);
+            if (world.getRegistryKey() == endWorld.getRegistryKey()) {
+                serverWorld = overworldWorld;
                 if (entity instanceof ServerPlayerEntity) {
                     blockPos = ((ServerPlayerEntity) entity).getSpawnPointPosition();
                     serverWorld = entity.getServer().getWorld(((ServerPlayerEntity) entity).getSpawnPointDimension());
@@ -37,10 +38,10 @@ public class EndPortalBlockMixin {
                         blockPos = new BlockPos(8, 64, 9);
                     }
                 } else {
-                    blockPos = ManhuntMod.getWorldSpawnPos();
+                    blockPos = getWorldSpawnPos();
                 }
             } else {
-                serverWorld = entity.getServer().getWorld(ManhuntMod.theEndKey);
+                serverWorld = endWorld;
                 serverWorld.setSpawnPos(ServerWorld.END_SPAWN_POS, 0);
                 ServerWorld.createEndSpawnPlatform(serverWorld);
                 blockPos = ServerWorld.END_SPAWN_POS;

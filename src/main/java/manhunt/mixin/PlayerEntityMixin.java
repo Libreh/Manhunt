@@ -1,6 +1,7 @@
 package manhunt.mixin;
 
 import com.mojang.serialization.DataResult;
+import net.minecraft.component.DataComponentTypes;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
@@ -41,8 +42,8 @@ public class PlayerEntityMixin {
 
     @Inject(at = @At(value = "HEAD"), method = "dropItem(Lnet/minecraft/item/ItemStack;ZZ)Lnet/minecraft/entity/ItemEntity;", cancellable = true)
     public void manhunt$dropItem(ItemStack stack, boolean throwRandomly, boolean retainOwnership, CallbackInfoReturnable<ItemEntity> ci) {
-        if (stack.hasNbt()) {
-            if (stack.getNbt().getBoolean("Remove")) {
+        if (stack.get(DataComponentTypes.CUSTOM_DATA) != null) {
+            if (stack.get(DataComponentTypes.CUSTOM_DATA).copyNbt().getBoolean("Remove")) {
                 ci.setReturnValue(null);
                 ci.cancel();
             }

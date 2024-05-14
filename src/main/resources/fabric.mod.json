@@ -3,7 +3,7 @@
 	"id": "manhunt",
 	"version": "${version}",
 	"name": "Manhunt",
-	"description": "Server-side MANHUNT mod",
+	"description": "A server-side Minecraft Manhunt mod.",
 	"authors": [
 		"Libreh"
 	],
@@ -20,7 +20,7 @@
 	],
 	"depends": {
 		"fabricloader": ">=0.15.1",
-		"minecraft": "1.20.4",
+		"minecraft": "1.20.6",
 		"fabric-api": "*"
 	}
 }
