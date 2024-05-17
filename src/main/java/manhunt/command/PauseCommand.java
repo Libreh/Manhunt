@@ -5,6 +5,7 @@ import com.mojang.brigadier.CommandDispatcher;
 import manhunt.ManhuntMod;
 import manhunt.game.GameState;
 import me.lucko.fabric.api.permissions.v0.Permissions;
+import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.network.packet.s2c.play.SubtitleS2CPacket;
@@ -21,6 +22,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import static manhunt.ManhuntMod.config;
 import static net.minecraft.server.command.CommandManager.literal;
 
 public class PauseCommand {
@@ -40,14 +42,15 @@ public class PauseCommand {
                 gamePlayer.playSoundToPlayer(SoundEvents.BLOCK_ANVIL_LAND, SoundCategory.MASTER, 0.1f, 0.5f);
                 ManhuntMod.playerEffects.put(gamePlayer, gamePlayer.getStatusEffects());
                 gamePlayer.clearStatusEffects();
+                gamePlayer.getAttributeInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED).setBaseValue(0);
                 gamePlayer.addStatusEffect(new StatusEffectInstance(StatusEffects.BLINDNESS, StatusEffectInstance.INFINITE, 255, false, true));
                 gamePlayer.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, StatusEffectInstance.INFINITE, 255, false, true));
                 gamePlayer.addStatusEffect(new StatusEffectInstance(StatusEffects.JUMP_BOOST, StatusEffectInstance.INFINITE, 248, false, false));
                 gamePlayer.addStatusEffect(new StatusEffectInstance(StatusEffects.MINING_FATIGUE, StatusEffectInstance.INFINITE, 255, false, false));
                 gamePlayer.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE, StatusEffectInstance.INFINITE, 255, false, false));
                 gamePlayer.addStatusEffect(new StatusEffectInstance(StatusEffects.WEAKNESS, StatusEffectInstance.INFINITE, 255, false, false));
-                gamePlayer.networkHandler.sendPacket(new TitleS2CPacket(Text.translatable("manhunt.title.gameis.paused").formatted(Formatting.YELLOW)));
-                gamePlayer.networkHandler.sendPacket(new SubtitleS2CPacket(Text.translatable("manhunt.title.paused").formatted(Formatting.GOLD)));
+                gamePlayer.networkHandler.sendPacket(new TitleS2CPacket(Text.literal(config.getGamePausedTitle()).formatted(Formatting.YELLOW)));
+                gamePlayer.networkHandler.sendPacket(new SubtitleS2CPacket(Text.literal(config.getGamePausedSubtitle()).formatted(Formatting.GOLD)));
             }
 
             ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();

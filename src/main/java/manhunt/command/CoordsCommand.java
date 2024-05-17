@@ -11,9 +11,6 @@ import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
@@ -36,12 +33,12 @@ public class CoordsCommand {
     private static int listCoords(ServerCommandSource source) {
         ServerPlayerEntity player = source.getPlayer();
 
-        boolean isHunter = player.isTeamPlayer(player.getScoreboard().getTeam("hunters"));
+        boolean isHunter = player.getScoreboardTeam().getName().equals("hunters");
 
         if ((isHunter && hunterCoords.isEmpty()) || !isHunter && runnerCoords.isEmpty()) {
             player.sendMessage(Text.translatable("manhunt.chat.nocoords").formatted(Formatting.RED));
         } else if ((isHunter && !hunterCoords.isEmpty()) || !isHunter && !runnerCoords.isEmpty()) {
-            Date past = new Date();
+            Date past;
 
             Formatting formatting = Formatting.WHITE;
 
@@ -60,13 +57,8 @@ public class CoordsCommand {
             if (isHunter) {
                 for (MutableText mutableText : hunterCoords) {
                     String[] array = mutableText.getString().split(" ");
-                    DateFormat dateFormat = new SimpleDateFormat();
 
-                    try {
-                        past = dateFormat.parse(array[1]);
-                    } catch (ParseException e) {
-                        LOGGER.error("Failed to format date");
-                    }
+                    past = new Date(Long.parseLong(array[2]));
 
                     if (array.length > 7) {
                         String dimension = array[6];
@@ -80,14 +72,14 @@ public class CoordsCommand {
                         array[6] = dimension + " " + message;
                     }
 
-                    if (TimeUnit.MILLISECONDS.toHours(new Date().getTime()) - past.getTime() == 0) {
-                        if (TimeUnit.MILLISECONDS.toMinutes(new Date().getTime()) - past.getTime() == 0) {
-                            player.sendMessage(Text.translatable("manhunt.chat.teamcoords", Text.literal(team).formatted(formatting), Text.literal(array[1]).formatted(formatting), Text.literal(" " + (TimeUnit.MILLISECONDS.toSeconds(new Date().getTime()) - past.getTime()) + "s" + " "), Text.literal(array[3]), Text.literal(array[4]), Text.literal(array[5]), Text.literal(array[6])));
+                    if (TimeUnit.MILLISECONDS.toHours(new Date().getTime() - past.getTime()) == 0) {
+                        if (TimeUnit.MILLISECONDS.toMinutes(new Date().getTime() - past.getTime()) == 0) {
+                            player.sendMessage(Text.translatable("manhunt.chat.teamcoords", Text.literal(team).formatted(formatting), Text.literal(array[1]).formatted(formatting), Text.literal(" " + (TimeUnit.MILLISECONDS.toSeconds(new Date().getTime() - past.getTime())) + "s" + " "), Text.literal(array[3]), Text.literal(array[4]), Text.literal(array[5]), Text.literal(array[6])));
                         } else {
-                            player.sendMessage(Text.translatable("manhunt.chat.teamcoords", Text.literal(team).formatted(formatting), Text.literal(array[1]).formatted(formatting), Text.literal((TimeUnit.MILLISECONDS.toMinutes(new Date().getTime()) - past.getTime()) + "m"), Text.literal(array[3]), Text.literal(array[4]), Text.literal(array[5]), Text.literal(array[6])));
+                            player.sendMessage(Text.translatable("manhunt.chat.teamcoords", Text.literal(team).formatted(formatting), Text.literal(array[1]).formatted(formatting), Text.literal((TimeUnit.MILLISECONDS.toMinutes(new Date().getTime() - past.getTime())) + "m"), Text.literal(array[3]), Text.literal(array[4]), Text.literal(array[5]), Text.literal(array[6])));
                         }
                     } else {
-                        player.sendMessage(Text.translatable("manhunt.chat.teamcoords", Text.literal(team).formatted(formatting), Text.literal(array[1]).formatted(formatting), Text.literal(" " + (TimeUnit.MILLISECONDS.toHours(new Date().getTime()) - past.getTime()) + "h" + " "), Text.literal(array[3]), Text.literal(array[4]), Text.literal(array[5]), Text.literal(array[6])));
+                        player.sendMessage(Text.translatable("manhunt.chat.teamcoords", Text.literal(team).formatted(formatting), Text.literal(array[1]).formatted(formatting), Text.literal(" " + (TimeUnit.MILLISECONDS.toHours(new Date().getTime() - past.getTime())) + "h" + " "), Text.literal(array[3]), Text.literal(array[4]), Text.literal(array[5]), Text.literal(array[6])));
                     }
                 }
             } else {
@@ -129,7 +121,7 @@ public class CoordsCommand {
     private static int sendCoordsMessage(ServerCommandSource source, String message) {
         ServerPlayerEntity player = source.getPlayer();
 
-        boolean isHunter = player.isTeamPlayer(player.getScoreboard().getTeam("hunters"));
+        boolean isHunter = player.getScoreboardTeam().getName().equals("hunters");
 
         Formatting formatting = Formatting.WHITE;
 

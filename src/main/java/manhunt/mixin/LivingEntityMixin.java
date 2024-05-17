@@ -15,7 +15,7 @@ public class LivingEntityMixin {
     private LivingEntity entity = (LivingEntity) (Object) this;
 
     @Inject(method = "damage", at = @At("RETURN"))
-    void manhunt$resetInvulnerabilityTicksWhenNoDamage(DamageSource damageSource, float amount, CallbackInfoReturnable<Boolean> callback) {
+    private void Manhunt$resetInvulnerabilityTicksWhenNoDamage(DamageSource damageSource, float amount, CallbackInfoReturnable<Boolean> callback) {
         if (!callback.getReturnValueZ() && lastDamageTaken <= 0) {
             entity.timeUntilRegen = 0;
         }

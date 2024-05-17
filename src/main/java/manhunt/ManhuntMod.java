@@ -55,7 +55,7 @@ public class ManhuntMod implements ModInitializer {
 	private static final Path gameDir = FabricLoader.getInstance().getGameDir();
 	private static GameState gameState;
 	private static final Database database = SQLib.getDatabase();
-	private static Table table = database.createTable(MOD_ID, "playerdata").addColumn("game_titles", SQLDataType.BOOL).addColumn("manhunt_sounds", SQLDataType.BOOL).addColumn("night_vision", SQLDataType.BOOL).finish();
+	private static Table table = database.createTable(MOD_ID, "playerdata").addColumn("game_titles", SQLDataType.BOOL).addColumn("manhunt_sounds", SQLDataType.BOOL).addColumn("night_vision", SQLDataType.BOOL).addColumn("friendly_fire", SQLDataType.BOOL).finish();
 	public static final String OVERWORLD = "overworld";
 	public static final String THE_NETHER = "the_nether";
 	public static final String THE_END = "the_end";
@@ -71,18 +71,20 @@ public class ManhuntMod implements ModInitializer {
 	public static ServerWorld endWorld;
 	public static List<ServerPlayerEntity> allRunners;
 	private static BlockPos worldSpawnPos;
+	private static BlockPos overworldSpawn;
 	private static boolean preloaded = false;
 	private static boolean chunkyIntegration = false;
 	private static boolean paused = false;
 	private static boolean started = false;
 	public static final List<MutableText> hunterCoords = new ArrayList<>();
 	public static final List<MutableText> runnerCoords = new ArrayList<>();
-	public static final HashMap<UUID, Boolean> isRunner = new HashMap<>();
+	public static final HashMap<UUID, Boolean> hasTeam = new HashMap<>();
 	public static final HashMap<UUID, Boolean> hasPlayed = new HashMap<>();
 	public static final HashMap<UUID, BlockPos> playerSpawn = new HashMap<>();
 	public static final HashMap<UUID, Boolean> gameTitles = new HashMap<>();
 	public static final HashMap<UUID, Boolean> manhuntSounds = new HashMap<>();
 	public static final HashMap<UUID, Boolean> nightVision = new HashMap<>();
+	public static final HashMap<UUID, Boolean> friendlyFire = new HashMap<>();
 	public static final HashMap<ServerPlayerEntity, Collection<StatusEffectInstance>> playerEffects = new HashMap<>();
 	public static HashMap<UUID, Integer> parkourTimer = new HashMap<>();
 	public static HashMap<UUID, Boolean> startedParkour = new HashMap<>();
@@ -114,6 +116,14 @@ public class ManhuntMod implements ModInitializer {
 
 	public static void setWorldSpawnPos(BlockPos worldSpawnPos) {
 		ManhuntMod.worldSpawnPos = worldSpawnPos;
+	}
+
+	public static BlockPos getOverworldSpawn() {
+		return overworldSpawn;
+	}
+
+	public static void setOverworldSpawn(BlockPos overworldSpawn) {
+		ManhuntMod.overworldSpawn = overworldSpawn;
 	}
 
 	public static boolean isPreloaded() {
@@ -178,6 +188,7 @@ public class ManhuntMod implements ModInitializer {
 		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
 			CoordsCommand.register(dispatcher);
 			HunterCommand.register(dispatcher);
+			OneHunterCommand.register(dispatcher);
 			OneRunnerCommand.register(dispatcher);
 			PauseCommand.register(dispatcher);
 			PingCommand.register(dispatcher);
@@ -231,6 +242,7 @@ public class ManhuntMod implements ModInitializer {
 		endWorld.setEnderDragonFight(new EnderDragonFight(endWorld, endWorld.getSeed(), EnderDragonFight.Data.DEFAULT));
 
 		setWorldSpawnPos(new BlockPos(0, 0, 0));
+		setOverworldSpawn(new BlockPos(0, 0, 0));
 
 		if (isChunkyIntegration() && config.isPreloadChunks()) {
 			setPreloaded(false);

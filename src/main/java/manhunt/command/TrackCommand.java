@@ -3,12 +3,12 @@ package manhunt.command;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import manhunt.game.GameState;
-import manhunt.game.ManhuntGame;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 
 import static manhunt.ManhuntMod.getGameState;
+import static manhunt.game.ManhuntGame.updateCompass;
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
 
@@ -24,7 +24,7 @@ public class TrackCommand {
     }
 
     private static int trackPlayer(ServerCommandSource source, ServerPlayerEntity player) {
-        ManhuntGame.updateCompass(source.getPlayer(), source.getPlayer().getMainHandStack(), player);
+        updateCompass(source.getPlayer(), source.getPlayer().getMainHandStack(), player);
 
         return Command.SINGLE_SUCCESS;
     }

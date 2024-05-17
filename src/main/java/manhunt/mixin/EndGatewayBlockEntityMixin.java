@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 public abstract class EndGatewayBlockEntityMixin {
 
     @Redirect(method = "tryTeleportingEntity", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/World;getRegistryKey()Lnet/minecraft/registry/RegistryKey;"))
-    private static RegistryKey<World> manhunt$teleportEntity(World instance) {
+    private static RegistryKey<World> Manhunt$teleportEntity(World instance) {
         return World.END;
     }
 }

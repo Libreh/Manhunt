@@ -7,6 +7,7 @@ import net.minecraft.component.type.LodestoneTrackerComponent;
 import net.minecraft.component.type.NbtComponent;
 import net.minecraft.enchantment.Enchantments;
 import net.minecraft.entity.damage.DamageSource;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
@@ -22,6 +23,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.Optional;
 
@@ -39,9 +41,9 @@ public class ServerPlayerEntityMixin {
 
 
     @Inject(method = "tick", at = @At("HEAD"))
-    public void tick(CallbackInfo ci) {
+    private void tick(CallbackInfo ci) {
         if (getGameState() == GameState.PLAYING) {
-            if (player.isTeamPlayer(player.getScoreboard().getTeam("hunters"))) {
+            if (player.getScoreboardTeam().getName().equals("hunters")) {
                 if (!hasTracker(player)) {
                     NbtCompound nbt = new NbtCompound();
                     nbt.putBoolean("Tracker", true);
@@ -91,11 +93,25 @@ public class ServerPlayerEntityMixin {
     }
 
     @Inject(at = @At("HEAD"), method = "onDeath")
-    public void onDeath(DamageSource source, CallbackInfo ci) {
-        if (player.isTeamPlayer(player.getScoreboard().getTeam("runners"))) {
-            isRunner.put(player.getUuid(), false);
-            if (player.getScoreboard().getTeam("runners").getPlayerList().size() <= 1) {
-                ManhuntGame.endGame(server, true, false);
+    private void onDeath(DamageSource source, CallbackInfo ci) {
+        if (player.getScoreboardTeam().getName().equals("runners") && player.getScoreboard().getTeam("runners").getPlayerList().size() <= 1) {
+            ManhuntGame.endGame(server, true, false);
+        }
+    }
+
+    @Inject(method = "shouldDamagePlayer", at = @At("HEAD"), cancellable = true)
+    private void Manhunt$pvpMixin(PlayerEntity attacker, CallbackInfoReturnable<Boolean> ci) {
+        if (getGameState() == GameState.PREGAME) {
+            ci.setReturnValue(false);
+        } else {
+            if (player.isTeamPlayer(attacker.getScoreboardTeam())) {
+                if (config.getFriendlyFire() == 2) {
+                    ci.setReturnValue(false);
+                } else if (config.getFriendlyFire() == 1) {
+                    if (!friendlyFire.get(player.getUuid()) || !friendlyFire.get(attacker.getUuid())) {
+                        ci.setReturnValue(false);
+                    }
+                }
             }
         }
     }

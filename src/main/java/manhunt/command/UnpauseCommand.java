@@ -43,8 +43,8 @@ public class UnpauseCommand {
                 for (StatusEffectInstance statusEffect : playerEffects.get(gamePlayer)) {
                     gamePlayer.addStatusEffect(statusEffect);
                 }
-                gamePlayer.networkHandler.sendPacket(new TitleS2CPacket(Text.translatable("manhunt.title.gameis.unpaused").formatted(Formatting.YELLOW)));
-                gamePlayer.networkHandler.sendPacket(new SubtitleS2CPacket(Text.translatable("manhunt.title.unpaused").formatted(Formatting.GOLD)));
+                gamePlayer.networkHandler.sendPacket(new TitleS2CPacket(Text.literal(config.getGameUnpausedTitle()).formatted(Formatting.YELLOW)));
+                gamePlayer.networkHandler.sendPacket(new SubtitleS2CPacket(Text.literal(config.getGameUnpausedSubtitle()).formatted(Formatting.GOLD)));
             }
 
             ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();

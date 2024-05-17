@@ -8,8 +8,8 @@ import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
 
+import static manhunt.ManhuntMod.config;
 import static manhunt.ManhuntMod.getGameState;
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
@@ -28,15 +28,14 @@ public class OneRunnerCommand {
 
     private static int setOneRunner(ServerCommandSource source, ServerPlayerEntity player) {
         for (ServerPlayerEntity serverPlayer : player.getServer().getPlayerManager().getPlayerList()) {
-            serverPlayer.getScoreboard().clearTeam(serverPlayer.getName().getString());
+            serverPlayer.getScoreboard().clearTeam(serverPlayer.getNameForScoreboard());
             serverPlayer.getScoreboard().addScoreHolderToTeam(serverPlayer.getName().getString(), player.getScoreboard().getTeam("hunters"));
         }
 
-        player.getScoreboard().clearTeam(player.getName().getString());
-        player.getScoreboard().addScoreHolderToTeam(player.getName().getString(), player.getScoreboard().getTeam("players"));
+        player.getScoreboard().clearTeam(player.getNameForScoreboard());
         player.getScoreboard().addScoreHolderToTeam(player.getName().getString(), player.getScoreboard().getTeam("runners"));
 
-        player.getServer().getPlayerManager().broadcast(Text.translatable("manhunt.chat.onerunner", Text.literal(player.getName().getString()).formatted(Formatting.GREEN), Text.translatable("manhunt.runner").formatted(Formatting.GREEN)), false);
+        player.getServer().getPlayerManager().broadcast(Text.translatable("manhunt.chat.onerunner", Text.literal(player.getName().getString()).formatted(config.getRunnersColor()), Text.translatable("manhunt.runner").formatted(config.getHuntersColor())), false);
 
         return Command.SINGLE_SUCCESS;
     }
