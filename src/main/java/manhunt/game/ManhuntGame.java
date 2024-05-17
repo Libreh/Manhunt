@@ -474,6 +474,34 @@ public class ManhuntGame {
                 }
             })
         );
+        slot++;
+
+        loreList = new ArrayList<>();
+        name = "friendlyfire";
+        item = Items.EMERALD;
+        bool = friendlyFire.get(player.getUuid());
+
+        loreList.add(Text.translatable("manhunt.lore." + name).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+        if (bool) {
+            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.on").formatted(Formatting.GREEN), Text.translatable("manhunt.off")).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+        } else {
+            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.on"), Text.translatable("manhunt.off").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+        }
+
+        Item friendlyFireItem = item;
+        boolean friendlyFireBool = bool;
+        preferencesGui.setSlot(slot, new GuiElementBuilder(item)
+                .setName(Text.translatable("manhunt." + name))
+                .setLore(loreList)
+                .setCallback(() -> {
+                    if (!player.getItemCooldownManager().isCoolingDown(friendlyFireItem)) {
+                        nightVision.put(player.getUuid(), !friendlyFireBool);
+                        player.getItemCooldownManager().set(friendlyFireItem, 10);
+                        player.networkHandler.sendPacket(new PlaySoundS2CPacket(SoundEvents.UI_BUTTON_CLICK, SoundCategory.MASTER, player.getPos().getX(), player.getPos().getY(), player.getPos().getZ(), 0.5F, 1.0F, player.getWorld().random.nextLong()));
+                        openPreferencesGui(player);
+                    }
+                })
+        );
 
         preferencesGui.open();
     }
@@ -974,43 +1002,6 @@ public class ManhuntGame {
         slot++;
 
         loreList = new ArrayList<>();
-        name = "friendlyfire";
-        item = Items.EMERALD;
-        integer = config.getFriendlyFire();
-
-        loreList.add(Text.translatable("manhunt.lore." + name).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
-        if (integer == 0) {
-            loreList.add(Text.translatable("manhunt.lore.triple", Text.translatable("manhunt.lore." + name + ".always").formatted(Formatting.GREEN), Text.translatable("manhunt.lore." + name + ".perplayer"), Text.translatable("manhunt.lore." + name + ".never")).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
-        } else if (integer == 1) {
-            loreList.add(Text.translatable("manhunt.lore.triple", Text.translatable("manhunt.lore." + name + ".always"), Text.translatable("manhunt.lore." + name + ".perplayer").formatted(Formatting.YELLOW), Text.translatable("manhunt.lore." + name + ".never")).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
-        } else {
-            loreList.add(Text.translatable("manhunt.lore.triple", Text.translatable("manhunt.lore." + name + ".always"), Text.translatable("manhunt.lore." + name + ".perplayer"), Text.translatable("manhunt.lore." + name + ".never").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
-        }
-
-        Item friendlyFireItem = item;
-        int friendlyFireInt = integer;
-        settingsGui.setSlot(slot, new GuiElementBuilder(item)
-                .setName(Text.translatable("manhunt." + name).formatted(Formatting.WHITE))
-                .setLore(loreList)
-                .setCallback(() -> {
-                    if (!player.getItemCooldownManager().isCoolingDown(friendlyFireItem)) {
-                        if (friendlyFireInt == 0) {
-                            config.setFriendlyFire(1);
-                        } else if (friendlyFireInt == 1) {
-                            config.setFriendlyFire(2);
-                        } else {
-                            config.setFriendlyFire(0);
-                        }
-                        config.save();
-                        player.getItemCooldownManager().set(friendlyFireItem, 10);
-                        player.networkHandler.sendPacket(new PlaySoundS2CPacket(SoundEvents.UI_BUTTON_CLICK, SoundCategory.MASTER, player.getPos().getX(), player.getPos().getY(), player.getPos().getZ(), 0.5F, 1.0F, player.getWorld().random.nextLong()));
-                        openSettingsGui(player);
-                    }
-                })
-        );
-        slot++;
-
-        loreList = new ArrayList<>();
         name = "bedexplosions";
         item = Items.RED_BED;
         bool = config.isBedExplosions();
@@ -1043,7 +1034,7 @@ public class ManhuntGame {
         loreList = new ArrayList<>();
         name = "lavapvpinnether";
         item = Items.LAVA_BUCKET;
-        bool = config.isBedExplosions();
+        bool = config.isLavaPvpInNether();
 
         loreList.add(Text.translatable("manhunt.lore." + name).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         loreList.add(Text.translatable("manhunt.lore." + name + ".second").setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
@@ -1060,9 +1051,67 @@ public class ManhuntGame {
                 .setLore(loreList)
                 .setCallback(() -> {
                     if (!player.getItemCooldownManager().isCoolingDown(lavaPvpInNetherItem)) {
-                        config.setBedExplosions(!lavaPvpInNetherBool);
+                        config.setLavaPvpInNether(!lavaPvpInNetherBool);
                         config.save();
                         player.getItemCooldownManager().set(lavaPvpInNetherItem, 10);
+                        player.networkHandler.sendPacket(new PlaySoundS2CPacket(SoundEvents.UI_BUTTON_CLICK, SoundCategory.MASTER, player.getPos().getX(), player.getPos().getY(), player.getPos().getZ(), 0.5F, 1.0F, player.getWorld().random.nextLong()));
+                        openSettingsGui(player);
+                    }
+                })
+        );
+        slot++;
+
+        loreList = new ArrayList<>();
+        name = "spectatorsgeneratechunks";
+        item = Items.STONE;
+        bool = config.isSpectatorsGenerateChunks();
+
+        loreList.add(Text.translatable("manhunt.lore." + name).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+        if (bool) {
+            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.on").formatted(Formatting.GREEN), Text.translatable("manhunt.off")).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+        } else {
+            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.on"), Text.translatable("manhunt.off").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+        }
+
+        var spectatorsGenerateChunksItem = item;
+        var spectatorsGenerateChunksBool = bool;
+        settingsGui.setSlot(slot, new GuiElementBuilder(item)
+                .setName(Text.translatable("manhunt." + name))
+                .setLore(loreList)
+                .setCallback(() -> {
+                    if (!player.getItemCooldownManager().isCoolingDown(spectatorsGenerateChunksItem)) {
+                        config.setSpectatorsGenerateChunks(!spectatorsGenerateChunksBool);
+                        config.save();
+                        player.getItemCooldownManager().set(spectatorsGenerateChunksItem, 10);
+                        player.networkHandler.sendPacket(new PlaySoundS2CPacket(SoundEvents.UI_BUTTON_CLICK, SoundCategory.MASTER, player.getPos().getX(), player.getPos().getY(), player.getPos().getZ(), 0.5F, 1.0F, player.getWorld().random.nextLong()));
+                        openSettingsGui(player);
+                    }
+                })
+        );
+        slot++;
+
+        loreList = new ArrayList<>();
+        name = "runnershuntondeath";
+        item = Items.SKELETON_SKULL;
+        bool = config.isRunnersHuntOnDeath();
+
+        loreList.add(Text.translatable("manhunt.lore." + name).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+        if (bool) {
+            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.on").formatted(Formatting.GREEN), Text.translatable("manhunt.off")).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+        } else {
+            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.on"), Text.translatable("manhunt.off").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+        }
+
+        var runnersHuntOnDeathItem = item;
+        var runnersHuntOnDeathBool = bool;
+        settingsGui.setSlot(slot, new GuiElementBuilder(item)
+                .setName(Text.translatable("manhunt." + name).formatted(Formatting.WHITE))
+                .setLore(loreList)
+                .setCallback(() -> {
+                    if (!player.getItemCooldownManager().isCoolingDown(runnersHuntOnDeathItem)) {
+                        config.setRunnersHuntOnDeath(!runnersHuntOnDeathBool);
+                        config.save();
+                        player.getItemCooldownManager().set(runnersHuntOnDeathItem, 10);
                         player.networkHandler.sendPacket(new PlaySoundS2CPacket(SoundEvents.UI_BUTTON_CLICK, SoundCategory.MASTER, player.getPos().getX(), player.getPos().getY(), player.getPos().getZ(), 0.5F, 1.0F, player.getWorld().random.nextLong()));
                         openSettingsGui(player);
                     }
@@ -1150,6 +1199,43 @@ public class ManhuntGame {
                         config.setNightVision(!nightVisionBool);
                         config.save();
                         player.getItemCooldownManager().set(nightVisionItem, 10);
+                        player.networkHandler.sendPacket(new PlaySoundS2CPacket(SoundEvents.UI_BUTTON_CLICK, SoundCategory.MASTER, player.getPos().getX(), player.getPos().getY(), player.getPos().getZ(), 0.5F, 1.0F, player.getWorld().random.nextLong()));
+                        openSettingsGui(player);
+                    }
+                })
+        );
+        slot++;
+
+        loreList = new ArrayList<>();
+        name = "friendlyfire";
+        item = Items.EMERALD;
+        integer = config.getFriendlyFire();
+
+        loreList.add(Text.translatable("manhunt.lore." + name).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+        if (integer == 0) {
+            loreList.add(Text.translatable("manhunt.lore.triple", Text.translatable("manhunt.lore." + name + ".always").formatted(Formatting.GREEN), Text.translatable("manhunt.lore." + name + ".perplayer"), Text.translatable("manhunt.lore." + name + ".never")).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+        } else if (integer == 1) {
+            loreList.add(Text.translatable("manhunt.lore.triple", Text.translatable("manhunt.lore." + name + ".always"), Text.translatable("manhunt.lore." + name + ".perplayer").formatted(Formatting.YELLOW), Text.translatable("manhunt.lore." + name + ".never")).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+        } else {
+            loreList.add(Text.translatable("manhunt.lore.triple", Text.translatable("manhunt.lore." + name + ".always"), Text.translatable("manhunt.lore." + name + ".perplayer"), Text.translatable("manhunt.lore." + name + ".never").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+        }
+
+        Item friendlyFireItem = item;
+        int friendlyFireInt = integer;
+        settingsGui.setSlot(slot, new GuiElementBuilder(item)
+                .setName(Text.translatable("manhunt." + name).formatted(Formatting.WHITE))
+                .setLore(loreList)
+                .setCallback(() -> {
+                    if (!player.getItemCooldownManager().isCoolingDown(friendlyFireItem)) {
+                        if (friendlyFireInt == 0) {
+                            config.setFriendlyFire(1);
+                        } else if (friendlyFireInt == 1) {
+                            config.setFriendlyFire(2);
+                        } else {
+                            config.setFriendlyFire(0);
+                        }
+                        config.save();
+                        player.getItemCooldownManager().set(friendlyFireItem, 10);
                         player.networkHandler.sendPacket(new PlaySoundS2CPacket(SoundEvents.UI_BUTTON_CLICK, SoundCategory.MASTER, player.getPos().getX(), player.getPos().getY(), player.getPos().getZ(), 0.5F, 1.0F, player.getWorld().random.nextLong()));
                         openSettingsGui(player);
                     }
