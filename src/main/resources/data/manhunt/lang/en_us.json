@@ -38,6 +38,8 @@
   "manhunt.lore.double": "[%s/%s]",
   "manhunt.lore.triple": "[%s/%s/%s]",
   "manhunt.lore.click.shift": "Shift-Click: Customize.",
+  "manhunt.lore.click.drop": "Drop-key: Default.",
+  "manhunt.lore.click.both": "%s %s",
   "manhunt.lore.gametitles": "Titles regarding game events",
   "manhunt.lore.manhuntsounds": "Custom sounds related to Manhunt",
   "manhunt.lore.nightvision": "Permanent night vision effect",

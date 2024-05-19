@@ -11,6 +11,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtList;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
@@ -43,12 +44,11 @@ public class ServerPlayerEntityMixin {
     @Inject(method = "tick", at = @At("HEAD"))
     private void tick(CallbackInfo ci) {
         if (getGameState() == GameState.PLAYING) {
-            if (player.getScoreboardTeam().getName().equals("hunters")) {
+            if (player.isTeamPlayer(player.getScoreboard().getTeam("hunters"))) {
                 if (!hasTracker(player)) {
                     NbtCompound nbt = new NbtCompound();
                     nbt.putBoolean("Tracker", true);
                     nbt.putBoolean("Remove", true);
-                    nbt.putString("Name", "");
 
                     ItemStack trackerStack = new ItemStack(Items.COMPASS);
                     trackerStack.set(DataComponentTypes.ITEM_NAME, Text.translatable("manhunt.tracker"));
@@ -59,30 +59,30 @@ public class ServerPlayerEntityMixin {
 
                     player.giveItemStack(trackerStack);
                 } else {
-                    if (config.isAutomaticCompass() && System.currentTimeMillis() - lastDelay > rate && allRunners != null && !allRunners.isEmpty()) {
-                        for (ItemStack itemStack : player.getInventory().main) {
-                            if (itemStack.getItem().equals(Items.COMPASS) && itemStack.get(DataComponentTypes.CUSTOM_DATA) != null && itemStack.get(DataComponentTypes.CUSTOM_DATA).copyNbt().getBoolean("Tracker")) {
-                                ServerPlayerEntity trackedPlayer = allRunners.get(0);
-
-                                if (!itemStack.get(DataComponentTypes.CUSTOM_DATA).copyNbt().getString("Name").isEmpty()) {
-                                    trackedPlayer = server.getPlayerManager().getPlayer(itemStack.get(DataComponentTypes.CUSTOM_DATA).copyNbt().getString("Name"));
-                                } else {
-                                    NbtCompound nbt = itemStack.get(DataComponentTypes.CUSTOM_DATA).copyNbt();
-                                    nbt.putString("Name", trackedPlayer.getName().getString());
-                                    itemStack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(nbt));
+                    if (config.isAutomaticCompass() && System.currentTimeMillis() - lastDelay > rate) {
+                        for (ItemStack stack : player.getInventory().main) {
+                            if (stack.getItem().equals(Items.COMPASS) && stack.get(DataComponentTypes.CUSTOM_DATA) != null && stack.get(DataComponentTypes.CUSTOM_DATA).copyNbt().getBoolean("Tracker")) {
+                                if (!stack.get(DataComponentTypes.CUSTOM_DATA).copyNbt().contains("Name") && !allRunners.isEmpty()) {
+                                    NbtCompound nbt = stack.get(DataComponentTypes.CUSTOM_DATA).copyNbt();
+                                    nbt.putString("Name", allRunners.get(0).getName().getString());
+                                    stack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(nbt));
                                 }
 
-                                if (player.distanceTo(trackedPlayer) <= 128) {
-                                    rate = 750;
-                                } else if (player.distanceTo(trackedPlayer) <= 512) {
-                                    rate = 1500;
-                                } else if (player.distanceTo(trackedPlayer) <= 1024) {
-                                    rate = 3000;
-                                } else {
-                                    rate = 6000;
-                                }
+                                ServerPlayerEntity trackedPlayer = server.getPlayerManager().getPlayer(stack.get(DataComponentTypes.CUSTOM_DATA).copyNbt().getString("Name"));
 
-                                updateCompass(player, itemStack, trackedPlayer);
+                                if (trackedPlayer != null) {
+                                    if (player.distanceTo(trackedPlayer) <= 128) {
+                                        rate = 750;
+                                    } else if (player.distanceTo(trackedPlayer) <= 512) {
+                                        rate = 1500;
+                                    } else if (player.distanceTo(trackedPlayer) <= 1024) {
+                                        rate = 3000;
+                                    } else {
+                                        rate = 6000;
+                                    }
+
+                                    updateCompass(player, stack, trackedPlayer);
+                                }
                             }
                         }
                         lastDelay = System.currentTimeMillis();
@@ -94,7 +94,7 @@ public class ServerPlayerEntityMixin {
 
     @Inject(at = @At("HEAD"), method = "onDeath")
     private void onDeath(DamageSource source, CallbackInfo ci) {
-        if (player.getScoreboardTeam().getName().equals("runners") && player.getScoreboard().getTeam("runners").getPlayerList().size() <= 1) {
+        if (player.isTeamPlayer(player.getScoreboard().getTeam("runners")) && player.getScoreboard().getTeam("runners").getPlayerList().size() <= 1) {
             ManhuntGame.endGame(server, true, false);
         }
     }
@@ -116,11 +116,31 @@ public class ServerPlayerEntityMixin {
         }
     }
 
+    private static void updateCompass(ServerPlayerEntity player, ItemStack stack, ServerPlayerEntity trackedPlayer) {
+        NbtCompound playerTag = trackedPlayer.writeNbt(new NbtCompound());
+        NbtList positions = playerTag.getList("Positions", 10);
+        int i;
+        for (i = 0; i < positions.size(); ++i) {
+            NbtCompound compound = positions.getCompound(i);
+            if (compound.getString("LodestoneDimension").equals(player.writeNbt(new NbtCompound()).getString("Dimension"))) {
+                NbtCompound nbt = stack.get(DataComponentTypes.CUSTOM_DATA).copyNbt().copyFrom(compound);
+                stack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(nbt));
+                break;
+            }
+        }
+
+        int[] is = stack.get(DataComponentTypes.CUSTOM_DATA).copyNbt().getIntArray("LodestonePos");
+
+        BlockPos blockPos = new BlockPos(is[0], is[1], is[2]);
+
+        stack.set(DataComponentTypes.LODESTONE_TRACKER, new LodestoneTrackerComponent(Optional.of(GlobalPos.create(player.getWorld().getRegistryKey(), blockPos)), false));
+    }
+
     private static boolean hasTracker(ServerPlayerEntity player) {
         boolean tracker = false;
 
-        for (ItemStack itemStack : player.getInventory().main) {
-            if (itemStack.getItem() == Items.COMPASS && itemStack.get(DataComponentTypes.CUSTOM_DATA) != null && itemStack.get(DataComponentTypes.CUSTOM_DATA).copyNbt().getBoolean("Tracker")) {
+        for (ItemStack stack : player.getInventory().main) {
+            if (stack.getItem() == Items.COMPASS && stack.get(DataComponentTypes.CUSTOM_DATA) != null && stack.get(DataComponentTypes.CUSTOM_DATA).copyNbt().getBoolean("Tracker")) {
                 tracker = true;
                 break;
             }
@@ -133,9 +153,5 @@ public class ServerPlayerEntityMixin {
         }
 
         return tracker;
-    }
-
-    private static void updateCompass(ServerPlayerEntity player, ItemStack stack, ServerPlayerEntity trackedPlayer) {
-        stack.set(DataComponentTypes.LODESTONE_TRACKER, new LodestoneTrackerComponent(Optional.of(GlobalPos.create(trackedPlayer.getWorld().getRegistryKey(), trackedPlayer.getBlockPos())), false));
     }
 }

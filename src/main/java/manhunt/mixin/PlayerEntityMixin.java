@@ -33,6 +33,7 @@ public class PlayerEntityMixin {
                     positions.remove(compound);
                 }
             }
+
             NbtCompound nbtCompound = new NbtCompound();
             nbtCompound.put("LodestonePos", NbtHelper.fromBlockPos(player.getBlockPos()));
             nbtCompound.put("LodestoneDimension", dimension);

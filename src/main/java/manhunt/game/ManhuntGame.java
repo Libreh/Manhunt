@@ -134,13 +134,13 @@ public class ManhuntGame {
 
             player.changeGameMode(GameMode.SURVIVAL);
 
-            if (player.getScoreboardTeam().getName().equals("runners")) {
+            if (player.isTeamPlayer(player.getScoreboard().getTeam("runners"))) {
                 if (config.isRunnerGlow()) {
                     player.addStatusEffect(new StatusEffectInstance(StatusEffects.GLOWING, StatusEffectInstance.INFINITE, 255, false, false));
                 }
             }
 
-            if (player.getScoreboardTeam().getName().equals("hunters")) {
+            if (player.isTeamPlayer(player.getScoreboard().getTeam("hunters"))) {
                 player.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, config.getRunnerHeadstart() * 20, 255, false, false));
                 player.addStatusEffect(new StatusEffectInstance(StatusEffects.BLINDNESS, config.getRunnerHeadstart() * 20, 255, false, false));
                 player.addStatusEffect(new StatusEffectInstance(StatusEffects.JUMP_BOOST, config.getRunnerHeadstart() * 20, 248, false, false));
@@ -202,8 +202,6 @@ public class ManhuntGame {
 
     public static void resetGame(MinecraftServer server) {
         setGameState(GameState.PREGAME);
-
-        setStarted(false);
 
         ServerWorld lobby = server.getWorld(RegistryKey.of(RegistryKeys.WORLD, lobbyKey));
 
@@ -403,15 +401,20 @@ public class ManhuntGame {
         } else {
             loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.on"), Text.translatable("manhunt.off").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         }
+        loreList.add(Text.translatable("manhunt.lore.click.drop").setStyle(Style.EMPTY.withColor(Formatting.AQUA).withItalic(false)));
 
         Item gameTitlesItem = item;
         boolean gameTitlesBool = bool;
         preferencesGui.setSlot(slot, new GuiElementBuilder(item)
                 .setName(Text.translatable("manhunt." + name))
                 .setLore(loreList)
-                .setCallback(() -> {
+                .setCallback((index, type, action) ->  {
                     if (!player.getItemCooldownManager().isCoolingDown(gameTitlesItem)) {
-                        gameTitles.put(player.getUuid(), !gameTitlesBool);
+                        if (type == ClickType.DROP) {
+                            gameTitles.put(player.getUuid(), config.isGameTitlesDefault());
+                        } else {
+                            gameTitles.put(player.getUuid(), !gameTitlesBool);
+                        }
                         player.getItemCooldownManager().set(gameTitlesItem, 10);
                         player.networkHandler.sendPacket(new PlaySoundS2CPacket(SoundEvents.UI_BUTTON_CLICK, SoundCategory.MASTER, player.getPos().getX(), player.getPos().getY(), player.getPos().getZ(), 0.5F, 1.0F, player.getWorld().random.nextLong()));
                         openPreferencesGui(player);
@@ -431,15 +434,20 @@ public class ManhuntGame {
         } else {
             loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.on"), Text.translatable("manhunt.off").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         }
+        loreList.add(Text.translatable("manhunt.lore.click.drop").setStyle(Style.EMPTY.withColor(Formatting.AQUA).withItalic(false)));
 
         Item manhuntSoundsItem = item;
         boolean manhuntSoundsBool = bool;
         preferencesGui.setSlot(1, new GuiElementBuilder(item)
                 .setName(Text.translatable("manhunt." + name))
                 .setLore(loreList)
-                .setCallback(() -> {
+                .setCallback((index, type, action) ->  {
                     if (!player.getItemCooldownManager().isCoolingDown(manhuntSoundsItem)) {
-                        manhuntSounds.put(player.getUuid(), !manhuntSoundsBool);
+                        if (type == ClickType.DROP) {
+                            manhuntSounds.put(player.getUuid(), config.isManhuntSoundsDefault());
+                        } else {
+                            manhuntSounds.put(player.getUuid(), !manhuntSoundsBool);
+                        }
                         player.getItemCooldownManager().set(manhuntSoundsItem, 10);
                         player.networkHandler.sendPacket(new PlaySoundS2CPacket(SoundEvents.UI_BUTTON_CLICK, SoundCategory.MASTER, player.getPos().getX(), player.getPos().getY(), player.getPos().getZ(), 0.5F, 1.0F, player.getWorld().random.nextLong()));
                         openPreferencesGui(player);
@@ -459,15 +467,20 @@ public class ManhuntGame {
         } else {
             loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.on"), Text.translatable("manhunt.off").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         }
+        loreList.add(Text.translatable("manhunt.lore.click.drop").setStyle(Style.EMPTY.withColor(Formatting.AQUA).withItalic(false)));
 
         Item nightVisionItem = item;
         boolean nightVisionBool = bool;
         preferencesGui.setSlot(slot, new GuiElementBuilder(item)
             .setName(Text.translatable("manhunt." + name))
             .setLore(loreList)
-            .setCallback(() -> {
+            .setCallback((index, type, action) -> {
                 if (!player.getItemCooldownManager().isCoolingDown(nightVisionItem)) {
-                    nightVision.put(player.getUuid(), !nightVisionBool);
+                    if (type == ClickType.DROP) {
+                        nightVision.put(player.getUuid(), false);
+                    } else {
+                        nightVision.put(player.getUuid(), !nightVisionBool);
+                    }
                     player.getItemCooldownManager().set(nightVisionItem, 10);
                     player.networkHandler.sendPacket(new PlaySoundS2CPacket(SoundEvents.UI_BUTTON_CLICK, SoundCategory.MASTER, player.getPos().getX(), player.getPos().getY(), player.getPos().getZ(), 0.5F, 1.0F, player.getWorld().random.nextLong()));
                     openPreferencesGui(player);
@@ -487,15 +500,20 @@ public class ManhuntGame {
         } else {
             loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.on"), Text.translatable("manhunt.off").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         }
+        loreList.add(Text.translatable("manhunt.lore.click.drop").setStyle(Style.EMPTY.withColor(Formatting.AQUA).withItalic(false)));
 
         Item friendlyFireItem = item;
         boolean friendlyFireBool = bool;
         preferencesGui.setSlot(slot, new GuiElementBuilder(item)
                 .setName(Text.translatable("manhunt." + name))
                 .setLore(loreList)
-                .setCallback(() -> {
+                .setCallback((index, type, action) -> {
                     if (!player.getItemCooldownManager().isCoolingDown(friendlyFireItem)) {
-                        nightVision.put(player.getUuid(), !friendlyFireBool);
+                        if (type == ClickType.DROP) {
+                            friendlyFire.put(player.getUuid(), true);
+                        } else {
+                            friendlyFire.put(player.getUuid(), !friendlyFireBool);
+                        }
                         player.getItemCooldownManager().set(friendlyFireItem, 10);
                         player.networkHandler.sendPacket(new PlaySoundS2CPacket(SoundEvents.UI_BUTTON_CLICK, SoundCategory.MASTER, player.getPos().getX(), player.getPos().getY(), player.getPos().getZ(), 0.5F, 1.0F, player.getWorld().random.nextLong()));
                         openPreferencesGui(player);
@@ -529,14 +547,25 @@ public class ManhuntGame {
         } else {
             loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.on"), Text.translatable("manhunt.off").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         }
+        loreList.add(Text.translatable("manhunt.lore.click.drop").setStyle(Style.EMPTY.withColor(Formatting.AQUA).withItalic(false)));
 
         var preloadChunksItem = item;
         var preloadChunksBool = bool;
         settingsGui.setSlot(slot, new GuiElementBuilder(item)
                 .setName(Text.translatable("manhunt." + name))
                 .setLore(loreList)
-                .setCallback(() -> {
+                .setCallback((index, type, action) ->  {
                     if (!player.getItemCooldownManager().isCoolingDown(preloadChunksItem)) {
+                        if (type == ClickType.DROP) {
+                            config.setPreloadChunks(config.isPreloadChunksDefault());
+                        } else {
+                            config.setPreloadChunks(!preloadChunksBool);
+                        }
+                        config.save();
+                        player.getItemCooldownManager().set(preloadChunksItem, 10);
+                        player.networkHandler.sendPacket(new PlaySoundS2CPacket(SoundEvents.UI_BUTTON_CLICK, SoundCategory.MASTER, player.getPos().getX(), player.getPos().getY(), player.getPos().getZ(), 0.5F, 1.0F, player.getWorld().random.nextLong()));
+                        openSettingsGui(player);
+
                         if (!preloadChunksBool) {
                             schedulePreload(player.getServer());
                         } else {
@@ -547,11 +576,6 @@ public class ManhuntGame {
                                 chunky.cancelTask("manhunt:the_nether");
                             }
                         }
-                        config.setPreloadChunks(!preloadChunksBool);
-                        config.save();
-                        player.getItemCooldownManager().set(preloadChunksItem, 10);
-                        player.networkHandler.sendPacket(new PlaySoundS2CPacket(SoundEvents.UI_BUTTON_CLICK, SoundCategory.MASTER, player.getPos().getX(), player.getPos().getY(), player.getPos().getZ(), 0.5F, 1.0F, player.getWorld().random.nextLong()));
-                        openSettingsGui(player);
                     }
                 })
         );
@@ -568,15 +592,20 @@ public class ManhuntGame {
         } else {
             loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.on"), Text.translatable("manhunt.off").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         }
+        loreList.add(Text.translatable("manhunt.lore.click.drop").setStyle(Style.EMPTY.withColor(Formatting.AQUA).withItalic(false)));
 
         var automaticCompassItem = item;
         var automaticCompassBool = bool;
         settingsGui.setSlot(slot, new GuiElementBuilder(item)
                 .setName(Text.translatable("manhunt." + name))
                 .setLore(loreList)
-                .setCallback(() -> {
+                .setCallback((index, type, action) ->  {
                     if (!player.getItemCooldownManager().isCoolingDown(automaticCompassItem)) {
-                        config.setAutomaticCompass(!automaticCompassBool);
+                        if (type == ClickType.DROP) {
+                            config.setAutomaticCompass(config.isAutomaticCompassDefault());
+                        } else {
+                            config.setAutomaticCompass(!automaticCompassBool);
+                        }
                         config.save();
                         player.getItemCooldownManager().set(automaticCompassItem, 10);
                         player.networkHandler.sendPacket(new PlaySoundS2CPacket(SoundEvents.UI_BUTTON_CLICK, SoundCategory.MASTER, player.getPos().getX(), player.getPos().getY(), player.getPos().getZ(), 0.5F, 1.0F, player.getWorld().random.nextLong()));
@@ -597,7 +626,7 @@ public class ManhuntGame {
         } else {
             loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.on"), Text.translatable("manhunt.off").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         }
-        loreList.add(Text.translatable("manhunt.lore.click.shift").setStyle(Style.EMPTY.withColor(Formatting.GOLD).withItalic(false)));
+        loreList.add(Text.translatable("manhunt.lore.click.both", Text.translatable("manhunt.lore.click.drop").setStyle(Style.EMPTY.withColor(Formatting.AQUA).withItalic(false)), Text.translatable("manhunt.lore.click.shift").setStyle(Style.EMPTY.withColor(Formatting.GOLD).withItalic(false))));
 
         var teamColorItem = item;
         var teamColorBool = bool;
@@ -627,7 +656,7 @@ public class ManhuntGame {
                 loreList.add(Text.translatable("manhunt.lore.triple", Text.literal("10"), Text.literal("20"), Text.literal("30").formatted(Formatting.GREEN)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
             }
         }
-        loreList.add(Text.translatable("manhunt.lore.click.shift").setStyle(Style.EMPTY.withColor(Formatting.GOLD).withItalic(false)));
+        loreList.add(Text.translatable("manhunt.lore.click.both", Text.translatable("manhunt.lore.click.drop").setStyle(Style.EMPTY.withColor(Formatting.AQUA).withItalic(false)), Text.translatable("manhunt.lore.click.shift").setStyle(Style.EMPTY.withColor(Formatting.GOLD).withItalic(false))));
 
         Item runnerHeadstartItem = item;
         int runnerHeadstartInt = integer;
@@ -638,15 +667,20 @@ public class ManhuntGame {
                 .setCallback((index, type, action) -> {
                     if (!player.getItemCooldownManager().isCoolingDown(runnerHeadstartItem)) {
                         if (!type.shift) {
-                            if (runnerHeadstartInt != 10 && runnerHeadstartInt != 20) {
-                                config.setRunnerHeadstart(10);
+                            if (type == ClickType.DROP) {
+                                config.setRunnerHeadstart(config.getRunnersHeadstartDefault());
                             } else {
-                                if (runnerHeadstartInt == 10) {
-                                    config.setRunnerHeadstart(20);
+                                if (runnerHeadstartInt != 10 && runnerHeadstartInt != 20) {
+                                    config.setRunnerHeadstart(10);
                                 } else {
-                                    config.setRunnerHeadstart(30);
+                                    if (runnerHeadstartInt == 10) {
+                                        config.setRunnerHeadstart(20);
+                                    } else {
+                                        config.setRunnerHeadstart(30);
+                                    }
                                 }
                             }
+
                             config.save();
                             player.getItemCooldownManager().set(runnerHeadstartItem, 10);
                             player.networkHandler.sendPacket(new PlaySoundS2CPacket(SoundEvents.UI_BUTTON_CLICK, SoundCategory.MASTER, player.getPos().getX(), player.getPos().getY(), player.getPos().getZ(), 0.5F, 1.0F, player.getWorld().random.nextLong()));
@@ -703,7 +737,7 @@ public class ManhuntGame {
                 loreList.add(Text.translatable("manhunt.lore.triple", Text.literal("30"), Text.literal("60"), Text.literal("90").formatted(Formatting.GREEN)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
             }
         }
-        loreList.add(Text.translatable("manhunt.lore.click.shift").setStyle(Style.EMPTY.withColor(Formatting.GOLD).withItalic(false)));
+        loreList.add(Text.translatable("manhunt.lore.click.both", Text.translatable("manhunt.lore.click.drop").setStyle(Style.EMPTY.withColor(Formatting.AQUA).withItalic(false)), Text.translatable("manhunt.lore.click.shift").setStyle(Style.EMPTY.withColor(Formatting.GOLD).withItalic(false))));
 
         Item timeLimitItem = item;
         int timeLimitInt = integer;
@@ -713,15 +747,18 @@ public class ManhuntGame {
                 .setCallback((index, type, action) ->  {
                     if (!player.getItemCooldownManager().isCoolingDown(timeLimitItem)) {
                         if (!type.shift) {
-                            if (timeLimitInt != 30 && timeLimitInt != 60) {
-                                config.setTimeLimit(30);
-                            } else {
-                                if (timeLimitInt == 30) {
-                                    config.setTimeLimit(60);
+                            if (type == ClickType.DROP) {
+                                if (timeLimitInt != 30 && timeLimitInt != 60) {
+                                    config.setTimeLimit(30);
                                 } else {
-                                    config.setTimeLimit(90);
+                                    if (timeLimitInt == 30) {
+                                        config.setTimeLimit(60);
+                                    } else {
+                                        config.setTimeLimit(90);
+                                    }
                                 }
                             }
+
                             config.save();
                             player.getItemCooldownManager().set(timeLimitItem, 10);
                             player.networkHandler.sendPacket(new PlaySoundS2CPacket(SoundEvents.UI_BUTTON_CLICK, SoundCategory.MASTER, player.getPos().getX(), player.getPos().getY(), player.getPos().getZ(), 0.5F, 1.0F, player.getWorld().random.nextLong()));
@@ -770,15 +807,20 @@ public class ManhuntGame {
         } else {
             loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.on"), Text.translatable("manhunt.off").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         }
+        loreList.add(Text.translatable("manhunt.lore.click.drop").setStyle(Style.EMPTY.withColor(Formatting.AQUA).withItalic(false)));
 
         var runnerGlowItem = item;
         var runnerGlowBool = bool;
         settingsGui.setSlot(slot, new GuiElementBuilder(item)
                 .setName(Text.translatable("manhunt." + name))
                 .setLore(loreList)
-                .setCallback(() -> {
+                .setCallback((index, type, action) ->  {
                     if (!player.getItemCooldownManager().isCoolingDown(runnerGlowItem)) {
-                        config.setRunnerGlow(!runnerGlowBool);
+                        if (type == ClickType.DROP) {
+                            config.setRunnerGlow(config.isRunnersGlowDefault());
+                        } else {
+                            config.setRunnerGlow(!runnerGlowBool);
+                        }
                         config.save();
                         player.getItemCooldownManager().set(runnerGlowItem, 10);
                         player.networkHandler.sendPacket(new PlaySoundS2CPacket(SoundEvents.UI_BUTTON_CLICK, SoundCategory.MASTER, player.getPos().getX(), player.getPos().getY(), player.getPos().getZ(), 0.5F, 1.0F, player.getWorld().random.nextLong()));
@@ -806,14 +848,18 @@ public class ManhuntGame {
         settingsGui.setSlot(slot, new GuiElementBuilder(item)
                 .setName(Text.translatable("manhunt." + name).formatted(Formatting.WHITE))
                 .setLore(loreList)
-                .setCallback(() -> {
+                .setCallback((index, type, action) ->  {
                     if (!player.getItemCooldownManager().isCoolingDown(gameDifficultyItem)) {
-                        if (difficulty == Difficulty.EASY) {
-                            config.setGameDifficulty(Difficulty.NORMAL);
-                        } else if (difficulty == Difficulty.NORMAL) {
-                            config.setGameDifficulty(Difficulty.HARD);
+                        if (type == ClickType.DROP) {
+                            config.setGameDifficulty(config.getGameDifficultyDefault());
                         } else {
-                            config.setGameDifficulty(Difficulty.EASY);
+                            if (difficulty == Difficulty.EASY) {
+                                config.setGameDifficulty(Difficulty.NORMAL);
+                            } else if (difficulty == Difficulty.NORMAL) {
+                                config.setGameDifficulty(Difficulty.HARD);
+                            } else {
+                                config.setGameDifficulty(Difficulty.EASY);
+                            }
                         }
                         player.getItemCooldownManager().set(gameDifficultyItem, 10);
                         player.networkHandler.sendPacket(new PlaySoundS2CPacket(SoundEvents.UI_BUTTON_CLICK, SoundCategory.MASTER, player.getPos().getX(), player.getPos().getY(), player.getPos().getZ(), 0.5F, 1.0F, player.getWorld().random.nextLong()));
@@ -821,6 +867,7 @@ public class ManhuntGame {
                     }
                 })
         );
+        slot++;
 
         loreList = new ArrayList<>();
         name = "worldborder";
@@ -841,7 +888,7 @@ public class ManhuntGame {
                 loreList.add(Text.translatable("manhunt.lore.triple", Text.literal("1st ring"), Text.literal("2nd ring"), Text.literal("Maximum").formatted(Formatting.GREEN)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
             }
         }
-        loreList.add(Text.translatable("manhunt.lore.click.shift").setStyle(Style.EMPTY.withColor(Formatting.GOLD).withItalic(false)));
+        loreList.add(Text.translatable("manhunt.lore.click.both", Text.translatable("manhunt.lore.click.drop").setStyle(Style.EMPTY.withColor(Formatting.AQUA).withItalic(false)), Text.translatable("manhunt.lore.click.shift").setStyle(Style.EMPTY.withColor(Formatting.GOLD).withItalic(false))));
 
         Item worldBorderItem = item;
         int worldBorderInt = integer;
@@ -851,17 +898,20 @@ public class ManhuntGame {
                 .setCallback((index, type, action) ->  {
                     if (!player.getItemCooldownManager().isCoolingDown(worldBorderItem)) {
                         if (!type.shift) {
-                            if (worldBorderInt != 2816 && worldBorderInt != 5888) {
-                                config.setWorldBorder(2816);
-
-
+                            if (type == ClickType.DROP) {
+                                config.setWorldBorder(config.getWorldBorderDefault());
                             } else {
-                                if (worldBorderInt == 2816) {
-                                    config.setWorldBorder(5888);
+                                if (worldBorderInt != 2816 && worldBorderInt != 5888) {
+                                    config.setWorldBorder(2816);
                                 } else {
-                                    config.setWorldBorder(59999968);
+                                    if (worldBorderInt == 2816) {
+                                        config.setWorldBorder(5888);
+                                    } else {
+                                        config.setWorldBorder(59999968);
+                                    }
                                 }
                             }
+
                             config.save();
                             player.getItemCooldownManager().set(worldBorderItem, 10);
                             player.networkHandler.sendPacket(new PlaySoundS2CPacket(SoundEvents.UI_BUTTON_CLICK, SoundCategory.MASTER, player.getPos().getX(), player.getPos().getY(), player.getPos().getZ(), 0.5F, 1.0F, player.getWorld().random.nextLong()));
@@ -916,7 +966,7 @@ public class ManhuntGame {
                 loreList.add(Text.translatable("manhunt.lore.triple", Text.literal("0"), Text.literal("5"), Text.literal("10").formatted(Formatting.GREEN)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
             }
         }
-        loreList.add(Text.translatable("manhunt.lore.click.shift").setStyle(Style.EMPTY.withColor(Formatting.GOLD).withItalic(false)));
+        loreList.add(Text.translatable("manhunt.lore.click.both", Text.translatable("manhunt.lore.click.drop").setStyle(Style.EMPTY.withColor(Formatting.AQUA).withItalic(false)), Text.translatable("manhunt.lore.click.shift").setStyle(Style.EMPTY.withColor(Formatting.GOLD).withItalic(false))));
 
         Item spawnRadiusItem = item;
         int spawnRadiusInt = integer;
@@ -926,15 +976,20 @@ public class ManhuntGame {
                 .setCallback((index, type, action) ->  {
                     if (!player.getItemCooldownManager().isCoolingDown(spawnRadiusItem)) {
                         if (!type.shift) {
-                            if (spawnRadiusInt != 0 && spawnRadiusInt != 5) {
-                                config.setSpawnRadius(0);
+                            if (type == ClickType.DROP) {
+                                config.setSpawnRadius(config.getSpawnRadiusDefault());
                             } else {
-                                if (spawnRadiusInt == 0) {
-                                    config.setSpawnRadius(5);
+                                if (spawnRadiusInt != 0 && spawnRadiusInt != 5) {
+                                    config.setSpawnRadius(0);
                                 } else {
-                                    config.setSpawnRadius(10);
+                                    if (spawnRadiusInt == 0) {
+                                        config.setSpawnRadius(5);
+                                    } else {
+                                        config.setSpawnRadius(10);
+                                    }
                                 }
                             }
+
                             config.save();
                             player.getItemCooldownManager().set(spawnRadiusItem, 10);
                             player.networkHandler.sendPacket(new PlaySoundS2CPacket(SoundEvents.UI_BUTTON_CLICK, SoundCategory.MASTER, player.getPos().getX(), player.getPos().getY(), player.getPos().getZ(), 0.5F, 1.0F, player.getWorld().random.nextLong()));
@@ -983,15 +1038,20 @@ public class ManhuntGame {
         } else {
             loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.on"), Text.translatable("manhunt.off").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         }
+        loreList.add(Text.translatable("manhunt.lore.click.drop").setStyle(Style.EMPTY.withColor(Formatting.AQUA).withItalic(false)));
 
         var spectateWinItem = item;
         var spectateWinBool = bool;
         settingsGui.setSlot(slot, new GuiElementBuilder(item)
                 .setName(Text.translatable("manhunt." + name))
                 .setLore(loreList)
-                .setCallback(() -> {
+                .setCallback((index, type, action) -> {
                     if (!player.getItemCooldownManager().isCoolingDown(spectateWinItem)) {
-                        config.setSpectateWin(!spectateWinBool);
+                        if (type == ClickType.DROP) {
+                            config.setSpectateWin(config.isSpectateWinDefault());
+                        } else {
+                            config.setSpectateWin(!spectateWinBool);
+                        }
                         config.save();
                         player.getItemCooldownManager().set(spectateWinItem, 10);
                         player.networkHandler.sendPacket(new PlaySoundS2CPacket(SoundEvents.UI_BUTTON_CLICK, SoundCategory.MASTER, player.getPos().getX(), player.getPos().getY(), player.getPos().getZ(), 0.5F, 1.0F, player.getWorld().random.nextLong()));
@@ -1013,15 +1073,20 @@ public class ManhuntGame {
         } else {
             loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.on"), Text.translatable("manhunt.off").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         }
+        loreList.add(Text.translatable("manhunt.lore.click.drop").setStyle(Style.EMPTY.withColor(Formatting.AQUA).withItalic(false)));
 
         var bedExplosionsItem = item;
         var bedExplosionsBool = bool;
         settingsGui.setSlot(slot, new GuiElementBuilder(item)
                 .setName(Text.translatable("manhunt." + name))
                 .setLore(loreList)
-                .setCallback(() -> {
+                .setCallback((index, type, action) -> {
                     if (!player.getItemCooldownManager().isCoolingDown(bedExplosionsItem)) {
-                        config.setBedExplosions(!bedExplosionsBool);
+                        if (type == ClickType.DROP) {
+                            config.setBedExplosions(config.isBedExplosionsDefault());
+                        } else {
+                            config.setBedExplosions(!bedExplosionsBool);
+                        }
                         config.save();
                         player.getItemCooldownManager().set(bedExplosionsItem, 10);
                         player.networkHandler.sendPacket(new PlaySoundS2CPacket(SoundEvents.UI_BUTTON_CLICK, SoundCategory.MASTER, player.getPos().getX(), player.getPos().getY(), player.getPos().getZ(), 0.5F, 1.0F, player.getWorld().random.nextLong()));
@@ -1043,15 +1108,20 @@ public class ManhuntGame {
         } else {
             loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.on"), Text.translatable("manhunt.off").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         }
+        loreList.add(Text.translatable("manhunt.lore.click.drop").setStyle(Style.EMPTY.withColor(Formatting.AQUA).withItalic(false)));
 
         var lavaPvpInNetherItem = item;
         var lavaPvpInNetherBool = bool;
         settingsGui.setSlot(slot, new GuiElementBuilder(item)
                 .setName(Text.translatable("manhunt." + name))
                 .setLore(loreList)
-                .setCallback(() -> {
+                .setCallback((index, type, action) ->  {
                     if (!player.getItemCooldownManager().isCoolingDown(lavaPvpInNetherItem)) {
-                        config.setLavaPvpInNether(!lavaPvpInNetherBool);
+                        if (type == ClickType.DROP) {
+                            config.setLavaPvpInNether(config.isLavaPvpInNetherDefault());
+                        } else {
+                            config.setLavaPvpInNether(!lavaPvpInNetherBool);
+                        }
                         config.save();
                         player.getItemCooldownManager().set(lavaPvpInNetherItem, 10);
                         player.networkHandler.sendPacket(new PlaySoundS2CPacket(SoundEvents.UI_BUTTON_CLICK, SoundCategory.MASTER, player.getPos().getX(), player.getPos().getY(), player.getPos().getZ(), 0.5F, 1.0F, player.getWorld().random.nextLong()));
@@ -1072,15 +1142,20 @@ public class ManhuntGame {
         } else {
             loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.on"), Text.translatable("manhunt.off").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         }
+        loreList.add(Text.translatable("manhunt.lore.click.drop").setStyle(Style.EMPTY.withColor(Formatting.AQUA).withItalic(false)));
 
         var spectatorsGenerateChunksItem = item;
         var spectatorsGenerateChunksBool = bool;
         settingsGui.setSlot(slot, new GuiElementBuilder(item)
                 .setName(Text.translatable("manhunt." + name))
                 .setLore(loreList)
-                .setCallback(() -> {
+                .setCallback((index, type, action) ->  {
                     if (!player.getItemCooldownManager().isCoolingDown(spectatorsGenerateChunksItem)) {
-                        config.setSpectatorsGenerateChunks(!spectatorsGenerateChunksBool);
+                        if (type == ClickType.DROP) {
+                            config.setSpectatorsGenerateChunks(config.isSpectatorsGenerateChunksDefault());
+                        } else {
+                            config.setSpectatorsGenerateChunks(!spectatorsGenerateChunksBool);
+                        }
                         config.save();
                         player.getItemCooldownManager().set(spectatorsGenerateChunksItem, 10);
                         player.networkHandler.sendPacket(new PlaySoundS2CPacket(SoundEvents.UI_BUTTON_CLICK, SoundCategory.MASTER, player.getPos().getX(), player.getPos().getY(), player.getPos().getZ(), 0.5F, 1.0F, player.getWorld().random.nextLong()));
@@ -1101,15 +1176,20 @@ public class ManhuntGame {
         } else {
             loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.on"), Text.translatable("manhunt.off").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         }
+        loreList.add(Text.translatable("manhunt.lore.click.drop").setStyle(Style.EMPTY.withColor(Formatting.AQUA).withItalic(false)));
 
         var runnersHuntOnDeathItem = item;
         var runnersHuntOnDeathBool = bool;
         settingsGui.setSlot(slot, new GuiElementBuilder(item)
                 .setName(Text.translatable("manhunt." + name).formatted(Formatting.WHITE))
                 .setLore(loreList)
-                .setCallback(() -> {
+                .setCallback((index, type, action) ->  {
                     if (!player.getItemCooldownManager().isCoolingDown(runnersHuntOnDeathItem)) {
-                        config.setRunnersHuntOnDeath(!runnersHuntOnDeathBool);
+                        if (type == ClickType.DROP) {
+                            config.setRunnersHuntOnDeath(config.isRunnersHuntOnDeathDefault());
+                        } else {
+                            config.setRunnersHuntOnDeath(!runnersHuntOnDeathBool);
+                        }
                         config.save();
                         player.getItemCooldownManager().set(runnersHuntOnDeathItem, 10);
                         player.networkHandler.sendPacket(new PlaySoundS2CPacket(SoundEvents.UI_BUTTON_CLICK, SoundCategory.MASTER, player.getPos().getX(), player.getPos().getY(), player.getPos().getZ(), 0.5F, 1.0F, player.getWorld().random.nextLong()));
@@ -1130,15 +1210,20 @@ public class ManhuntGame {
         } else {
             loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.on"), Text.translatable("manhunt.off").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         }
+        loreList.add(Text.translatable("manhunt.lore.click.drop").setStyle(Style.EMPTY.withColor(Formatting.AQUA).withItalic(false)));
 
         var gameTitlesItem = item;
         var gameTitlesBool = bool;
         settingsGui.setSlot(slot, new GuiElementBuilder(item)
                 .setName(Text.translatable("manhunt." + name))
                 .setLore(loreList)
-                .setCallback(() -> {
+                .setCallback((index, type, action) ->  {
                     if (!player.getItemCooldownManager().isCoolingDown(gameTitlesItem)) {
-                        config.setGameTitles(!gameTitlesBool);
+                        if (type == ClickType.DROP) {
+                            config.setGameTitles(config.isGameTitlesDefault());
+                        } else {
+                            config.setGameTitles(!gameTitlesBool);
+                        }
                         config.save();
                         player.getItemCooldownManager().set(gameTitlesItem, 10);
                         player.networkHandler.sendPacket(new PlaySoundS2CPacket(SoundEvents.UI_BUTTON_CLICK, SoundCategory.MASTER, player.getPos().getX(), player.getPos().getY(), player.getPos().getZ(), 0.5F, 1.0F, player.getWorld().random.nextLong()));
@@ -1159,15 +1244,20 @@ public class ManhuntGame {
         } else {
             loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.on"), Text.translatable("manhunt.off").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         }
+        loreList.add(Text.translatable("manhunt.lore.click.drop").setStyle(Style.EMPTY.withColor(Formatting.AQUA).withItalic(false)));
 
         var manhuntSoundsItem = item;
         var manhuntSoundsBool = bool;
         settingsGui.setSlot(slot, new GuiElementBuilder(item)
                 .setName(Text.translatable("manhunt." + name))
                 .setLore(loreList)
-                .setCallback(() -> {
+                .setCallback((index, type, action) ->  {
                     if (!player.getItemCooldownManager().isCoolingDown(manhuntSoundsItem)) {
-                        config.setManhuntSounds(!manhuntSoundsBool);
+                        if (type == ClickType.DROP) {
+                            config.setManhuntSounds(config.isManhuntSoundsDefault());
+                        } else {
+                            config.setManhuntSounds(!manhuntSoundsBool);
+                        }
                         config.save();
                         player.getItemCooldownManager().set(manhuntSoundsItem, 10);
                         player.networkHandler.sendPacket(new PlaySoundS2CPacket(SoundEvents.UI_BUTTON_CLICK, SoundCategory.MASTER, player.getPos().getX(), player.getPos().getY(), player.getPos().getZ(), 0.5F, 1.0F, player.getWorld().random.nextLong()));
@@ -1188,15 +1278,20 @@ public class ManhuntGame {
         } else {
             loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.on"), Text.translatable("manhunt.off").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         }
+        loreList.add(Text.translatable("manhunt.lore.click.drop").setStyle(Style.EMPTY.withColor(Formatting.AQUA).withItalic(false)));
 
         var nightVisionItem = item;
         var nightVisionBool = bool;
         settingsGui.setSlot(slot, new GuiElementBuilder(item)
                 .setName(Text.translatable("manhunt." + name))
                 .setLore(loreList)
-                .setCallback(() -> {
+                .setCallback((index, type, action) ->  {
                     if (!player.getItemCooldownManager().isCoolingDown(nightVisionItem)) {
-                        config.setNightVision(!nightVisionBool);
+                        if (type == ClickType.DROP) {
+                            config.setNightVision(config.isNightVisionDefault());
+                        } else {
+                            config.setNightVision(!nightVisionBool);
+                        }
                         config.save();
                         player.getItemCooldownManager().set(nightVisionItem, 10);
                         player.networkHandler.sendPacket(new PlaySoundS2CPacket(SoundEvents.UI_BUTTON_CLICK, SoundCategory.MASTER, player.getPos().getX(), player.getPos().getY(), player.getPos().getZ(), 0.5F, 1.0F, player.getWorld().random.nextLong()));
@@ -1219,20 +1314,25 @@ public class ManhuntGame {
         } else {
             loreList.add(Text.translatable("manhunt.lore.triple", Text.translatable("manhunt.lore." + name + ".always"), Text.translatable("manhunt.lore." + name + ".perplayer"), Text.translatable("manhunt.lore." + name + ".never").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         }
+        loreList.add(Text.translatable("manhunt.lore.click.drop").setStyle(Style.EMPTY.withColor(Formatting.AQUA).withItalic(false)));
 
         Item friendlyFireItem = item;
         int friendlyFireInt = integer;
         settingsGui.setSlot(slot, new GuiElementBuilder(item)
                 .setName(Text.translatable("manhunt." + name).formatted(Formatting.WHITE))
                 .setLore(loreList)
-                .setCallback(() -> {
+                .setCallback((index, type, action) ->  {
                     if (!player.getItemCooldownManager().isCoolingDown(friendlyFireItem)) {
-                        if (friendlyFireInt == 0) {
-                            config.setFriendlyFire(1);
-                        } else if (friendlyFireInt == 1) {
-                            config.setFriendlyFire(2);
+                        if (type == ClickType.DROP) {
+                            config.setFriendlyFire(config.getFriendlyFireDefault());
                         } else {
-                            config.setFriendlyFire(0);
+                            if (friendlyFireInt == 0) {
+                                config.setFriendlyFire(1);
+                            } else if (friendlyFireInt == 1) {
+                                config.setFriendlyFire(2);
+                            } else {
+                                config.setFriendlyFire(0);
+                            }
                         }
                         config.save();
                         player.getItemCooldownManager().set(friendlyFireItem, 10);
@@ -1247,12 +1347,23 @@ public class ManhuntGame {
 
     private static void openTeamColorGui(ServerPlayerEntity player, ClickType clickType, Item item, Boolean bool) {
         if (!player.getItemCooldownManager().isCoolingDown(item)) {
-            if (clickType.shift) {
+            if (!clickType.shift) {
+                if (clickType == ClickType.DROP) {
+                    config.setTeamColor(config.isTeamColorDefault());
+                } else {
+                    config.setTeamColor(!bool);
+                }
+                config.save();
+                player.getItemCooldownManager().set(item, 10);
+                player.networkHandler.sendPacket(new PlaySoundS2CPacket(SoundEvents.UI_BUTTON_CLICK, SoundCategory.MASTER, player.getPos().getX(), player.getPos().getY(), player.getPos().getZ(), 0.5F, 1.0F, player.getWorld().random.nextLong()));
+                openSettingsGui(player);
+            } else {
                 var teamColorGui = new SimpleGui(ScreenHandlerType.GENERIC_9X1, player, false);
 
                 List<Text> loreList = new ArrayList<>();
 
                 loreList.add(Text.translatable("manhunt.lore.hunterscolor").setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+                loreList.add(Text.translatable("manhunt.lore.click.drop").setStyle(Style.EMPTY.withColor(Formatting.AQUA).withItalic(false)));
 
                 teamColorGui.setSlot(3, new GuiElementBuilder(Items.RECOVERY_COMPASS)
                         .setName(Text.translatable("manhunt.hunterscolor").formatted(config.getHuntersColor()))
@@ -1412,6 +1523,7 @@ public class ManhuntGame {
                 loreList = new ArrayList<>();
 
                 loreList.add(Text.translatable("manhunt.lore.runnerscolor").setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+                loreList.add(Text.translatable("manhunt.lore.click.drop").setStyle(Style.EMPTY.withColor(Formatting.AQUA).withItalic(false)));
 
                 teamColorGui.setSlot(5, new GuiElementBuilder(Items.BLAZE_POWDER)
                         .setName(Text.translatable("manhunt.runnerscolor").formatted(config.getRunnersColor()))
@@ -1574,12 +1686,6 @@ public class ManhuntGame {
                 );
 
                 teamColorGui.open();
-            } else {
-                config.setTeamColor(!bool);
-                config.save();
-                player.getItemCooldownManager().set(item, 10);
-                player.networkHandler.sendPacket(new PlaySoundS2CPacket(SoundEvents.UI_BUTTON_CLICK, SoundCategory.MASTER, player.getPos().getX(), player.getPos().getY(), player.getPos().getZ(), 0.5F, 1.0F, player.getWorld().random.nextLong()));
-                openSettingsGui(player);
             }
         }
     }

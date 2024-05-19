@@ -217,8 +217,16 @@ public class Events {
             allRunners = new LinkedList<>();
 
             for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
-                if (player.getScoreboardTeam().getName().equals("runners")) {
+                if (player.isTeamPlayer(player.getScoreboard().getTeam("runners"))) {
                     allRunners.add(player);
+                }
+
+                if (player.getWorld().getRegistryKey() == RegistryKey.of(RegistryKeys.WORLD, lobbyKey)) {
+                    if (!playerSpawn.containsKey(player.getUuid())) {
+                        ManhuntGame.setPlayerSpawn(overworldWorld, player);
+                    }
+
+                    player.teleport(overworldWorld, playerSpawn.get(player.getUuid()).getX(), playerSpawn.get(player.getUuid()).getY(), playerSpawn.get(player.getUuid()).getZ(), 0F, 0F);
                 }
             }
 
@@ -257,9 +265,7 @@ public class Events {
     }
 
     public static void playerJoin(ServerPlayNetworkHandler handler, MinecraftServer server) {
-        ServerPlayerEntity player = handler.getPlayer();
-
-        hasTeam.putIfAbsent(player.getUuid(), false);
+        ServerPlayerEntity player = handler.player;
 
         if (ManhuntMod.getGameState() == GameState.PREGAME) {
             player.teleport(server.getWorld(RegistryKey.of(RegistryKeys.WORLD, lobbyKey)), 0.5, 63, 0.5, PositionFlag.ROT, 0, 0);
@@ -284,7 +290,7 @@ public class Events {
                 }
             }
 
-            if (!hasTeam.get(player.getUuid())) {
+            if (!hasTeam.containsKey(player.getUuid())) {
                 player.getScoreboard().addScoreHolderToTeam(player.getNameForScoreboard(), player.getScoreboard().getTeam("hunters"));
             }
 
@@ -295,38 +301,30 @@ public class Events {
             overworldWorld.getWorldBorder().interpolateSize(worldBorder.getSize(), config.getWorldBorder(), 0);
         }
 
-        if (getGameState() == GameState.PLAYING || getGameState() == GameState.POSTGAME) {
-            hasPlayed.putIfAbsent(player.getUuid(), false);
+        if (getGameState() != GameState.PREGAME && !hasPlayed.containsKey(player.getUuid())) {
+            hasPlayed.put(player.getUuid(), true);
 
-            if (!hasPlayed.get(player.getUuid())) {
-                hasPlayed.put(player.getUuid(), true);
-
-                if (!playerSpawn.containsKey(player.getUuid())) {
-                    ManhuntGame.setPlayerSpawn(overworldWorld, player);
-                }
-
-                double playerX = Double.parseDouble(String.valueOf(playerSpawn.get(player.getUuid()).getX()));
-                double playerY = Double.parseDouble(String.valueOf(playerSpawn.get(player.getUuid()).getY()));
-                double playerZ = Double.parseDouble(String.valueOf(playerSpawn.get(player.getUuid()).getZ()));
-                player.teleport(overworldWorld, playerX, playerY, playerZ, 0, 0);
-                player.setSpawnPoint(overworldWorld.getRegistryKey(), playerSpawn.get(player.getUuid()), 0, true, false);
-                player.clearStatusEffects();
-                player.getInventory().clear();
-                player.setFireTicks(0);
-                player.setOnFire(false);
-                player.setHealth(20);
-                player.getHungerManager().setFoodLevel(20);
-                player.getHungerManager().setSaturationLevel(5);
-                player.getHungerManager().setExhaustion(0);
-
-                if (getGameState() == GameState.PLAYING) {
-                    player.changeGameMode(GameMode.SURVIVAL);
-                } else if (getGameState() == GameState.POSTGAME && config.isSpectateWin()) {
-                    player.changeGameMode(GameMode.SPECTATOR);
-                }
-
-                player.getScoreboard().addScoreHolderToTeam(player.getName().getString(), player.getScoreboard().getTeam("hunters"));
+            if (!playerSpawn.containsKey(player.getUuid())) {
+                ManhuntGame.setPlayerSpawn(overworldWorld, player);
             }
+
+            player.setSpawnPoint(overworldWorld.getRegistryKey(), playerSpawn.get(player.getUuid()), 0, true, false);
+            player.clearStatusEffects();
+            player.getInventory().clear();
+            player.setFireTicks(0);
+            player.setOnFire(false);
+            player.setHealth(20);
+            player.getHungerManager().setFoodLevel(20);
+            player.getHungerManager().setSaturationLevel(5);
+            player.getHungerManager().setExhaustion(0);
+
+            if (getGameState() == GameState.PLAYING) {
+                player.changeGameMode(GameMode.SURVIVAL);
+            } else if (getGameState() == GameState.POSTGAME && config.isSpectateWin()) {
+                player.changeGameMode(GameMode.SPECTATOR);
+            }
+
+            player.getScoreboard().addScoreHolderToTeam(player.getName().getString(), player.getScoreboard().getTeam("hunters"));
         }
 
         if (!gameTitles.containsKey(player.getUuid())) {
@@ -362,60 +360,66 @@ public class Events {
     }
 
     public static TypedActionResult<ItemStack> useItem(PlayerEntity player, Hand hand) {
-        ItemStack itemStack = player.getStackInHand(hand);
+        ItemStack stack = player.getStackInHand(hand);
 
         if (ManhuntMod.getGameState() == GameState.PREGAME) {
-            if (itemStack.get(DataComponentTypes.CUSTOM_DATA).copyNbt().getBoolean("Preferences")) {
+            if (stack.get(DataComponentTypes.CUSTOM_DATA).copyNbt().getBoolean("Preferences")) {
                 ManhuntGame.openPreferencesGui((ServerPlayerEntity) player);
             }
 
-            if (itemStack.get(DataComponentTypes.CUSTOM_DATA).copyNbt().getBoolean("Settings")) {
+            if (stack.get(DataComponentTypes.CUSTOM_DATA).copyNbt().getBoolean("Settings")) {
                 ManhuntGame.openSettingsGui((ServerPlayerEntity) player);
             }
         }
 
-        if (ManhuntMod.getGameState() == GameState.PLAYING) {
-            if (!config.isAutomaticCompass() && allRunners != null && !allRunners.isEmpty() && !player.isSpectator() && player.getScoreboardTeam().getName().equals("hunters") && !player.getItemCooldownManager().isCoolingDown(itemStack.getItem()) && itemStack.get(DataComponentTypes.CUSTOM_DATA).copyNbt().getBoolean("Tracker")) {
-                player.getItemCooldownManager().set(itemStack.getItem(), 20);
+        if (getGameState() == GameState.PLAYING) {
+            if (!config.isAutomaticCompass() && player.isTeamPlayer(player.getScoreboard().getTeam("hunters")) && allRunners != null && !allRunners.isEmpty() && !player.isSpectator() && !player.getItemCooldownManager().isCoolingDown(stack.getItem()) && stack.get(DataComponentTypes.CUSTOM_DATA).copyNbt().getBoolean("Tracker")) {
+                player.getItemCooldownManager().set(stack.getItem(), 20);
 
-                ServerPlayerEntity trackedPlayer = allRunners.get(0);
+                if (stack.get(DataComponentTypes.CUSTOM_DATA).copyNbt().getString("Name") != null) {
+                    NbtCompound nbt = stack.get(DataComponentTypes.CUSTOM_DATA).copyNbt();
+                    nbt.putString("Name", allRunners.get(0).getName().getString());
+                    stack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(nbt));
+                }
+
+                ServerPlayerEntity trackedPlayer = player.getServer().getPlayerManager().getPlayer(stack.get(DataComponentTypes.CUSTOM_DATA).copyNbt().getString("Name"));
 
                 if (trackedPlayer != null) {
+                    ManhuntGame.updateCompass((ServerPlayerEntity) player, stack, trackedPlayer);
                     player.playSoundToPlayer(SoundEvents.UI_BUTTON_CLICK.value(), SoundCategory.MASTER, 0.1f, 0.5f);
-                    ManhuntGame.updateCompass((ServerPlayerEntity) player, itemStack, trackedPlayer);
                 }
             }
 
             if (!config.isBedExplosions()) {
-                if (player.getWorld() != overworldWorld && itemStack.getName().toString().contains("_bed")) {
+                if (player.getWorld() != overworldWorld && stack.getName().toString().contains("_bed")) {
                     for (ServerPlayerEntity serverPlayer : player.getServer().getPlayerManager().getPlayerList()) {
                         if (player.distanceTo(serverPlayer) <= 9.0F && !player.isTeamPlayer(serverPlayer.getScoreboardTeam())) {
                             player.sendMessage(Text.translatable("manhunt.chat.disabled").formatted(Formatting.RED));
-                            return TypedActionResult.fail(itemStack);
+                            return TypedActionResult.fail(stack);
                         }
                     }
                 }
             }
 
             if (!config.isLavaPvpInNether()) {
-                if (player.getWorld() == netherWorld && itemStack.getItem() == Items.LAVA_BUCKET) {
+                if (player.getWorld() == netherWorld && stack.getItem() == Items.LAVA_BUCKET) {
                     for (ServerPlayerEntity serverPlayer : player.getServer().getPlayerManager().getPlayerList()) {
                         if (player.distanceTo(serverPlayer) <= 9.0F && !player.isTeamPlayer(serverPlayer.getScoreboardTeam())) {
                             player.sendMessage(Text.translatable("manhunt.chat.disabled").formatted(Formatting.RED));
-                            return TypedActionResult.fail(itemStack);
+                            return TypedActionResult.fail(stack);
                         }
                     }
                 }
             }
         }
 
-        return TypedActionResult.pass(itemStack);
+        return TypedActionResult.pass(stack);
     }
 
     public static void playerRespawn(ServerPlayerEntity player) {
         Scoreboard scoreboard = player.getScoreboard();
 
-        if (player.getScoreboardTeam().getName().equals("runners") && getGameState() != GameState.POSTGAME) {
+        if (player.isTeamPlayer(player.getScoreboard().getTeam("runners")) && getGameState() != GameState.POSTGAME) {
             if (config.isRunnersHuntOnDeath()) {
                 scoreboard.clearTeam(player.getNameForScoreboard());
                 scoreboard.addScoreHolderToTeam(player.getNameForScoreboard(), scoreboard.getTeam("hunters"));
@@ -457,8 +461,8 @@ public class Events {
 
     private static boolean hasItem(PlayerEntity player, Item item, String name) {
         boolean bool = false;
-        for (ItemStack itemStack : player.getInventory().main) {
-            if (itemStack.getItem() == item && itemStack.get(DataComponentTypes.CUSTOM_DATA) != null && itemStack.get(DataComponentTypes.CUSTOM_DATA).copyNbt().getBoolean(name)) {
+        for (ItemStack stack : player.getInventory().main) {
+            if (stack.getItem() == item && stack.get(DataComponentTypes.CUSTOM_DATA) != null && stack.get(DataComponentTypes.CUSTOM_DATA).copyNbt().getBoolean(name)) {
                 bool = true;
                 break;
             }

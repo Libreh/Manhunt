@@ -75,7 +75,6 @@ public class ManhuntMod implements ModInitializer {
 	private static boolean preloaded = false;
 	private static boolean chunkyIntegration = false;
 	private static boolean paused = false;
-	private static boolean started = false;
 	public static final List<MutableText> hunterCoords = new ArrayList<>();
 	public static final List<MutableText> runnerCoords = new ArrayList<>();
 	public static final HashMap<UUID, Boolean> hasTeam = new HashMap<>();
@@ -148,14 +147,6 @@ public class ManhuntMod implements ModInitializer {
 
 	public static void setPaused(boolean paused) {
 		ManhuntMod.paused = paused;
-	}
-
-	public static boolean isStarted() {
-		return started;
-	}
-
-	public static void setStarted(boolean started) {
-		ManhuntMod.started = started;
 	}
 
 	@Override

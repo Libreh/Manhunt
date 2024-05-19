@@ -19,7 +19,6 @@ public class OneRunnerCommand {
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(literal("onerunner")
                 .requires(source -> source.isExecutedByPlayer() && getGameState() == GameState.PREGAME && (Permissions.check(source.getPlayer(), "manhunt.onerunner") || (source.hasPermissionLevel(1) || source.hasPermissionLevel(2) || source.hasPermissionLevel(3) || source.hasPermissionLevel(4))))
-                .executes(context -> setOneRunner(context.getSource(), context.getSource().getPlayer()))
                 .then(argument("player", EntityArgumentType.player())
                         .executes(context -> setOneRunner(context.getSource(), EntityArgumentType.getPlayer(context, "player")))
                 )
@@ -35,7 +34,7 @@ public class OneRunnerCommand {
         player.getScoreboard().clearTeam(player.getNameForScoreboard());
         player.getScoreboard().addScoreHolderToTeam(player.getName().getString(), player.getScoreboard().getTeam("runners"));
 
-        player.getServer().getPlayerManager().broadcast(Text.translatable("manhunt.chat.onerunner", Text.literal(player.getName().getString()).formatted(config.getRunnersColor()), Text.translatable("manhunt.runner").formatted(config.getHuntersColor())), false);
+        player.getServer().getPlayerManager().broadcast(Text.translatable("manhunt.chat.onerunner", Text.literal(player.getName().getString()).formatted(config.getRunnersColor()), Text.translatable("manhunt.runner").formatted(config.getRunnersColor())), false);
 
         return Command.SINGLE_SUCCESS;
     }

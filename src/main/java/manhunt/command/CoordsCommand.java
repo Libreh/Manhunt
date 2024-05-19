@@ -33,7 +33,7 @@ public class CoordsCommand {
     private static int listCoords(ServerCommandSource source) {
         ServerPlayerEntity player = source.getPlayer();
 
-        boolean isHunter = player.getScoreboardTeam().getName().equals("hunters");
+        boolean isHunter = player.isTeamPlayer(player.getScoreboard().getTeam("hunters"));
 
         if ((isHunter && hunterCoords.isEmpty()) || !isHunter && runnerCoords.isEmpty()) {
             player.sendMessage(Text.translatable("manhunt.chat.nocoords").formatted(Formatting.RED));
@@ -121,7 +121,7 @@ public class CoordsCommand {
     private static int sendCoordsMessage(ServerCommandSource source, String message) {
         ServerPlayerEntity player = source.getPlayer();
 
-        boolean isHunter = player.getScoreboardTeam().getName().equals("hunters");
+        boolean isHunter = player.isTeamPlayer(player.getScoreboard().getTeam("hunters"));
 
         Formatting formatting = Formatting.WHITE;
 

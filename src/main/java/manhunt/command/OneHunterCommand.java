@@ -19,7 +19,6 @@ public class OneHunterCommand {
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(literal("onehunter")
                 .requires(source -> source.isExecutedByPlayer() && getGameState() == GameState.PREGAME && (Permissions.check(source.getPlayer(), "manhunt.onehunter") || (source.hasPermissionLevel(1) || source.hasPermissionLevel(2) || source.hasPermissionLevel(3) || source.hasPermissionLevel(4))))
-                .executes(context -> setOneHunter(context.getSource(), context.getSource().getPlayer()))
                 .then(argument("player", EntityArgumentType.player())
                         .executes(context -> setOneHunter(context.getSource(), EntityArgumentType.getPlayer(context, "player")))
                 )

@@ -56,8 +56,8 @@ public class ExplosionMixin {
 
     @Unique
     public boolean checkShieldState(LivingEntity player) {
-        ItemStack itemStack = player.getStackInHand(player.getActiveHand());
-        UseAction useAction = itemStack.getUseAction();
+        ItemStack stack = player.getStackInHand(player.getActiveHand());
+        UseAction useAction = stack.getUseAction();
         return useAction == UseAction.BLOCK && player.isBlocking();
     }
 }
