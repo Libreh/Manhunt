@@ -256,18 +256,10 @@ public class ManhuntGame {
 
             player.changeGameMode(GameMode.ADVENTURE);
 
-
-
-            if (!hasTeam.get(player.getUuid())) {
+            if (player.getScoreboardTeam() == null) {
                 player.getScoreboard().addScoreHolderToTeam(player.getNameForScoreboard(), player.getScoreboard().getTeam("hunters"));
             }
         }
-
-        hasTeam.forEach((uuid, bool) -> {
-            if (server.getPlayerManager().getPlayer(uuid) == null) {
-                hasTeam.remove(uuid);
-            }
-        });
 
         hasPlayed.clear();
         playerSpawn.clear();

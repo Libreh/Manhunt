@@ -77,7 +77,6 @@ public class ManhuntMod implements ModInitializer {
 	private static boolean paused = false;
 	public static final List<MutableText> hunterCoords = new ArrayList<>();
 	public static final List<MutableText> runnerCoords = new ArrayList<>();
-	public static final HashMap<UUID, Boolean> hasTeam = new HashMap<>();
 	public static final HashMap<UUID, Boolean> hasPlayed = new HashMap<>();
 	public static final HashMap<UUID, BlockPos> playerSpawn = new HashMap<>();
 	public static final HashMap<UUID, Boolean> gameTitles = new HashMap<>();

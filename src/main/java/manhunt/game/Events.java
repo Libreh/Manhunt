@@ -227,6 +227,7 @@ public class Events {
                     }
 
                     player.teleport(overworldWorld, playerSpawn.get(player.getUuid()).getX(), playerSpawn.get(player.getUuid()).getY(), playerSpawn.get(player.getUuid()).getZ(), 0F, 0F);
+                    player.setSpawnPoint(overworldWorld.getRegistryKey(), playerSpawn.get(player.getUuid()), 0, true, false);
                 }
             }
 
@@ -290,7 +291,7 @@ public class Events {
                 }
             }
 
-            if (!hasTeam.containsKey(player.getUuid())) {
+            if (player.getScoreboardTeam() == null) {
                 player.getScoreboard().addScoreHolderToTeam(player.getNameForScoreboard(), player.getScoreboard().getTeam("hunters"));
             }
 
@@ -304,11 +305,7 @@ public class Events {
         if (getGameState() != GameState.PREGAME && !hasPlayed.containsKey(player.getUuid())) {
             hasPlayed.put(player.getUuid(), true);
 
-            if (!playerSpawn.containsKey(player.getUuid())) {
-                ManhuntGame.setPlayerSpawn(overworldWorld, player);
-            }
-
-            player.setSpawnPoint(overworldWorld.getRegistryKey(), playerSpawn.get(player.getUuid()), 0, true, false);
+            player.teleport(server.getWorld(RegistryKey.of(RegistryKeys.WORLD, lobbyKey)), 0.5, 63, 0.5, PositionFlag.ROT, 0, 0);
             player.clearStatusEffects();
             player.getInventory().clear();
             player.setFireTicks(0);
@@ -341,10 +338,6 @@ public class Events {
                 nightVision.put(player.getUuid(), dataContainer.getBool("night_vision"));
                 friendlyFire.put(player.getUuid(), dataContainer.getBool("friendly_fire"));
             }
-        }
-
-        if (player.getScoreboardTeam() != null) {
-            hasTeam.put(player.getUuid(), true);
         }
     }
 
