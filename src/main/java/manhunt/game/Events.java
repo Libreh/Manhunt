@@ -9,6 +9,7 @@ import net.minecraft.block.entity.StructureBlockBlockEntity;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.NbtComponent;
 import net.minecraft.component.type.ProfileComponent;
+import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
@@ -19,6 +20,8 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.nbt.NbtSizeTracker;
 import net.minecraft.network.packet.s2c.play.PositionFlag;
+import net.minecraft.network.packet.s2c.play.SubtitleS2CPacket;
+import net.minecraft.network.packet.s2c.play.TitleS2CPacket;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.scoreboard.AbstractTeam;
@@ -262,6 +265,12 @@ public class Events {
                     player.sendMessage(Text.translatable("manhunt.chat.duration", hoursString, minutesString, secondsString), true);
                 }
             }
+
+            if (isPaused()) {
+                for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+                    player.teleport(server.getWorld(player.getWorld().getRegistryKey()), playerPos.get(player.getUuid()).getX(), playerPos.get(player.getUuid()).getY(), playerPos.get(player.getUuid()).getZ(), playerYaw.get(player.getUuid()), playerPitch.get(player.getUuid()));
+                }
+            }
         }
     }
 
@@ -269,7 +278,7 @@ public class Events {
         ServerPlayerEntity player = handler.player;
 
         if (ManhuntMod.getGameState() == GameState.PREGAME) {
-            player.teleport(server.getWorld(RegistryKey.of(RegistryKeys.WORLD, lobbyKey)), 0.5, 63, 0.5, PositionFlag.ROT, 0, 0);
+            player.teleport(server.getWorld(RegistryKey.of(RegistryKeys.WORLD, lobbyKey)), 0.5, 63, 0.5, 0, 0);
             player.getInventory().clear();
             player.changeGameMode(GameMode.ADVENTURE);
             player.setFireTicks(0);
@@ -322,6 +331,37 @@ public class Events {
             }
 
             player.getScoreboard().addScoreHolderToTeam(player.getName().getString(), player.getScoreboard().getTeam("hunters"));
+
+            if (isPaused()) {
+                player.playSoundToPlayer(SoundEvents.BLOCK_ANVIL_LAND, SoundCategory.MASTER, 0.1f, 0.5f);
+                playerEffects.put(player.getUuid(), player.getStatusEffects());
+                playerPos.put(player.getUuid(), player.getPos());
+                playerYaw.put(player.getUuid(), player.getYaw());
+                playerPitch.put(player.getUuid(), player.getPitch());
+                player.clearStatusEffects();
+                player.getAttributeInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED).setBaseValue(0);
+                player.getAttributeInstance(EntityAttributes.GENERIC_JUMP_STRENGTH).setBaseValue(0);
+                player.getAttributeInstance(EntityAttributes.PLAYER_BLOCK_BREAK_SPEED).setBaseValue(0);
+                player.addStatusEffect(new StatusEffectInstance(StatusEffects.BLINDNESS, StatusEffectInstance.INFINITE, 255, false, false, false));
+                player.addStatusEffect(new StatusEffectInstance(StatusEffects.DARKNESS, StatusEffectInstance.INFINITE, 255, false, false,false));
+                player.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE, StatusEffectInstance.INFINITE, 255, false, false, false));
+                player.networkHandler.sendPacket(new TitleS2CPacket(Text.literal(config.getGamePausedTitle()).formatted(Formatting.YELLOW)));
+                player.networkHandler.sendPacket(new SubtitleS2CPacket(Text.literal(config.getGamePausedSubtitle()).formatted(Formatting.GOLD)));
+            } else {
+                player.getAttributeInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED).setBaseValue(0.10000000149011612);
+                player.getAttributeInstance(EntityAttributes.GENERIC_JUMP_STRENGTH).setBaseValue(0.41999998688697815);
+                player.getAttributeInstance(EntityAttributes.PLAYER_BLOCK_BREAK_SPEED).setBaseValue(1.0);
+
+                if (leftOnPause.get(player.getUuid())) {
+                    player.playSoundToPlayer(SoundEvents.BLOCK_ANVIL_LAND, SoundCategory.MASTER, 0.1f, 1.5f);
+                    player.clearStatusEffects();
+                    for (StatusEffectInstance statusEffect : playerEffects.get(player.getUuid())) {
+                        player.addStatusEffect(statusEffect);
+                    }
+                    player.networkHandler.sendPacket(new TitleS2CPacket(Text.literal(config.getGameUnpausedTitle()).formatted(Formatting.YELLOW)));
+                    player.networkHandler.sendPacket(new SubtitleS2CPacket(Text.literal(config.getGameUnpausedSubtitle()).formatted(Formatting.GOLD)));
+                }
+            }
         }
 
         if (!gameTitles.containsKey(player.getUuid())) {
@@ -343,6 +383,10 @@ public class Events {
 
     public static void playerLeave(ServerPlayNetworkHandler handler) {
         ServerPlayerEntity player = handler.getPlayer();
+
+        if (isPaused()) {
+            leftOnPause.put(player.getUuid(), true);
+        }
 
         DataContainer dataContainer = ManhuntMod.getTable().getOrCreateDataContainer(player.getUuid());
 
@@ -410,13 +454,8 @@ public class Events {
     }
 
     public static void playerRespawn(ServerPlayerEntity player) {
-        Scoreboard scoreboard = player.getScoreboard();
-
         if (player.isTeamPlayer(player.getScoreboard().getTeam("runners")) && getGameState() != GameState.POSTGAME) {
-            if (config.isRunnersHuntOnDeath()) {
-                scoreboard.clearTeam(player.getNameForScoreboard());
-                scoreboard.addScoreHolderToTeam(player.getNameForScoreboard(), scoreboard.getTeam("hunters"));
-            } else {
+            if (!config.isRunnersHuntOnDeath()) {
                 player.changeGameMode(GameMode.SPECTATOR);
             }
         }

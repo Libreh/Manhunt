@@ -33,6 +33,7 @@ public class ManhuntConfig {
     private boolean lavaPvpInNether = false;
     private boolean spectatorsGenerateChunks = false;
     private boolean runnersHuntOnDeath = true;
+    private boolean runnersCanPause = true;
     private boolean gameTitles = true;
     private boolean manhuntSounds = true;
     private boolean nightVision = true;
@@ -171,6 +172,14 @@ public class ManhuntConfig {
 
     public void setRunnersHuntOnDeath(boolean runnersHuntOnDeath) {
         this.runnersHuntOnDeath = runnersHuntOnDeath;
+    }
+
+    public boolean isRunnersCanPause() {
+        return runnersCanPause;
+    }
+
+    public void setRunnersCanPause(boolean runnersCanPause) {
+        this.runnersCanPause = runnersCanPause;
     }
 
     public boolean isGameTitles() {
@@ -408,6 +417,7 @@ public class ManhuntConfig {
     private final boolean lavaPvpInNetherDefault = lavaPvpInNether;
     private final boolean spectatorsGenerateChunksDefault = spectatorsGenerateChunks;
     private final boolean runnersHuntOnDeathDefault = runnersHuntOnDeath;
+    private final boolean runnersCanPauseDefault = runnersCanPause;
     private final boolean gameTitlesDefault = gameTitles;
     private final boolean manhuntSoundsDefault = manhuntSounds;
     private final boolean nightVisionDefault = nightVision;
@@ -476,12 +486,16 @@ public class ManhuntConfig {
         return spectatorsGenerateChunksDefault;
     }
 
-    public boolean isGameTitlesDefault() {
-        return gameTitlesDefault;
-    }
-
     public boolean isRunnersHuntOnDeathDefault() {
         return runnersHuntOnDeathDefault;
+    }
+
+    public boolean isRunnersCanPauseDefault() {
+        return runnersCanPauseDefault;
+    }
+
+    public boolean isGameTitlesDefault() {
+        return gameTitlesDefault;
     }
 
     public boolean isManhuntSoundsDefault() {

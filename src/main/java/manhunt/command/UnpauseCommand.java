@@ -16,10 +16,6 @@ import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-
 import static manhunt.ManhuntMod.*;
 import static net.minecraft.server.command.CommandManager.literal;
 
@@ -27,7 +23,7 @@ public class UnpauseCommand {
 
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(literal("unpause")
-                .requires(source -> source.isExecutedByPlayer() && getGameState() == GameState.PLAYING && (Permissions.check(source.getPlayer(), "manhunt.unpause") || (source.hasPermissionLevel(1) || source.hasPermissionLevel(2) || source.hasPermissionLevel(3) || source.hasPermissionLevel(4))))
+                .requires(source -> source.isExecutedByPlayer() && getGameState() == GameState.PLAYING && (Permissions.check(source.getPlayer(), "manhunt.unpause") || (source.hasPermissionLevel(1) || source.hasPermissionLevel(2) || source.hasPermissionLevel(3) || source.hasPermissionLevel(4) || config.isRunnersCanPause())))
                 .executes(context -> unpauseGame(context.getSource()))
         );
     }
@@ -36,20 +32,22 @@ public class UnpauseCommand {
         MinecraftServer server = source.getServer();
 
         if (isPaused()) {
-            for (ServerPlayerEntity gamePlayer : server.getPlayerManager().getPlayerList()) {
-                gamePlayer.getAttributeInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED).setBaseValue(0.10000000149011612);
-                gamePlayer.getAttributeInstance(EntityAttributes.GENERIC_JUMP_STRENGTH).setBaseValue(0.41999998688697815);
-                gamePlayer.playSoundToPlayer(SoundEvents.BLOCK_ANVIL_LAND, SoundCategory.MASTER, 0.1f, 1.5f);
-                gamePlayer.clearStatusEffects();
-                for (StatusEffectInstance statusEffect : playerEffects.get(gamePlayer)) {
-                    gamePlayer.addStatusEffect(statusEffect);
-                }
-                gamePlayer.networkHandler.sendPacket(new TitleS2CPacket(Text.literal(config.getGameUnpausedTitle()).formatted(Formatting.YELLOW)));
-                gamePlayer.networkHandler.sendPacket(new SubtitleS2CPacket(Text.literal(config.getGameUnpausedSubtitle()).formatted(Formatting.GOLD)));
-            }
+            setPaused(false);
 
-            ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
-            scheduledExecutorService.schedule(() -> setPaused(false), 500, TimeUnit.MILLISECONDS);
+            server.getTickManager().setFrozen(false);
+
+            for (ServerPlayerEntity serverPlayer : server.getPlayerManager().getPlayerList()) {
+                serverPlayer.getAttributeInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED).setBaseValue(0.10000000149011612);
+                serverPlayer.getAttributeInstance(EntityAttributes.GENERIC_JUMP_STRENGTH).setBaseValue(0.41999998688697815);
+                serverPlayer.getAttributeInstance(EntityAttributes.PLAYER_BLOCK_BREAK_SPEED).setBaseValue(1.0);
+                serverPlayer.playSoundToPlayer(SoundEvents.BLOCK_ANVIL_LAND, SoundCategory.MASTER, 0.1f, 1.5f);
+                serverPlayer.clearStatusEffects();
+                for (StatusEffectInstance statusEffect : playerEffects.get(serverPlayer.getUuid())) {
+                    serverPlayer.addStatusEffect(statusEffect);
+                }
+                serverPlayer.networkHandler.sendPacket(new TitleS2CPacket(Text.literal(config.getGameUnpausedTitle()).formatted(Formatting.YELLOW)));
+                serverPlayer.networkHandler.sendPacket(new SubtitleS2CPacket(Text.literal(config.getGameUnpausedSubtitle()).formatted(Formatting.GOLD)));
+            }
         } else {
             source.sendFeedback(() -> Text.translatable("manhunt.chat.already", Text.translatable("manhunt.unpaused")).formatted(Formatting.RED), false);
         }

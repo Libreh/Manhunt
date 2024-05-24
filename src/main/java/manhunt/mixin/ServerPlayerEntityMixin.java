@@ -18,6 +18,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Unit;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.GlobalPos;
+import net.minecraft.world.GameMode;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -94,14 +95,29 @@ public class ServerPlayerEntityMixin {
 
     @Inject(at = @At("HEAD"), method = "onDeath")
     private void onDeath(DamageSource source, CallbackInfo ci) {
-        if (player.isTeamPlayer(player.getScoreboard().getTeam("runners")) && player.getScoreboard().getTeam("runners").getPlayerList().size() <= 1) {
-            ManhuntGame.endGame(server, true, false);
+        if (player.isTeamPlayer(player.getScoreboard().getTeam("runners"))) {
+            if (config.isRunnersHuntOnDeath()) {
+                player.getScoreboard().clearTeam(player.getNameForScoreboard());
+                player.getScoreboard().addScoreHolderToTeam(player.getNameForScoreboard(), player.getScoreboard().getTeam("hunters"));
+            }
+
+            boolean runnersLeft = false;
+
+            for (ServerPlayerEntity serverPlayer : server.getPlayerManager().getPlayerList()) {
+                if (player.interactionManager.getGameMode() != GameMode.SPECTATOR && serverPlayer.getScoreboardTeam() != null && serverPlayer.getScoreboardTeam().getName().equals("runners")) {
+                    runnersLeft = true;
+                }
+            }
+
+            if (!runnersLeft) {
+                ManhuntGame.endGame(server, true, false);
+            }
         }
     }
 
     @Inject(method = "shouldDamagePlayer", at = @At("HEAD"), cancellable = true)
     private void Manhunt$pvpMixin(PlayerEntity attacker, CallbackInfoReturnable<Boolean> ci) {
-        if (getGameState() == GameState.PREGAME) {
+        if (getGameState() == GameState.PREGAME || isPaused()) {
             ci.setReturnValue(false);
         } else {
             if (player.isTeamPlayer(attacker.getScoreboardTeam())) {

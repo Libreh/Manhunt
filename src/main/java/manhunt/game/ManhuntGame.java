@@ -11,11 +11,14 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.LodestoneTrackerComponent;
+import net.minecraft.component.type.NbtComponent;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtList;
 import net.minecraft.network.packet.s2c.play.PlaySoundS2CPacket;
 import net.minecraft.network.packet.s2c.play.PositionFlag;
 import net.minecraft.network.packet.s2c.play.SubtitleS2CPacket;
@@ -165,7 +168,23 @@ public class ManhuntGame {
     }
 
     public static void updateCompass(ServerPlayerEntity player, ItemStack stack, ServerPlayerEntity trackedPlayer) {
-        stack.set(DataComponentTypes.LODESTONE_TRACKER, new LodestoneTrackerComponent(Optional.of(GlobalPos.create(trackedPlayer.getWorld().getRegistryKey(), trackedPlayer.getBlockPos())), false));
+        NbtCompound playerTag = trackedPlayer.writeNbt(new NbtCompound());
+        NbtList positions = playerTag.getList("Positions", 10);
+        int i;
+        for (i = 0; i < positions.size(); ++i) {
+            NbtCompound compound = positions.getCompound(i);
+            if (compound.getString("LodestoneDimension").equals(player.writeNbt(new NbtCompound()).getString("Dimension"))) {
+                NbtCompound nbt = stack.get(DataComponentTypes.CUSTOM_DATA).copyNbt().copyFrom(compound);
+                stack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(nbt));
+                break;
+            }
+        }
+
+        int[] is = stack.get(DataComponentTypes.CUSTOM_DATA).copyNbt().getIntArray("LodestonePos");
+
+        BlockPos blockPos = new BlockPos(is[0], is[1], is[2]);
+
+        stack.set(DataComponentTypes.LODESTONE_TRACKER, new LodestoneTrackerComponent(Optional.of(GlobalPos.create(player.getWorld().getRegistryKey(), blockPos)), false));
     }
 
     public static void endGame(MinecraftServer server, boolean hunterWin, boolean timeOver) {
@@ -234,6 +253,7 @@ public class ManhuntGame {
         for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
             player.teleport(lobby, 0.5, 63, 0.5, PositionFlag.ROT, 0, 0);
             player.clearStatusEffects();
+            player.getEnderChestInventory().clear();
             player.getInventory().clear();
             player.setOnFire(false);
             player.setFireTicks(0);
@@ -265,6 +285,10 @@ public class ManhuntGame {
         playerSpawn.clear();
         hunterCoords.clear();
         runnerCoords.clear();
+        leftOnPause.clear();
+        parkourTimer.clear();
+        startedParkour.clear();
+        finishedParkour.clear();
 
         setWorldSpawnPos(new BlockPos(0, 0, 0));
         setOverworldSpawn(new BlockPos(0, 0, 0));
@@ -1180,6 +1204,40 @@ public class ManhuntGame {
                         }
                         config.save();
                         player.getItemCooldownManager().set(runnersHuntOnDeathItem, 10);
+                        player.networkHandler.sendPacket(new PlaySoundS2CPacket(SoundEvents.UI_BUTTON_CLICK, SoundCategory.MASTER, player.getPos().getX(), player.getPos().getY(), player.getPos().getZ(), 0.5F, 1.0F, player.getWorld().random.nextLong()));
+                        openSettingsGui(player);
+                    }
+                })
+        );
+        slot++;
+
+        loreList = new ArrayList<>();
+        name = "runnerscanpause";
+        item = Items.ICE;
+        bool = config.isRunnersCanPause();
+
+        loreList.add(Text.translatable("manhunt.lore." + name).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+        if (bool) {
+            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.on").formatted(Formatting.GREEN), Text.translatable("manhunt.off")).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+        } else {
+            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.on"), Text.translatable("manhunt.off").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+        }
+        loreList.add(Text.translatable("manhunt.lore.click.drop").setStyle(Style.EMPTY.withColor(Formatting.AQUA).withItalic(false)));
+
+        var runnersCanPauseItem = item;
+        var runnersCanPauseBool = bool;
+        settingsGui.setSlot(slot, new GuiElementBuilder(item)
+                .setName(Text.translatable("manhunt." + name).formatted(Formatting.WHITE))
+                .setLore(loreList)
+                .setCallback((index, type, action) ->  {
+                    if (!player.getItemCooldownManager().isCoolingDown(runnersCanPauseItem)) {
+                        if (type == ClickType.DROP) {
+                            config.setRunnersCanPause(config.isRunnersCanPauseDefault());
+                        } else {
+                            config.setRunnersCanPause(!runnersCanPauseBool);
+                        }
+                        config.save();
+                        player.getItemCooldownManager().set(runnersCanPauseItem, 10);
                         player.networkHandler.sendPacket(new PlaySoundS2CPacket(SoundEvents.UI_BUTTON_CLICK, SoundCategory.MASTER, player.getPos().getX(), player.getPos().getY(), player.getPos().getZ(), 0.5F, 1.0F, player.getWorld().random.nextLong()));
                         openSettingsGui(player);
                     }
