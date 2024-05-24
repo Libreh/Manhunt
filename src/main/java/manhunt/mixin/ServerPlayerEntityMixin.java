@@ -53,7 +53,7 @@ public class ServerPlayerEntityMixin {
                     ItemStack trackerStack = new ItemStack(Items.COMPASS);
                     trackerStack.set(DataComponentTypes.ITEM_NAME, Text.translatable("manhunt.tracker"));
                     trackerStack.set(DataComponentTypes.HIDE_TOOLTIP, Unit.INSTANCE);
-                    trackerStack.set(DataComponentTypes.LODESTONE_TRACKER, new LodestoneTrackerComponent(Optional.of(GlobalPos.create(overworldWorld.getRegistryKey(), new BlockPos(0, 0, 0))), false));
+                    trackerStack.set(DataComponentTypes.LODESTONE_TRACKER, new LodestoneTrackerComponent(Optional.of(GlobalPos.create(overworld.getRegistryKey(), new BlockPos(0, 0, 0))), false));
                     trackerStack.addEnchantment(Enchantments.VANISHING_CURSE, 1);
                     trackerStack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(nbt));
 

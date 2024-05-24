@@ -56,19 +56,13 @@ public class ManhuntMod implements ModInitializer {
 	private static GameState gameState;
 	private static final Database database = SQLib.getDatabase();
 	private static Table table = database.createTable(MOD_ID, "playerdata").addColumn("game_titles", SQLDataType.BOOL).addColumn("manhunt_sounds", SQLDataType.BOOL).addColumn("night_vision", SQLDataType.BOOL).addColumn("friendly_fire", SQLDataType.BOOL).finish();
-	public static final String OVERWORLD = "overworld";
-	public static final String THE_NETHER = "the_nether";
-	public static final String THE_END = "the_end";
 	public static final Identifier lobbyKey = new Identifier(MOD_ID, "lobby");
-	public static final Identifier overworldKey = new Identifier(MOD_ID, OVERWORLD);
-	public static final Identifier netherKey = new Identifier(MOD_ID, THE_NETHER);
-	public static final Identifier endKey = new Identifier(MOD_ID, THE_END);
 	public static RuntimeWorldHandle overworldHandle;
 	public static RuntimeWorldHandle netherHandle;
 	public static RuntimeWorldHandle endHandle;
-	public static ServerWorld overworldWorld;
-	public static ServerWorld netherWorld;
-	public static ServerWorld endWorld;
+	public static ServerWorld overworld;
+	public static ServerWorld nether;
+	public static ServerWorld end;
 	public static List<ServerPlayerEntity> allRunners;
 	private static BlockPos worldSpawnPos;
 	private static BlockPos overworldSpawn;
@@ -189,7 +183,7 @@ public class ManhuntMod implements ModInitializer {
 			UnpauseCommand.register(dispatcher);
 		});
 		ServerLifecycleEvents.SERVER_STARTED.register(server -> {
-			loadManhuntWorlds(server);
+			loadManhuntWorlds(server, RandomSeed.getSeed());
 
 			Events.serverStart(server);
 		});
@@ -200,36 +194,48 @@ public class ManhuntMod implements ModInitializer {
 		ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> Events.playerRespawn(oldPlayer));
 	}
 
-	public static void loadManhuntWorlds(MinecraftServer server) {
+	public static void loadManhuntWorlds(MinecraftServer server, long seed) {
+		if (overworldHandle != null) {
+			overworldHandle.delete();
+			netherHandle.delete();
+			endHandle.delete();
+		}
+
 		Fantasy fantasy = Fantasy.get(server);
 
 		RuntimeWorldConfig overworldConfig = new RuntimeWorldConfig()
 				.setDimensionType(DimensionTypes.OVERWORLD)
 				.setDifficulty(config.getGameDifficulty())
 				.setGenerator(server.getOverworld().getChunkManager().getChunkGenerator())
-				.setSeed(RandomSeed.getSeed());
+				.setShouldTickTime(true)
+				.setTimeOfDay(0)
+				.setSeed(seed);
 
 		RuntimeWorldConfig netherConfig = new RuntimeWorldConfig()
 				.setDimensionType(DimensionTypes.THE_NETHER)
 				.setDifficulty(config.getGameDifficulty())
 				.setGenerator(server.getWorld(RegistryKey.of(RegistryKeys.WORLD, new Identifier("minecraft", "the_nether"))).getChunkManager().getChunkGenerator())
-				.setSeed(overworldConfig.getSeed());
+				.setShouldTickTime(true)
+				.setTimeOfDay(0)
+				.setSeed(seed);
 
 		RuntimeWorldConfig endConfig = new RuntimeWorldConfig()
 				.setDimensionType(DimensionTypes.THE_END)
 				.setDifficulty(config.getGameDifficulty())
 				.setGenerator(server.getWorld(RegistryKey.of(RegistryKeys.WORLD, new Identifier("minecraft", "the_end"))).getChunkManager().getChunkGenerator())
-				.setSeed(overworldConfig.getSeed());
+				.setShouldTickTime(true)
+				.setTimeOfDay(0)
+				.setSeed(seed);
 
-		overworldHandle = fantasy.openTemporaryWorld(overworldKey, overworldConfig);
-		netherHandle = fantasy.openTemporaryWorld(netherKey, netherConfig);
-		endHandle = fantasy.openTemporaryWorld(endKey, endConfig);
+		overworldHandle = fantasy.openTemporaryWorld(overworldConfig);
+		netherHandle = fantasy.openTemporaryWorld(netherConfig);
+		endHandle = fantasy.openTemporaryWorld(endConfig);
 
-		overworldWorld = overworldHandle.asWorld();
-		netherWorld = netherHandle.asWorld();
-		endWorld = endHandle.asWorld();
-		
-		endWorld.setEnderDragonFight(new EnderDragonFight(endWorld, endWorld.getSeed(), EnderDragonFight.Data.DEFAULT));
+		overworld = overworldHandle.asWorld();
+		nether = netherHandle.asWorld();
+		end = endHandle.asWorld();
+
+		end.setEnderDragonFight(new EnderDragonFight(end, end.getSeed(), EnderDragonFight.Data.DEFAULT));
 
 		setWorldSpawnPos(new BlockPos(0, 0, 0));
 		setOverworldSpawn(new BlockPos(0, 0, 0));
@@ -268,7 +274,7 @@ public class ManhuntMod implements ModInitializer {
 		});
 
 		for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
-			ManhuntGame.setPlayerSpawn(overworldWorld, player);
+			ManhuntGame.setPlayerSpawn(overworld, player);
 		}
 	}
 }

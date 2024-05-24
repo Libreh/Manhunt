@@ -21,8 +21,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.Optional;
 
-import static manhunt.ManhuntMod.netherWorld;
-import static manhunt.ManhuntMod.overworldWorld;
+import static manhunt.ManhuntMod.nether;
+import static manhunt.ManhuntMod.overworld;
 
 @Mixin(Entity.class)
 public abstract class EntityMixin {
@@ -46,22 +46,22 @@ public abstract class EntityMixin {
 
     @Redirect(method = "tickPortal", at = @At(value = "FIELD", target = "Lnet/minecraft/world/World;OVERWORLD:Lnet/minecraft/registry/RegistryKey;", opcode = Opcodes.GETSTATIC))
     private RegistryKey<World> redirectPortalOverworldRegistryKey() {
-        return overworldWorld.getRegistryKey();
+        return overworld.getRegistryKey();
     }
 
     @Redirect(method = "tickPortal", at = @At(value = "FIELD", target = "Lnet/minecraft/world/World;NETHER:Lnet/minecraft/registry/RegistryKey;", opcode = Opcodes.GETSTATIC))
     private RegistryKey<World> redirectPortalNetherRegistryKey() {
-        return netherWorld.getRegistryKey();
+        return nether.getRegistryKey();
     }
 
     @Redirect(method = "getTeleportTarget", at = @At(value = "FIELD", target = "Lnet/minecraft/world/World;OVERWORLD:Lnet/minecraft/registry/RegistryKey;", opcode = Opcodes.GETSTATIC))
     private RegistryKey<World> redirectTeleportOverworldRegistryKey() {
-        return overworldWorld.getRegistryKey();
+        return overworld.getRegistryKey();
     }
 
     @Redirect(method = "getTeleportTarget", at = @At(value = "FIELD", target = "Lnet/minecraft/world/World;NETHER:Lnet/minecraft/registry/RegistryKey;", opcode = Opcodes.GETSTATIC))
     private RegistryKey<World> redirectTeleportNetherRegistryKey() {
-        return netherWorld.getRegistryKey();
+        return nether.getRegistryKey();
     }
 
     @Inject(method = "tickPortal()V", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/Entity;moveToWorld(Lnet/minecraft/server/world/ServerWorld;)Lnet/minecraft/entity/Entity;"))

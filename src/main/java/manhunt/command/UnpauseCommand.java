@@ -38,6 +38,7 @@ public class UnpauseCommand {
         if (isPaused()) {
             for (ServerPlayerEntity gamePlayer : server.getPlayerManager().getPlayerList()) {
                 gamePlayer.getAttributeInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED).setBaseValue(0.10000000149011612);
+                gamePlayer.getAttributeInstance(EntityAttributes.GENERIC_JUMP_STRENGTH).setBaseValue(0.41999998688697815);
                 gamePlayer.playSoundToPlayer(SoundEvents.BLOCK_ANVIL_LAND, SoundCategory.MASTER, 0.1f, 1.5f);
                 gamePlayer.clearStatusEffects();
                 for (StatusEffectInstance statusEffect : playerEffects.get(gamePlayer)) {

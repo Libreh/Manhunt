@@ -29,8 +29,8 @@ public class EndPortalBlockMixin {
         if (world instanceof ServerWorld && entity.canUsePortals() && VoxelShapes.matchesAnywhere(VoxelShapes.cuboid(entity.getBoundingBox().offset(-pos.getX(), -pos.getY(), -pos.getZ())), state.getOutlineShape(world, pos), BooleanBiFunction.AND)) {
             ServerWorld serverWorld;
             BlockPos blockPos;
-            if (world.getRegistryKey() == endWorld.getRegistryKey()) {
-                serverWorld = overworldWorld;
+            if (world.getRegistryKey() == end.getRegistryKey()) {
+                serverWorld = overworld;
                 if (entity instanceof ServerPlayerEntity) {
                     blockPos = ((ServerPlayerEntity) entity).getSpawnPointPosition();
                     serverWorld = entity.getServer().getWorld(((ServerPlayerEntity) entity).getSpawnPointDimension());
@@ -41,7 +41,7 @@ public class EndPortalBlockMixin {
                     blockPos = getWorldSpawnPos();
                 }
             } else {
-                serverWorld = endWorld;
+                serverWorld = end;
                 serverWorld.setSpawnPos(ServerWorld.END_SPAWN_POS, 0);
                 ServerWorld.createEndSpawnPlatform(serverWorld);
                 blockPos = ServerWorld.END_SPAWN_POS;

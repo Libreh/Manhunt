@@ -15,7 +15,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import static manhunt.ManhuntMod.overworldWorld;
+import static manhunt.ManhuntMod.overworld;
 
 @Mixin(PlayerManager.class)
 public class PlayerManagerMixin {
@@ -43,6 +43,6 @@ public class PlayerManagerMixin {
 
     @Redirect(method = "respawnPlayer", at = @At(value = "INVOKE", target = "net/minecraft/server/MinecraftServer.getOverworld()Lnet/minecraft/server/world/ServerWorld;"))
     private ServerWorld redirectOverworld(@NotNull MinecraftServer server, @NotNull ServerPlayerEntity player, boolean alive) {
-        return overworldWorld;
+        return overworld;
     }
 }

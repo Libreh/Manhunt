@@ -223,35 +223,35 @@ public class Events {
 
                 if (player.getWorld().getRegistryKey() == RegistryKey.of(RegistryKeys.WORLD, lobbyKey)) {
                     if (!playerSpawn.containsKey(player.getUuid())) {
-                        ManhuntGame.setPlayerSpawn(overworldWorld, player);
+                        ManhuntGame.setPlayerSpawn(overworld, player);
                     }
 
-                    player.teleport(overworldWorld, playerSpawn.get(player.getUuid()).getX(), playerSpawn.get(player.getUuid()).getY(), playerSpawn.get(player.getUuid()).getZ(), 0F, 0F);
-                    player.setSpawnPoint(overworldWorld.getRegistryKey(), playerSpawn.get(player.getUuid()), 0, true, false);
+                    player.teleport(overworld, playerSpawn.get(player.getUuid()).getX(), playerSpawn.get(player.getUuid()).getY(), playerSpawn.get(player.getUuid()).getZ(), 0F, 0F);
+                    player.setSpawnPoint(overworld.getRegistryKey(), playerSpawn.get(player.getUuid()), 0, true, false);
                 }
             }
 
             if (config.getTimeLimit() != 0) {
-                if (overworldWorld.getTime() % (20 * 60 * 60) / (20 * 60) >= config.getTimeLimit()) {
+                if (overworld.getTime() % (20 * 60 * 60) / (20 * 60) >= config.getTimeLimit()) {
                     endGame(server, true, true);
                 }
 
                 String hoursString;
-                int hours = (int) Math.floor((double) overworldWorld.getTime() % (20 * 60 * 60 * 24) / (20 * 60 * 60));
+                int hours = (int) Math.floor((double) overworld.getTime() % (20 * 60 * 60 * 24) / (20 * 60 * 60));
                 if (hours <= 9) {
                     hoursString = "0" + hours;
                 } else {
                     hoursString = String.valueOf(hours);
                 }
                 String minutesString;
-                int minutes = (int) Math.floor((double) overworldWorld.getTime() % (20 * 60 * 60) / (20 * 60));
+                int minutes = (int) Math.floor((double) overworld.getTime() % (20 * 60 * 60) / (20 * 60));
                 if (minutes <= 9) {
                     minutesString = "0" + minutes;
                 } else {
                     minutesString = String.valueOf(minutes);
                 }
                 String secondsString;
-                int seconds = (int) Math.floor((double) overworldWorld.getTime() % (20 * 60) / (20));
+                int seconds = (int) Math.floor((double) overworld.getTime() % (20 * 60) / (20));
                 if (seconds <= 9) {
                     secondsString = "0" + seconds;
                 } else {
@@ -295,11 +295,11 @@ public class Events {
                 player.getScoreboard().addScoreHolderToTeam(player.getNameForScoreboard(), player.getScoreboard().getTeam("hunters"));
             }
 
-            ManhuntGame.setPlayerSpawn(overworldWorld, player);
+            ManhuntGame.setPlayerSpawn(overworld, player);
 
-            WorldBorder worldBorder = overworldWorld.getWorldBorder();
+            WorldBorder worldBorder = overworld.getWorldBorder();
 
-            overworldWorld.getWorldBorder().interpolateSize(worldBorder.getSize(), config.getWorldBorder(), 0);
+            overworld.getWorldBorder().interpolateSize(worldBorder.getSize(), config.getWorldBorder(), 0);
         }
 
         if (getGameState() != GameState.PREGAME && !hasPlayed.containsKey(player.getUuid())) {
@@ -384,7 +384,7 @@ public class Events {
             }
 
             if (!config.isBedExplosions()) {
-                if (player.getWorld() != overworldWorld && stack.getName().toString().contains("_bed")) {
+                if (player.getWorld().getRegistryKey() != overworld.getRegistryKey() && stack.getName().toString().contains("_bed")) {
                     for (ServerPlayerEntity serverPlayer : player.getServer().getPlayerManager().getPlayerList()) {
                         if (player.distanceTo(serverPlayer) <= 9.0F && !player.isTeamPlayer(serverPlayer.getScoreboardTeam())) {
                             player.sendMessage(Text.translatable("manhunt.chat.disabled").formatted(Formatting.RED));
@@ -395,7 +395,7 @@ public class Events {
             }
 
             if (!config.isLavaPvpInNether()) {
-                if (player.getWorld() == netherWorld && stack.getItem() == Items.LAVA_BUCKET) {
+                if (player.getWorld().getRegistryKey() == nether.getRegistryKey() && stack.getItem() == Items.LAVA_BUCKET) {
                     for (ServerPlayerEntity serverPlayer : player.getServer().getPlayerManager().getPlayerList()) {
                         if (player.distanceTo(serverPlayer) <= 9.0F && !player.isTeamPlayer(serverPlayer.getScoreboardTeam())) {
                             player.sendMessage(Text.translatable("manhunt.chat.disabled").formatted(Formatting.RED));

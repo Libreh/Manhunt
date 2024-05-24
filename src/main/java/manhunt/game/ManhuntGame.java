@@ -92,9 +92,9 @@ public class ManhuntGame {
             serverWorld.resetWeather();
         }
 
-        WorldBorder worldBorder = overworldWorld.getWorldBorder();
+        WorldBorder worldBorder = overworld.getWorldBorder();
 
-        overworldWorld.getWorldBorder().interpolateSize(worldBorder.getSize(), config.getWorldBorder(), 0);
+        overworld.getWorldBorder().interpolateSize(worldBorder.getSize(), config.getWorldBorder(), 0);
 
         server.getScoreboard().getTeam("hunters").setCollisionRule(AbstractTeam.CollisionRule.ALWAYS);
         server.getScoreboard().getTeam("runners").setCollisionRule(AbstractTeam.CollisionRule.ALWAYS);
@@ -105,7 +105,7 @@ public class ManhuntGame {
             hasPlayed.put(player.getUuid(), true);
 
             if (!playerSpawn.containsKey(player.getUuid())) {
-                setPlayerSpawn(overworldWorld, player);
+                setPlayerSpawn(overworld, player);
             }
 
             Stats.MINED.forEach(stat -> player.resetStat(stat.getType().getOrCreateStat(stat.getValue())));
@@ -121,8 +121,8 @@ public class ManhuntGame {
             double playerX = Double.parseDouble(String.valueOf(playerSpawn.get(player.getUuid()).getX()));
             double playerY = Double.parseDouble(String.valueOf(playerSpawn.get(player.getUuid()).getY()));
             double playerZ = Double.parseDouble(String.valueOf(playerSpawn.get(player.getUuid()).getZ()));
-            player.teleport(overworldWorld, playerX, playerY, playerZ, 0, 0);
-            player.setSpawnPoint(overworldWorld.getRegistryKey(), playerSpawn.get(player.getUuid()), 0, true, false);
+            player.teleport(overworld, playerX, playerY, playerZ, 0, 0);
+            player.setSpawnPoint(overworld.getRegistryKey(), playerSpawn.get(player.getUuid()), 0, true, false);
             player.clearStatusEffects();
             player.getInventory().clear();
             player.setFireTicks(0);
@@ -171,7 +171,7 @@ public class ManhuntGame {
     public static void endGame(MinecraftServer server, boolean hunterWin, boolean timeOver) {
         setGameState(GameState.POSTGAME);
 
-        LOGGER.info("Seed: " + overworldWorld.getSeed());
+        LOGGER.info("Seed: " + overworld.getSeed());
 
         for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
             if (config.isSpectateWin()) {
@@ -200,7 +200,7 @@ public class ManhuntGame {
         }
     }
 
-    public static void resetGame(MinecraftServer server) {
+    public static void resetGame(MinecraftServer server, long seed) {
         setGameState(GameState.PREGAME);
 
         ServerWorld lobby = server.getWorld(RegistryKey.of(RegistryKeys.WORLD, lobbyKey));
@@ -266,10 +266,6 @@ public class ManhuntGame {
         hunterCoords.clear();
         runnerCoords.clear();
 
-        overworldHandle.delete();
-        netherHandle.delete();
-        endHandle.delete();
-
         setWorldSpawnPos(new BlockPos(0, 0, 0));
         setOverworldSpawn(new BlockPos(0, 0, 0));
 
@@ -281,7 +277,7 @@ public class ManhuntGame {
             LOGGER.error("Failed to delete dimension worlds");
         }
 
-        loadManhuntWorlds(server);
+        loadManhuntWorlds(server, seed);
     }
 
     public static void setPlayerSpawn(ServerWorld world, ServerPlayerEntity player) {

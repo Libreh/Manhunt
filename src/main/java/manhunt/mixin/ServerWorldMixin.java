@@ -8,7 +8,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 
 @Mixin(ServerWorld.class)
 public class ServerWorldMixin {
-    @Redirect(method = "setTimeOfDay", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/world/ServerWorld;setTimeOfDay(J)V"))
+    @Redirect(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/world/ServerWorld;setTimeOfDay(J)V"))
     private void redirectWorld(ServerWorld world, long l) {
         MinecraftServer server = world.getServer();
         l = world.getLevelProperties().getTimeOfDay() + 24000L;

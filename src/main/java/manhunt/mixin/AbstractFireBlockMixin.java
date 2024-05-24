@@ -16,7 +16,7 @@ public class AbstractFireBlockMixin {
     @Overwrite
     private static boolean isOverworldOrNether(World world) {
         if (world.getRegistryKey().getValue().getNamespace().equals(MOD_ID)) {
-            return world.getRegistryKey() == overworldWorld.getRegistryKey() || world.getRegistryKey() == netherWorld.getRegistryKey();
+            return world.getRegistryKey() == overworld.getRegistryKey() || world.getRegistryKey() == nether.getRegistryKey();
         } else {
             return world.getRegistryKey() == World.OVERWORLD || world.getRegistryKey() == World.NETHER;
         }
