@@ -24,44 +24,54 @@ public class PauseCommand {
 
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(literal("pause")
-                .requires(source -> source.isExecutedByPlayer() && getGameState() == GameState.PLAYING && (Permissions.check(source.getPlayer(), "manhunt.pause") || (source.hasPermissionLevel(1) || source.hasPermissionLevel(2) || source.hasPermissionLevel(3) || source.hasPermissionLevel(4) || config.isRunnersCanPause())))
-                .executes(context -> pauseGame(context.getSource()))
+                .requires(source -> source.isExecutedByPlayer() && getGameState() == GameState.PLAYING && (Permissions.check(source.getPlayer(), "manhunt.pause") || (source.hasPermissionLevel(1) || source.hasPermissionLevel(2) || source.hasPermissionLevel(3) || source.hasPermissionLevel(4) || config.isRunnerCanPause())))
+                .executes(context -> pauseCommand(context.getSource()))
         );
     }
 
-    private static int pauseGame(ServerCommandSource source) {
-        MinecraftServer server = source.getServer();
-
+    private static int pauseCommand(ServerCommandSource source) {
         if (!isPaused()) {
-            setPaused(true);
-
-            server.getTickManager().setFrozen(true);
-
-            playerEffects.clear();
-            playerPos.clear();
-            playerYaw.clear();
-            playerPitch.clear();
-
-            for (ServerPlayerEntity serverPlayer : server.getPlayerManager().getPlayerList()) {
-                serverPlayer.playSoundToPlayer(SoundEvents.BLOCK_ANVIL_LAND, SoundCategory.MASTER, 0.1f, 0.5f);
-                playerEffects.put(serverPlayer.getUuid(), serverPlayer.getStatusEffects());
-                playerPos.put(serverPlayer.getUuid(), serverPlayer.getPos());
-                playerYaw.put(serverPlayer.getUuid(), serverPlayer.getYaw());
-                playerPitch.put(serverPlayer.getUuid(), serverPlayer.getPitch());
-                serverPlayer.clearStatusEffects();
-                serverPlayer.getAttributeInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED).setBaseValue(0);
-                serverPlayer.getAttributeInstance(EntityAttributes.GENERIC_JUMP_STRENGTH).setBaseValue(0);
-                serverPlayer.getAttributeInstance(EntityAttributes.PLAYER_BLOCK_BREAK_SPEED).setBaseValue(0);
-                serverPlayer.addStatusEffect(new StatusEffectInstance(StatusEffects.BLINDNESS, StatusEffectInstance.INFINITE, 255, false, false, false));
-                serverPlayer.addStatusEffect(new StatusEffectInstance(StatusEffects.DARKNESS, StatusEffectInstance.INFINITE, 255, false, false,false));
-                serverPlayer.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE, StatusEffectInstance.INFINITE, 255, false, false, false));
-                serverPlayer.networkHandler.sendPacket(new TitleS2CPacket(Text.literal(config.getGamePausedTitle()).formatted(Formatting.YELLOW)));
-                serverPlayer.networkHandler.sendPacket(new SubtitleS2CPacket(Text.literal(config.getGamePausedSubtitle()).formatted(Formatting.GOLD)));
-            }
+            pauseGame(source.getServer());
         } else {
             source.sendFeedback(() -> Text.translatable("manhunt.chat.already", Text.translatable("manhunt.paused")).formatted(Formatting.RED), false);
         }
 
         return Command.SINGLE_SUCCESS;
+    }
+
+    public static void pauseGame(MinecraftServer server) {
+        setPaused(true);
+
+        server.getTickManager().setFrozen(true);
+
+        playerEffects.clear();
+        playerPos.clear();
+        playerYaw.clear();
+        playerPitch.clear();
+        playerFood.clear();
+        playerSaturation.clear();
+
+        for (ServerPlayerEntity serverPlayer : server.getPlayerManager().getPlayerList()) {
+            serverPlayer.playSoundToPlayer(SoundEvents.BLOCK_ANVIL_LAND, SoundCategory.MASTER, 0.1f, 0.5f);
+            if (!serverPlayer.getStatusEffects().isEmpty()) {
+                playerEffects.put(serverPlayer.getUuid(), serverPlayer.getStatusEffects());
+            }
+            playerPos.put(serverPlayer.getUuid(), serverPlayer.getPos());
+            playerYaw.put(serverPlayer.getUuid(), serverPlayer.getYaw());
+            playerPitch.put(serverPlayer.getUuid(), serverPlayer.getPitch());
+            playerFood.put(serverPlayer.getUuid(), serverPlayer.getHungerManager().getFoodLevel());
+            playerSaturation.put(serverPlayer.getUuid(), serverPlayer.getHungerManager().getSaturationLevel());
+            playerExhuastion.put(serverPlayer.getUuid(), serverPlayer.getHungerManager().getExhaustion());
+            serverPlayer.getHungerManager().setSaturationLevel(0.0F);
+            serverPlayer.getHungerManager().setExhaustion(0.0F);
+            serverPlayer.clearStatusEffects();
+            serverPlayer.getAttributeInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED).setBaseValue(0);
+            serverPlayer.getAttributeInstance(EntityAttributes.GENERIC_JUMP_STRENGTH).setBaseValue(0);
+            serverPlayer.getAttributeInstance(EntityAttributes.PLAYER_BLOCK_BREAK_SPEED).setBaseValue(0);
+            serverPlayer.addStatusEffect(new StatusEffectInstance(StatusEffects.DARKNESS, StatusEffectInstance.INFINITE, 255, false, false,false));
+            serverPlayer.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE, StatusEffectInstance.INFINITE, 255, false, false, false));
+            serverPlayer.networkHandler.sendPacket(new TitleS2CPacket(Text.literal(config.getGamePausedTitle()).formatted(Formatting.YELLOW)));
+            serverPlayer.networkHandler.sendPacket(new SubtitleS2CPacket(Text.literal(config.getGamePausedSubtitle()).formatted(Formatting.GOLD)));
+        }
     }
 }

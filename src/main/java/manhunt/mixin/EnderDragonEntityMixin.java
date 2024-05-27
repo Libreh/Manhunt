@@ -8,16 +8,19 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import static manhunt.ManhuntMod.isDragonKilled;
+import static manhunt.ManhuntMod.setDragonKilled;
+
 @Mixin(EnderDragonEntity.class)
 public abstract class EnderDragonEntityMixin {
 
     @Inject(method = "tickMovement", at = @At("TAIL"))
     private void runnersWon(CallbackInfo ci) {
         EnderDragonEntity dragon = ((EnderDragonEntity) (Object) this);
-        if (dragon.getHealth() == 1) {
-            MinecraftServer server = dragon.getServer();
+        if (dragon.getHealth() == 1.0F && !isDragonKilled()) {
+            setDragonKilled(true);
 
-            dragon.setHealth(0);
+            MinecraftServer server = dragon.getServer();
 
             ManhuntGame.endGame(server, false, false);
         }

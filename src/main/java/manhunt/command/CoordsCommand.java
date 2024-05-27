@@ -10,6 +10,7 @@ import net.minecraft.text.MutableText;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import net.minecraft.world.dimension.DimensionTypes;
 
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
@@ -139,7 +140,7 @@ public class CoordsCommand {
             team = "runners";
         }
 
-        if (player.getWorld().getRegistryKey() == overworld.getRegistryKey()) {
+        if (player.getWorld().getDimensionEntry() == DimensionTypes.OVERWORLD) {
             for (String playerName : player.getScoreboard().getTeam(team).getPlayerList()) {
                 ServerPlayerEntity serverPlayer = player.getServer().getPlayerManager().getPlayer(playerName);
                 serverPlayer.sendMessage(Text.translatable("manhunt.chat.coords", Text.literal(team).formatted(formatting), Text.literal(serverPlayer.getName().getString()).formatted(formatting), Text.literal(" "), Text.literal(String.valueOf(Integer.parseInt(String.valueOf((int) serverPlayer.getPos().getX())))), Text.literal(String.valueOf(Integer.parseInt(String.valueOf((int) serverPlayer.getPos().getY())))), Text.literal(String.valueOf(Integer.parseInt(String.valueOf((int) serverPlayer.getPos().getZ())))), Text.literal(message)));
@@ -150,7 +151,7 @@ public class CoordsCommand {
             } else {
                 runnerCoords.add(Text.translatable("manhunt.chat.savecoords", Text.literal(team).formatted(formatting), Text.literal(player.getName().getString()).formatted(formatting), Text.literal(" " + new Date().getTime() + " "), Text.literal(String.valueOf(Integer.parseInt(String.valueOf((int) player.getPos().getX())))), Text.literal(String.valueOf(Integer.parseInt(String.valueOf((int) player.getPos().getY())))), Text.literal(String.valueOf(Integer.parseInt(String.valueOf((int) player.getPos().getZ())))), Text.literal(message)));
             }
-        } else if (player.getWorld().getRegistryKey() == nether.getRegistryKey()) {
+        } else if (player.getWorld().getDimensionEntry() == DimensionTypes.THE_NETHER) {
             for (String playerName : player.getScoreboard().getTeam(team).getPlayerList()) {
                 ServerPlayerEntity serverPlayer = player.getServer().getPlayerManager().getPlayer(playerName);
                 serverPlayer.sendMessage(Text.translatable("manhunt.chat.coords", Text.literal(team).formatted(formatting), Text.literal(serverPlayer.getName().getString()).formatted(formatting), Text.literal(" "), Text.literal(String.valueOf(Integer.parseInt(String.valueOf((int) serverPlayer.getPos().getX())))), Text.literal(String.valueOf(Integer.parseInt(String.valueOf((int) serverPlayer.getPos().getY())))), Text.literal(String.valueOf(Integer.parseInt(String.valueOf((int) serverPlayer.getPos().getZ())))), Text.literal("(nether) " + message)));

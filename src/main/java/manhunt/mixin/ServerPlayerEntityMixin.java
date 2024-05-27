@@ -54,7 +54,7 @@ public class ServerPlayerEntityMixin {
                     ItemStack trackerStack = new ItemStack(Items.COMPASS);
                     trackerStack.set(DataComponentTypes.ITEM_NAME, Text.translatable("manhunt.tracker"));
                     trackerStack.set(DataComponentTypes.HIDE_TOOLTIP, Unit.INSTANCE);
-                    trackerStack.set(DataComponentTypes.LODESTONE_TRACKER, new LodestoneTrackerComponent(Optional.of(GlobalPos.create(overworld.getRegistryKey(), new BlockPos(0, 0, 0))), false));
+                    trackerStack.set(DataComponentTypes.LODESTONE_TRACKER, new LodestoneTrackerComponent(Optional.of(GlobalPos.create(overworldWorld, new BlockPos(0, 0, 0))), false));
                     trackerStack.addEnchantment(Enchantments.VANISHING_CURSE, 1);
                     trackerStack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(nbt));
 
@@ -104,7 +104,7 @@ public class ServerPlayerEntityMixin {
             boolean runnersLeft = false;
 
             for (ServerPlayerEntity serverPlayer : server.getPlayerManager().getPlayerList()) {
-                if (player.interactionManager.getGameMode() != GameMode.SPECTATOR && serverPlayer.getScoreboardTeam() != null && serverPlayer.getScoreboardTeam().getName().equals("runners")) {
+                if (player.interactionManager.getGameMode() != GameMode.SPECTATOR && serverPlayer.getScoreboardTeam() != null && serverPlayer.getScoreboardTeam() == player.getScoreboard().getTeam("runners")) {
                     runnersLeft = true;
                 }
             }

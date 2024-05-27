@@ -33,7 +33,8 @@ public class ManhuntConfig {
     private boolean lavaPvpInNether = false;
     private boolean spectatorsGenerateChunks = false;
     private boolean runnersHuntOnDeath = true;
-    private boolean runnersCanPause = true;
+    private boolean runnerCanPause = true;
+    private int pauseTimeOnLeave = 2;
     private boolean gameTitles = true;
     private boolean manhuntSounds = true;
     private boolean nightVision = true;
@@ -174,12 +175,20 @@ public class ManhuntConfig {
         this.runnersHuntOnDeath = runnersHuntOnDeath;
     }
 
-    public boolean isRunnersCanPause() {
-        return runnersCanPause;
+    public boolean isRunnerCanPause() {
+        return runnerCanPause;
     }
 
-    public void setRunnersCanPause(boolean runnersCanPause) {
-        this.runnersCanPause = runnersCanPause;
+    public void setRunnerCanPause(boolean runnerCanPause) {
+        this.runnerCanPause = runnerCanPause;
+    }
+
+    public int getPauseTimeOnLeave() {
+        return pauseTimeOnLeave;
+    }
+
+    public void setPauseTimeOnLeave(int pauseTimeOnLeave) {
+        this.pauseTimeOnLeave = pauseTimeOnLeave;
     }
 
     public boolean isGameTitles() {
@@ -316,7 +325,7 @@ public class ManhuntConfig {
             if ((je = gameOptions.get("automaticCompass")) != null) automaticCompass = je.getAsBoolean();
             if ((je = gameOptions.get("huntersColor")) != null) huntersColor = Formatting.byName(je.getAsString());
             if ((je = gameOptions.get("runnersColor")) != null) runnersColor = Formatting.byName(je.getAsString());
-            if ((je = gameOptions.get("runnersHeadstart")) != null) runnerHeadstart = je.getAsInt();
+            if ((je = gameOptions.get("runnerHeadstart")) != null) runnerHeadstart = je.getAsInt();
             if ((je = gameOptions.get("timeLimit")) != null) timeLimit = je.getAsInt();
             if ((je = gameOptions.get("runnersGlow")) != null) runnerGlow = je.getAsBoolean();
             if ((je = gameOptions.get("gameDifficulty")) != null) gameDifficulty = Difficulty.byName(je.getAsString());
@@ -328,6 +337,8 @@ public class ManhuntConfig {
             if ((je = gameOptions.get("lavaPvpInNether")) != null) lavaPvpInNether = je.getAsBoolean();
             if ((je = gameOptions.get("spectatorsGenerateChunks")) != null) spectatorsGenerateChunks = je.getAsBoolean();
             if ((je = gameOptions.get("runnersHuntOnDeath")) != null) runnersHuntOnDeath = je.getAsBoolean();
+            if ((je = gameOptions.get("runnerCanPause")) != null) runnerCanPause = je.getAsBoolean();
+            if ((je = gameOptions.get("pauseTimeOnLeave")) != null) pauseTimeOnLeave = je.getAsInt();
             if ((je = gameOptions.get("gameTitles")) != null) gameTitles = je.getAsBoolean();
             if ((je = gameOptions.get("manhuntSounds")) != null) manhuntSounds = je.getAsBoolean();
             if ((je = gameOptions.get("nightVision")) != null) nightVision = je.getAsBoolean();
@@ -374,6 +385,8 @@ public class ManhuntConfig {
             gameOptions.add("lavaPvpInNether", new JsonPrimitive(lavaPvpInNether));
             gameOptions.add("spectatorsGenerateChunks", new JsonPrimitive(lavaPvpInNether));
             gameOptions.add("runnersHuntOnDeath", new JsonPrimitive(runnersHuntOnDeath));
+            gameOptions.add("runnerCanPause", new JsonPrimitive(runnersCanPauseDefault));
+            gameOptions.add("pauseTimeOnLeave", new JsonPrimitive(pauseTimeOnLeave));
             gameOptions.add("gameTitles", new JsonPrimitive(gameTitles));
             gameOptions.add("manhuntSounds", new JsonPrimitive(manhuntSounds));
             gameOptions.add("nightVision", new JsonPrimitive(nightVision));
@@ -405,7 +418,7 @@ public class ManhuntConfig {
     private final boolean teamColorDefault = teamColor;
     private final Formatting huntersColorDefault = huntersColor;
     private final Formatting runnersColorDefault = runnersColor;
-    private final int runnersHeadstartDefault = runnerHeadstart;
+    private final int runnerHeadstartDefault = runnerHeadstart;
     private final int timeLimitDefault = timeLimit;
     private final boolean runnersGlowDefault = runnerGlow;
     private final Difficulty gameDifficultyDefault = gameDifficulty;
@@ -417,7 +430,8 @@ public class ManhuntConfig {
     private final boolean lavaPvpInNetherDefault = lavaPvpInNether;
     private final boolean spectatorsGenerateChunksDefault = spectatorsGenerateChunks;
     private final boolean runnersHuntOnDeathDefault = runnersHuntOnDeath;
-    private final boolean runnersCanPauseDefault = runnersCanPause;
+    private final boolean runnersCanPauseDefault = runnerCanPause;
+    private final int pauseTimeOnLeaveDefault = pauseTimeOnLeave;
     private final boolean gameTitlesDefault = gameTitles;
     private final boolean manhuntSoundsDefault = manhuntSounds;
     private final boolean nightVisionDefault = nightVision;
@@ -442,8 +456,8 @@ public class ManhuntConfig {
         return runnersColorDefault;
     }
 
-    public int getRunnersHeadstartDefault() {
-        return runnersHeadstartDefault;
+    public int getRunnerHeadstartDefault() {
+        return runnerHeadstartDefault;
     }
 
     public int getTimeLimitDefault() {
@@ -490,8 +504,12 @@ public class ManhuntConfig {
         return runnersHuntOnDeathDefault;
     }
 
-    public boolean isRunnersCanPauseDefault() {
+    public boolean isRunnerCanPauseDefault() {
         return runnersCanPauseDefault;
+    }
+
+    public int getPauseTimeOnLeaveDefault() {
+        return pauseTimeOnLeaveDefault;
     }
 
     public boolean isGameTitlesDefault() {

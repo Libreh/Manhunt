@@ -6,7 +6,6 @@ import net.minecraft.block.EndPortalBlock;
 import net.minecraft.entity.Entity;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.function.BooleanBiFunction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
@@ -29,7 +28,7 @@ public class EndPortalBlockMixin {
         if (world instanceof ServerWorld && entity.canUsePortals() && VoxelShapes.matchesAnywhere(VoxelShapes.cuboid(entity.getBoundingBox().offset(-pos.getX(), -pos.getY(), -pos.getZ())), state.getOutlineShape(world, pos), BooleanBiFunction.AND)) {
             ServerWorld serverWorld;
             BlockPos blockPos;
-            if (world.getRegistryKey() == end.getRegistryKey()) {
+            if (world.getRegistryKey() == endWorld) {
                 serverWorld = overworld;
                 if (entity instanceof ServerPlayerEntity) {
                     blockPos = ((ServerPlayerEntity) entity).getSpawnPointPosition();
@@ -45,9 +44,6 @@ public class EndPortalBlockMixin {
                 serverWorld.setSpawnPos(ServerWorld.END_SPAWN_POS, 0);
                 ServerWorld.createEndSpawnPlatform(serverWorld);
                 blockPos = ServerWorld.END_SPAWN_POS;
-            }
-            if (entity instanceof ServerPlayerEntity) {
-                ((ServerPlayerEntity) entity).getAdvancementTracker().grantCriterion(entity.getServer().getAdvancementLoader().get(new Identifier("minecraft:story/enter_the_end")), "entered_end");
             }
             TeleportTarget teleportTarget = getTeleportTarget(entity, blockPos);
             FabricDimensions.teleport(entity,serverWorld,teleportTarget);

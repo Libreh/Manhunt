@@ -12,6 +12,7 @@ import net.minecraft.block.BlockState;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.LodestoneTrackerComponent;
 import net.minecraft.component.type.NbtComponent;
+import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.item.Item;
@@ -102,6 +103,15 @@ public class ManhuntGame {
         server.getScoreboard().getTeam("hunters").setCollisionRule(AbstractTeam.CollisionRule.ALWAYS);
         server.getScoreboard().getTeam("runners").setCollisionRule(AbstractTeam.CollisionRule.ALWAYS);
 
+        if (config.getRunnerHeadstart() != 0) setHeadstart(true);
+
+        playerEffects.clear();
+        playerPos.clear();
+        playerYaw.clear();
+        playerPitch.clear();
+        playerFood.clear();
+        playerSaturation.clear();
+
         for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
             startedParkour.put(player.getUuid(), true);
 
@@ -125,15 +135,15 @@ public class ManhuntGame {
             double playerY = Double.parseDouble(String.valueOf(playerSpawn.get(player.getUuid()).getY()));
             double playerZ = Double.parseDouble(String.valueOf(playerSpawn.get(player.getUuid()).getZ()));
             player.teleport(overworld, playerX, playerY, playerZ, 0, 0);
-            player.setSpawnPoint(overworld.getRegistryKey(), playerSpawn.get(player.getUuid()), 0, true, false);
+            player.setSpawnPoint(overworldWorld, playerSpawn.get(player.getUuid()), 0, true, false);
             player.clearStatusEffects();
             player.getInventory().clear();
             player.setFireTicks(0);
             player.setOnFire(false);
-            player.setHealth(20);
+            player.setHealth(20.0F);
             player.getHungerManager().setFoodLevel(20);
-            player.getHungerManager().setSaturationLevel(5);
-            player.getHungerManager().setExhaustion(0);
+            player.getHungerManager().setSaturationLevel(5.0F);
+            player.getHungerManager().setExhaustion(0.0F);
 
             player.changeGameMode(GameMode.SURVIVAL);
 
@@ -143,13 +153,12 @@ public class ManhuntGame {
                 }
             }
 
-            if (player.isTeamPlayer(player.getScoreboard().getTeam("hunters"))) {
-                player.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, config.getRunnerHeadstart() * 20, 255, false, false));
-                player.addStatusEffect(new StatusEffectInstance(StatusEffects.BLINDNESS, config.getRunnerHeadstart() * 20, 255, false, false));
-                player.addStatusEffect(new StatusEffectInstance(StatusEffects.JUMP_BOOST, config.getRunnerHeadstart() * 20, 248, false, false));
-                player.addStatusEffect(new StatusEffectInstance(StatusEffects.MINING_FATIGUE, (config.getRunnerHeadstart() - 1) * 20, 255, false, false));
-                player.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE, config.getRunnerHeadstart() * 20, 255, false, false));
-                player.addStatusEffect(new StatusEffectInstance(StatusEffects.WEAKNESS, config.getRunnerHeadstart() * 20, 255, false, false));
+            if (isHeadstart() && player.getScoreboardTeam() != null && player.getScoreboardTeam() == player.getScoreboard().getTeam("hunters")) {
+                player.getAttributeInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED).setBaseValue(0);
+                player.getAttributeInstance(EntityAttributes.GENERIC_JUMP_STRENGTH).setBaseValue(0);
+                player.getAttributeInstance(EntityAttributes.PLAYER_BLOCK_BREAK_SPEED).setBaseValue(0);
+                player.addStatusEffect(new StatusEffectInstance(StatusEffects.DARKNESS, StatusEffectInstance.INFINITE, 255, false, false,false));
+                player.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE, StatusEffectInstance.INFINITE, 255, false, false, false));
             }
 
             if (gameTitles.get(player.getUuid())) {
@@ -222,6 +231,10 @@ public class ManhuntGame {
     public static void resetGame(MinecraftServer server, long seed) {
         setGameState(GameState.PREGAME);
 
+        setHeadstartTime(0);
+
+        setDragonKilled(false);
+
         ServerWorld lobby = server.getWorld(RegistryKey.of(RegistryKeys.WORLD, lobbyKey));
 
         lobby.getGameRules().get(GameRules.ANNOUNCE_ADVANCEMENTS).set(false, server);
@@ -257,10 +270,10 @@ public class ManhuntGame {
             player.getInventory().clear();
             player.setOnFire(false);
             player.setFireTicks(0);
-            player.setHealth(20);
+            player.setHealth(20.0F);
             player.getHungerManager().setFoodLevel(20);
-            player.getHungerManager().setSaturationLevel(5);
-            player.getHungerManager().setExhaustion(0);
+            player.getHungerManager().setSaturationLevel(5.0F);
+            player.getHungerManager().setExhaustion(0.0F);
             player.setExperienceLevel(0);
             player.setExperiencePoints(0);
             player.setScore(0);
@@ -409,9 +422,9 @@ public class ManhuntGame {
 
         loreList.add(Text.translatable("manhunt.lore." + name).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         if (bool) {
-            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.on").formatted(Formatting.GREEN), Text.translatable("manhunt.off")).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.lore.on").formatted(Formatting.GREEN), Text.translatable("manhunt.lore.off")).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         } else {
-            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.on"), Text.translatable("manhunt.off").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.lore.on"), Text.translatable("manhunt.lore.off").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         }
         loreList.add(Text.translatable("manhunt.lore.click.drop").setStyle(Style.EMPTY.withColor(Formatting.AQUA).withItalic(false)));
 
@@ -442,9 +455,9 @@ public class ManhuntGame {
 
         loreList.add(Text.translatable("manhunt.lore." + name).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         if (bool) {
-            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.on").formatted(Formatting.GREEN), Text.translatable("manhunt.off")).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.lore.on").formatted(Formatting.GREEN), Text.translatable("manhunt.lore.off")).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         } else {
-            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.on"), Text.translatable("manhunt.off").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.lore.on"), Text.translatable("manhunt.lore.off").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         }
         loreList.add(Text.translatable("manhunt.lore.click.drop").setStyle(Style.EMPTY.withColor(Formatting.AQUA).withItalic(false)));
 
@@ -475,9 +488,9 @@ public class ManhuntGame {
 
         loreList.add(Text.translatable("manhunt.lore." + name).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         if (bool) {
-            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.on").formatted(Formatting.GREEN), Text.translatable("manhunt.off")).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.lore.on").formatted(Formatting.GREEN), Text.translatable("manhunt.lore.off")).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         } else {
-            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.on"), Text.translatable("manhunt.off").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.lore.on"), Text.translatable("manhunt.lore.off").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         }
         loreList.add(Text.translatable("manhunt.lore.click.drop").setStyle(Style.EMPTY.withColor(Formatting.AQUA).withItalic(false)));
 
@@ -508,9 +521,9 @@ public class ManhuntGame {
 
         loreList.add(Text.translatable("manhunt.lore." + name).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         if (bool) {
-            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.on").formatted(Formatting.GREEN), Text.translatable("manhunt.off")).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.lore.on").formatted(Formatting.GREEN), Text.translatable("manhunt.lore.off")).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         } else {
-            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.on"), Text.translatable("manhunt.off").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.lore.on"), Text.translatable("manhunt.lore.off").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         }
         loreList.add(Text.translatable("manhunt.lore.click.drop").setStyle(Style.EMPTY.withColor(Formatting.AQUA).withItalic(false)));
 
@@ -555,9 +568,9 @@ public class ManhuntGame {
 
         loreList.add(Text.translatable("manhunt.lore." + name).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         if (bool) {
-            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.on").formatted(Formatting.GREEN), Text.translatable("manhunt.off")).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.lore.on").formatted(Formatting.GREEN), Text.translatable("manhunt.lore.off")).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         } else {
-            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.on"), Text.translatable("manhunt.off").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.lore.on"), Text.translatable("manhunt.lore.off").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         }
         loreList.add(Text.translatable("manhunt.lore.click.drop").setStyle(Style.EMPTY.withColor(Formatting.AQUA).withItalic(false)));
 
@@ -600,9 +613,9 @@ public class ManhuntGame {
 
         loreList.add(Text.translatable("manhunt.lore." + name).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         if (bool) {
-            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.on").formatted(Formatting.GREEN), Text.translatable("manhunt.off")).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.lore.on").formatted(Formatting.GREEN), Text.translatable("manhunt.lore.off")).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         } else {
-            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.on"), Text.translatable("manhunt.off").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.lore.on"), Text.translatable("manhunt.lore.off").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         }
         loreList.add(Text.translatable("manhunt.lore.click.drop").setStyle(Style.EMPTY.withColor(Formatting.AQUA).withItalic(false)));
 
@@ -634,9 +647,9 @@ public class ManhuntGame {
 
         loreList.add(Text.translatable("manhunt.lore." + name).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         if (bool) {
-            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.on").formatted(Formatting.GREEN), Text.translatable("manhunt.off")).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.lore.on").formatted(Formatting.GREEN), Text.translatable("manhunt.lore.off")).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         } else {
-            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.on"), Text.translatable("manhunt.off").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.lore.on"), Text.translatable("manhunt.lore.off").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         }
         loreList.add(Text.translatable("manhunt.lore.click.both", Text.translatable("manhunt.lore.click.drop").setStyle(Style.EMPTY.withColor(Formatting.AQUA).withItalic(false)), Text.translatable("manhunt.lore.click.shift").setStyle(Style.EMPTY.withColor(Formatting.GOLD).withItalic(false))));
 
@@ -656,7 +669,7 @@ public class ManhuntGame {
 
         loreList.add(Text.translatable("manhunt.lore." + name).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         if (integer == 0) {
-            loreList.add(Text.translatable("manhunt.lore.single", Text.literal(String.valueOf(config.getRunnerHeadstart())).formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+            loreList.add(Text.translatable("manhunt.lore.single", Text.translatable("manhunt.lore.off").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         } else if (integer != 10 && integer != 20 && integer != 30) {
             loreList.add(Text.translatable("manhunt.lore.single", Text.literal(String.valueOf(config.getRunnerHeadstart())).formatted(Formatting.GREEN)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         } else {
@@ -680,7 +693,7 @@ public class ManhuntGame {
                     if (!player.getItemCooldownManager().isCoolingDown(runnerHeadstartItem)) {
                         if (!type.shift) {
                             if (type == ClickType.DROP) {
-                                config.setRunnerHeadstart(config.getRunnersHeadstartDefault());
+                                config.setRunnerHeadstart(config.getRunnerHeadstartDefault());
                             } else {
                                 if (runnerHeadstartInt != 10 && runnerHeadstartInt != 20) {
                                     config.setRunnerHeadstart(10);
@@ -737,7 +750,7 @@ public class ManhuntGame {
 
         loreList.add(Text.translatable("manhunt.lore." + name).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         if (integer == 0) {
-            loreList.add(Text.translatable("manhunt.lore.single", Text.literal(String.valueOf(config.getTimeLimit())).formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+            loreList.add(Text.translatable("manhunt.lore.single", Text.translatable("manhunt.lore.off").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         } else if (integer != 30 && integer != 60 && integer != 90) {
             loreList.add(Text.translatable("manhunt.lore.single", Text.literal(String.valueOf(config.getTimeLimit())).formatted(Formatting.GREEN)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         } else {
@@ -760,6 +773,8 @@ public class ManhuntGame {
                     if (!player.getItemCooldownManager().isCoolingDown(timeLimitItem)) {
                         if (!type.shift) {
                             if (type == ClickType.DROP) {
+                                config.setTimeLimit(config.getTimeLimitDefault());
+                            } else {
                                 if (timeLimitInt != 30 && timeLimitInt != 60) {
                                     config.setTimeLimit(30);
                                 } else {
@@ -815,9 +830,9 @@ public class ManhuntGame {
 
         loreList.add(Text.translatable("manhunt.lore." + name).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         if (bool) {
-            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.on").formatted(Formatting.GREEN), Text.translatable("manhunt.off")).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.lore.on").formatted(Formatting.GREEN), Text.translatable("manhunt.lore.off")).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         } else {
-            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.on"), Text.translatable("manhunt.off").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.lore.on"), Text.translatable("manhunt.lore.off").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         }
         loreList.add(Text.translatable("manhunt.lore.click.drop").setStyle(Style.EMPTY.withColor(Formatting.AQUA).withItalic(false)));
 
@@ -888,9 +903,9 @@ public class ManhuntGame {
 
         loreList.add(Text.translatable("manhunt.lore." + name).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         if (integer == 0) {
-            loreList.add(Text.translatable("manhunt.lore.single", Text.literal(String.valueOf(config.getWorldBorder())).formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+            loreList.add(Text.translatable("manhunt.lore.single", Text.translatable("manhunt.lore.off").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         } else if (integer != 2816 && integer != 5888 && integer != 59999968) {
-            loreList.add(Text.translatable("manhunt.lore.single", Text.literal(String.valueOf(config.getWorldBorder())).formatted(Formatting.GREEN)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+            loreList.add(Text.translatable("manhunt.lore.single", Text.literal(String.valueOf(integer)).formatted(Formatting.GREEN)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         } else {
             if (integer == 2816) {
                 loreList.add(Text.translatable("manhunt.lore.triple", Text.literal("1st ring").formatted(Formatting.RED), Text.literal("2nd ring"), Text.literal("Maximum")).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
@@ -968,7 +983,7 @@ public class ManhuntGame {
 
         loreList.add(Text.translatable("manhunt.lore." + name).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         if (integer != 0 && integer != 5 && integer != 10) {
-            loreList.add(Text.translatable("manhunt.lore.single", Text.literal(String.valueOf(config.getSpawnRadius())).formatted(Formatting.GREEN)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+            loreList.add(Text.translatable("manhunt.lore.single", Text.literal(String.valueOf(integer)).formatted(Formatting.GREEN)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         } else {
             if (integer == 0) {
                 loreList.add(Text.translatable("manhunt.lore.triple", Text.literal("0").formatted(Formatting.RED), Text.literal("5"), Text.literal("10")).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
@@ -1046,9 +1061,9 @@ public class ManhuntGame {
 
         loreList.add(Text.translatable("manhunt.lore." + name).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         if (bool) {
-            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.on").formatted(Formatting.GREEN), Text.translatable("manhunt.off")).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.lore.on").formatted(Formatting.GREEN), Text.translatable("manhunt.lore.off")).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         } else {
-            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.on"), Text.translatable("manhunt.off").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.lore.on"), Text.translatable("manhunt.lore.off").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         }
         loreList.add(Text.translatable("manhunt.lore.click.drop").setStyle(Style.EMPTY.withColor(Formatting.AQUA).withItalic(false)));
 
@@ -1081,9 +1096,9 @@ public class ManhuntGame {
         loreList.add(Text.translatable("manhunt.lore." + name).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         loreList.add(Text.translatable("manhunt.lore." + name + ".second").setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         if (bool) {
-            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.on").formatted(Formatting.GREEN), Text.translatable("manhunt.off")).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.lore.on").formatted(Formatting.GREEN), Text.translatable("manhunt.lore.off")).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         } else {
-            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.on"), Text.translatable("manhunt.off").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.lore.on"), Text.translatable("manhunt.lore.off").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         }
         loreList.add(Text.translatable("manhunt.lore.click.drop").setStyle(Style.EMPTY.withColor(Formatting.AQUA).withItalic(false)));
 
@@ -1116,9 +1131,9 @@ public class ManhuntGame {
         loreList.add(Text.translatable("manhunt.lore." + name).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         loreList.add(Text.translatable("manhunt.lore." + name + ".second").setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         if (bool) {
-            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.on").formatted(Formatting.GREEN), Text.translatable("manhunt.off")).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.lore.on").formatted(Formatting.GREEN), Text.translatable("manhunt.lore.off")).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         } else {
-            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.on"), Text.translatable("manhunt.off").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.lore.on"), Text.translatable("manhunt.lore.off").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         }
         loreList.add(Text.translatable("manhunt.lore.click.drop").setStyle(Style.EMPTY.withColor(Formatting.AQUA).withItalic(false)));
 
@@ -1150,9 +1165,9 @@ public class ManhuntGame {
 
         loreList.add(Text.translatable("manhunt.lore." + name).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         if (bool) {
-            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.on").formatted(Formatting.GREEN), Text.translatable("manhunt.off")).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.lore.on").formatted(Formatting.GREEN), Text.translatable("manhunt.lore.off")).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         } else {
-            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.on"), Text.translatable("manhunt.off").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.lore.on"), Text.translatable("manhunt.lore.off").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         }
         loreList.add(Text.translatable("manhunt.lore.click.drop").setStyle(Style.EMPTY.withColor(Formatting.AQUA).withItalic(false)));
 
@@ -1184,9 +1199,9 @@ public class ManhuntGame {
 
         loreList.add(Text.translatable("manhunt.lore." + name).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         if (bool) {
-            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.on").formatted(Formatting.GREEN), Text.translatable("manhunt.off")).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.lore.on").formatted(Formatting.GREEN), Text.translatable("manhunt.lore.off")).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         } else {
-            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.on"), Text.translatable("manhunt.off").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.lore.on"), Text.translatable("manhunt.lore.off").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         }
         loreList.add(Text.translatable("manhunt.lore.click.drop").setStyle(Style.EMPTY.withColor(Formatting.AQUA).withItalic(false)));
 
@@ -1214,13 +1229,13 @@ public class ManhuntGame {
         loreList = new ArrayList<>();
         name = "runnerscanpause";
         item = Items.ICE;
-        bool = config.isRunnersCanPause();
+        bool = config.isRunnerCanPause();
 
         loreList.add(Text.translatable("manhunt.lore." + name).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         if (bool) {
-            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.on").formatted(Formatting.GREEN), Text.translatable("manhunt.off")).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.lore.on").formatted(Formatting.GREEN), Text.translatable("manhunt.lore.off")).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         } else {
-            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.on"), Text.translatable("manhunt.off").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.lore.on"), Text.translatable("manhunt.lore.off").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         }
         loreList.add(Text.translatable("manhunt.lore.click.drop").setStyle(Style.EMPTY.withColor(Formatting.AQUA).withItalic(false)));
 
@@ -1232,14 +1247,94 @@ public class ManhuntGame {
                 .setCallback((index, type, action) ->  {
                     if (!player.getItemCooldownManager().isCoolingDown(runnersCanPauseItem)) {
                         if (type == ClickType.DROP) {
-                            config.setRunnersCanPause(config.isRunnersCanPauseDefault());
+                            config.setRunnerCanPause(config.isRunnerCanPauseDefault());
                         } else {
-                            config.setRunnersCanPause(!runnersCanPauseBool);
+                            config.setRunnerCanPause(!runnersCanPauseBool);
                         }
                         config.save();
                         player.getItemCooldownManager().set(runnersCanPauseItem, 10);
                         player.networkHandler.sendPacket(new PlaySoundS2CPacket(SoundEvents.UI_BUTTON_CLICK, SoundCategory.MASTER, player.getPos().getX(), player.getPos().getY(), player.getPos().getZ(), 0.5F, 1.0F, player.getWorld().random.nextLong()));
                         openSettingsGui(player);
+                    }
+                })
+        );
+        slot++;
+
+        loreList = new ArrayList<>();
+        name = "pausetimeonleave";
+        item = Items.IRON_BARS;
+        integer = config.getPauseTimeOnLeave();
+
+        loreList.add(Text.translatable("manhunt.lore." + name).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+        if (integer == 0) {
+            loreList.add(Text.translatable("manhunt.lore.single", Text.translatable("manhunt.lore.off").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+        } else if (integer != 1 && integer != 2 && integer != 5) {
+            loreList.add(Text.translatable("manhunt.lore.single", Text.literal(String.valueOf(integer)).formatted(Formatting.GREEN)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+        } else {
+            if (integer == 1) {
+                loreList.add(Text.translatable("manhunt.lore.triple", Text.literal("1").formatted(Formatting.RED), Text.literal("2"), Text.literal("5")).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+            } else if (integer == 2) {
+                loreList.add(Text.translatable("manhunt.lore.triple", Text.literal("1"), Text.literal("2").formatted(Formatting.YELLOW), Text.literal("5")).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+            } else {
+                loreList.add(Text.translatable("manhunt.lore.triple", Text.literal("1"), Text.literal("2"), Text.literal("5").formatted(Formatting.GREEN)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+            }
+        }
+        loreList.add(Text.translatable("manhunt.lore.click.both", Text.translatable("manhunt.lore.click.drop").setStyle(Style.EMPTY.withColor(Formatting.AQUA).withItalic(false)), Text.translatable("manhunt.lore.click.shift").setStyle(Style.EMPTY.withColor(Formatting.GOLD).withItalic(false))));
+
+        Item pauseTimeOnLeaveItem = item;
+        int pauseTimeOnLeaveInt = integer;
+        settingsGui.setSlot(slot, new GuiElementBuilder(item)
+                .setName(Text.translatable("manhunt." + name))
+                .setLore(loreList)
+                .setCallback((index, type, action) ->  {
+                    if (!player.getItemCooldownManager().isCoolingDown(pauseTimeOnLeaveItem)) {
+                        if (!type.shift) {
+                            if (type == ClickType.DROP) {
+                                config.setPauseTimeOnLeave(config.getPauseTimeOnLeaveDefault());
+                            } else {
+                                if (pauseTimeOnLeaveInt != 1 && pauseTimeOnLeaveInt != 2) {
+                                    config.setPauseTimeOnLeave(1);
+                                } else {
+                                    if (pauseTimeOnLeaveInt == 1) {
+                                        config.setPauseTimeOnLeave(2);
+                                    } else {
+                                        config.setPauseTimeOnLeave(5);
+                                    }
+                                }
+                            }
+
+                            config.save();
+                            player.getItemCooldownManager().set(pauseTimeOnLeaveItem, 10);
+                            player.networkHandler.sendPacket(new PlaySoundS2CPacket(SoundEvents.UI_BUTTON_CLICK, SoundCategory.MASTER, player.getPos().getX(), player.getPos().getY(), player.getPos().getZ(), 0.5F, 1.0F, player.getWorld().random.nextLong()));
+                            openSettingsGui(player);
+                        } else {
+                            AnvilInputGui pauseTimeOnLeaveGui = new AnvilInputGui(player, false) {
+                                @Override
+                                public void onInput(String input) {
+                                    this.setSlot(2, new GuiElementBuilder(Items.PAPER)
+                                            .setName(Text.literal(input).formatted(Formatting.ITALIC))
+                                            .setCallback(() -> {
+                                                int value = pauseTimeOnLeaveInt;
+                                                try {
+                                                    value = Integer.parseInt(input);
+                                                } catch (NumberFormatException e) {
+                                                    player.sendMessage(Text.translatable("manhunt.invalidinput").formatted(Formatting.RED));
+                                                }
+
+                                                config.setPauseTimeOnLeave(value);
+                                                config.save();
+                                                player.getItemCooldownManager().set(pauseTimeOnLeaveItem, 10);
+                                                player.networkHandler.sendPacket(new PlaySoundS2CPacket(SoundEvents.UI_BUTTON_CLICK, SoundCategory.MASTER, player.getPos().getX(), player.getPos().getY(), player.getPos().getZ(), 0.5F, 1.0F, player.getWorld().random.nextLong()));
+                                                openSettingsGui(player);
+                                            })
+                                    );
+                                }
+                            };
+
+                            pauseTimeOnLeaveGui.setTitle(Text.translatable("manhunt.entervalue"));
+                            pauseTimeOnLeaveGui.setDefaultInputValue("");
+                            pauseTimeOnLeaveGui.open();
+                        }
                     }
                 })
         );
@@ -1252,9 +1347,9 @@ public class ManhuntGame {
 
         loreList.add(Text.translatable("manhunt.lore." + name).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         if (bool) {
-            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.on").formatted(Formatting.GREEN), Text.translatable("manhunt.off")).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.lore.on").formatted(Formatting.GREEN), Text.translatable("manhunt.lore.off")).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         } else {
-            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.on"), Text.translatable("manhunt.off").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.lore.on"), Text.translatable("manhunt.lore.off").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         }
         loreList.add(Text.translatable("manhunt.lore.click.drop").setStyle(Style.EMPTY.withColor(Formatting.AQUA).withItalic(false)));
 
@@ -1286,9 +1381,9 @@ public class ManhuntGame {
 
         loreList.add(Text.translatable("manhunt.lore." + name).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         if (bool) {
-            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.on").formatted(Formatting.GREEN), Text.translatable("manhunt.off")).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.lore.on").formatted(Formatting.GREEN), Text.translatable("manhunt.lore.off")).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         } else {
-            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.on"), Text.translatable("manhunt.off").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.lore.on"), Text.translatable("manhunt.lore.off").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         }
         loreList.add(Text.translatable("manhunt.lore.click.drop").setStyle(Style.EMPTY.withColor(Formatting.AQUA).withItalic(false)));
 
@@ -1320,9 +1415,9 @@ public class ManhuntGame {
 
         loreList.add(Text.translatable("manhunt.lore." + name).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         if (bool) {
-            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.on").formatted(Formatting.GREEN), Text.translatable("manhunt.off")).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.lore.on").formatted(Formatting.GREEN), Text.translatable("manhunt.lore.off")).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         } else {
-            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.on"), Text.translatable("manhunt.off").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+            loreList.add(Text.translatable("manhunt.lore.double", Text.translatable("manhunt.lore.on"), Text.translatable("manhunt.lore.off").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         }
         loreList.add(Text.translatable("manhunt.lore.click.drop").setStyle(Style.EMPTY.withColor(Formatting.AQUA).withItalic(false)));
 

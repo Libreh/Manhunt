@@ -29,6 +29,7 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.random.RandomSeed;
+import net.minecraft.world.World;
 import net.minecraft.world.dimension.DimensionTypes;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -58,6 +59,13 @@ public class ManhuntMod implements ModInitializer {
 	private static final Database database = SQLib.getDatabase();
 	private static Table table = database.createTable(MOD_ID, "playerdata").addColumn("game_titles", SQLDataType.BOOL).addColumn("manhunt_sounds", SQLDataType.BOOL).addColumn("night_vision", SQLDataType.BOOL).addColumn("friendly_fire", SQLDataType.BOOL).finish();
 	public static final Identifier lobbyKey = new Identifier(MOD_ID, "lobby");
+	public static final Identifier overworldKey = new Identifier(MOD_ID, "overworld");
+	public static final Identifier netherKey = new Identifier(MOD_ID, "the_nether");
+	public static final Identifier endKey = new Identifier(MOD_ID, "the_end");
+	public static final RegistryKey<World> lobbyWorld = RegistryKey.of(RegistryKeys.WORLD, lobbyKey);
+	public static final RegistryKey<World> overworldWorld = RegistryKey.of(RegistryKeys.WORLD, overworldKey);
+	public static final RegistryKey<World> netherWorld = RegistryKey.of(RegistryKeys.WORLD, netherKey);
+	public static final RegistryKey<World> endWorld = RegistryKey.of(RegistryKeys.WORLD, endKey);
 	public static RuntimeWorldHandle overworldHandle;
 	public static RuntimeWorldHandle netherHandle;
 	public static RuntimeWorldHandle endHandle;
@@ -69,7 +77,11 @@ public class ManhuntMod implements ModInitializer {
 	private static BlockPos overworldSpawn;
 	private static boolean preloaded = false;
 	private static boolean chunkyIntegration = false;
+	private static boolean dragonKilled = false;
 	private static boolean paused = false;
+	private static boolean headstart = false;
+	private static int pauseTime = 0;
+	private static int headstartTime = 0;
 	public static final List<MutableText> hunterCoords = new ArrayList<>();
 	public static final List<MutableText> runnerCoords = new ArrayList<>();
 	public static final HashMap<UUID, Boolean> hasPlayed = new HashMap<>();
@@ -83,9 +95,12 @@ public class ManhuntMod implements ModInitializer {
 	public static final HashMap<UUID, Vec3d> playerPos = new HashMap<>();
 	public static final HashMap<UUID, Float> playerYaw = new HashMap<>();
 	public static final HashMap<UUID, Float> playerPitch = new HashMap<>();
-	public static HashMap<UUID, Integer> parkourTimer = new HashMap<>();
-	public static HashMap<UUID, Boolean> startedParkour = new HashMap<>();
-	public static HashMap<UUID, Boolean> finishedParkour = new HashMap<>();
+	public static final HashMap<UUID, Integer> playerFood = new HashMap<>();
+	public static final HashMap<UUID, Float> playerSaturation = new HashMap<>();
+	public static final HashMap<UUID, Float> playerExhuastion = new HashMap<>();
+	public static final HashMap<UUID, Integer> parkourTimer = new HashMap<>();
+	public static final HashMap<UUID, Boolean> startedParkour = new HashMap<>();
+	public static final HashMap<UUID, Boolean> finishedParkour = new HashMap<>();
 
 	public static Path getGameDir() {
 		return gameDir;
@@ -139,12 +154,44 @@ public class ManhuntMod implements ModInitializer {
 		ManhuntMod.chunkyIntegration = chunkyIntegration;
 	}
 
+	public static boolean isDragonKilled() {
+		return dragonKilled;
+	}
+
+	public static void setDragonKilled(boolean dragonKilled) {
+		ManhuntMod.dragonKilled = dragonKilled;
+	}
+
 	public static boolean isPaused() {
 		return paused;
 	}
 
 	public static void setPaused(boolean paused) {
 		ManhuntMod.paused = paused;
+	}
+
+	public static boolean isHeadstart() {
+		return headstart;
+	}
+
+	public static void setHeadstart(boolean headstart) {
+		ManhuntMod.headstart = headstart;
+	}
+
+	public static int getPauseTime() {
+		return pauseTime;
+	}
+
+	public static void setPauseTime(int pauseTime) {
+		ManhuntMod.pauseTime = pauseTime;
+	}
+
+	public static int getHeadstartTime() {
+		return headstartTime;
+	}
+
+	public static void setHeadstartTime(int headstartTime) {
+		ManhuntMod.headstartTime = headstartTime;
 	}
 
 	@Override
@@ -201,9 +248,9 @@ public class ManhuntMod implements ModInitializer {
 
 	public static void loadManhuntWorlds(MinecraftServer server, long seed) {
 		if (overworldHandle != null) {
-			overworldHandle.delete();
-			netherHandle.delete();
-			endHandle.delete();
+			overworldHandle.unload();
+			netherHandle.unload();
+			endHandle.unload();
 		}
 
 		Fantasy fantasy = Fantasy.get(server);
@@ -232,9 +279,9 @@ public class ManhuntMod implements ModInitializer {
 				.setTimeOfDay(0)
 				.setSeed(seed);
 
-		overworldHandle = fantasy.openTemporaryWorld(overworldConfig);
-		netherHandle = fantasy.openTemporaryWorld(netherConfig);
-		endHandle = fantasy.openTemporaryWorld(endConfig);
+		overworldHandle = fantasy.openTemporaryWorld(overworldKey, overworldConfig);
+		netherHandle = fantasy.openTemporaryWorld(netherKey, netherConfig);
+		endHandle = fantasy.openTemporaryWorld(endKey, endConfig);
 
 		overworld = overworldHandle.asWorld();
 		nether = netherHandle.asWorld();
