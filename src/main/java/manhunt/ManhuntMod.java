@@ -5,6 +5,7 @@ import manhunt.config.ManhuntConfig;
 import manhunt.game.Events;
 import manhunt.game.GameState;
 import manhunt.game.ManhuntGame;
+import me.lucko.fabric.api.permissions.v0.Permissions;
 import me.mrnavastar.sqlib.SQLib;
 import me.mrnavastar.sqlib.Table;
 import me.mrnavastar.sqlib.database.Database;
@@ -57,11 +58,11 @@ public class ManhuntMod implements ModInitializer {
 	private static final Path gameDir = FabricLoader.getInstance().getGameDir();
 	private static GameState gameState;
 	private static final Database database = SQLib.getDatabase();
-	private static Table table = database.createTable(MOD_ID, "playerdata").addColumn("game_titles", SQLDataType.BOOL).addColumn("manhunt_sounds", SQLDataType.BOOL).addColumn("night_vision", SQLDataType.BOOL).addColumn("friendly_fire", SQLDataType.BOOL).finish();
-	public static final Identifier lobbyKey = new Identifier(MOD_ID, "lobby");
-	public static final Identifier overworldKey = new Identifier(MOD_ID, "overworld");
-	public static final Identifier netherKey = new Identifier(MOD_ID, "the_nether");
-	public static final Identifier endKey = new Identifier(MOD_ID, "the_end");
+	private static Table table = database.createTable(MOD_ID, "playerdata").addColumn("game_titles", SQLDataType.BOOL).addColumn("manhunt_sounds", SQLDataType.BOOL).addColumn("night_vision", SQLDataType.BOOL).addColumn("friendly_fire", SQLDataType.BOOL).addColumn("bed_explosions", SQLDataType.BOOL).addColumn("lava_pvp_in_nether", SQLDataType.BOOL).finish();
+	public static final Identifier lobbyKey = Identifier.of(MOD_ID, "lobby");
+	public static final Identifier overworldKey = Identifier.of(MOD_ID, "overworld");
+	public static final Identifier netherKey = Identifier.of(MOD_ID, "the_nether");
+	public static final Identifier endKey = Identifier.of(MOD_ID, "the_end");
 	public static final RegistryKey<World> lobbyWorld = RegistryKey.of(RegistryKeys.WORLD, lobbyKey);
 	public static final RegistryKey<World> overworldWorld = RegistryKey.of(RegistryKeys.WORLD, overworldKey);
 	public static final RegistryKey<World> netherWorld = RegistryKey.of(RegistryKeys.WORLD, netherKey);
@@ -84,13 +85,18 @@ public class ManhuntMod implements ModInitializer {
 	private static int headstartTime = 0;
 	public static final List<MutableText> hunterCoords = new ArrayList<>();
 	public static final List<MutableText> runnerCoords = new ArrayList<>();
-	public static final HashMap<UUID, Boolean> hasPlayed = new HashMap<>();
-	public static final HashMap<UUID, BlockPos> playerSpawn = new HashMap<>();
+	public static final List<UUID> readyList = new ArrayList<>();
+	public static List<ServerPlayerEntity> playerList = new ArrayList<>();
+	public static List<UUID> hasPlayed = new ArrayList<>();
+	public static List<UUID> leftOnPause = new ArrayList<>();
 	public static final HashMap<UUID, Boolean> gameTitles = new HashMap<>();
 	public static final HashMap<UUID, Boolean> manhuntSounds = new HashMap<>();
 	public static final HashMap<UUID, Boolean> nightVision = new HashMap<>();
 	public static final HashMap<UUID, Boolean> friendlyFire = new HashMap<>();
-	public static final HashMap<UUID, Boolean> leftOnPause = new HashMap<>();
+	public static final HashMap<UUID, Boolean> bedExplosions = new HashMap<>();
+	public static final HashMap<UUID, Boolean> lavaPvpInNether = new HashMap<>();
+	public static final HashMap<UUID, Integer> slowDownManager = new HashMap<>();
+	public static final HashMap<UUID, BlockPos> playerSpawn = new HashMap<>();
 	public static final HashMap<UUID, Collection<StatusEffectInstance>> playerEffects = new HashMap<>();
 	public static final HashMap<UUID, Vec3d> playerPos = new HashMap<>();
 	public static final HashMap<UUID, Float> playerYaw = new HashMap<>();
@@ -257,7 +263,7 @@ public class ManhuntMod implements ModInitializer {
 
 		RuntimeWorldConfig overworldConfig = new RuntimeWorldConfig()
 				.setDimensionType(DimensionTypes.OVERWORLD)
-				.setDifficulty(config.getGameDifficulty())
+				.setDifficulty(config.getDifficulty())
 				.setGenerator(server.getOverworld().getChunkManager().getChunkGenerator())
 				.setShouldTickTime(true)
 				.setTimeOfDay(0)
@@ -265,16 +271,16 @@ public class ManhuntMod implements ModInitializer {
 
 		RuntimeWorldConfig netherConfig = new RuntimeWorldConfig()
 				.setDimensionType(DimensionTypes.THE_NETHER)
-				.setDifficulty(config.getGameDifficulty())
-				.setGenerator(server.getWorld(RegistryKey.of(RegistryKeys.WORLD, new Identifier("minecraft", "the_nether"))).getChunkManager().getChunkGenerator())
+				.setDifficulty(config.getDifficulty())
+				.setGenerator(server.getWorld(World.NETHER).getChunkManager().getChunkGenerator())
 				.setShouldTickTime(true)
 				.setTimeOfDay(0)
 				.setSeed(seed);
 
 		RuntimeWorldConfig endConfig = new RuntimeWorldConfig()
 				.setDimensionType(DimensionTypes.THE_END)
-				.setDifficulty(config.getGameDifficulty())
-				.setGenerator(server.getWorld(RegistryKey.of(RegistryKeys.WORLD, new Identifier("minecraft", "the_end"))).getChunkManager().getChunkGenerator())
+				.setDifficulty(config.getDifficulty())
+				.setGenerator(server.getWorld(World.END).getChunkManager().getChunkGenerator())
 				.setShouldTickTime(true)
 				.setTimeOfDay(0)
 				.setSeed(seed);
@@ -328,5 +334,9 @@ public class ManhuntMod implements ModInitializer {
 		for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
 			ManhuntGame.setPlayerSpawn(overworld, player);
 		}
+	}
+
+	public static boolean checkPermission(ServerPlayerEntity player, String key) {
+		return Permissions.check(player, key) || player.hasPermissionLevel(1) || player.hasPermissionLevel(2) ||player.hasPermissionLevel(2) ||player.hasPermissionLevel(4);
 	}
 }

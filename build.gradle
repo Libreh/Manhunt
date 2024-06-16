@@ -34,8 +34,6 @@ dependencies {
 	modImplementation "me.lucko:fabric-permissions-api:${project.permissions_api_version}"
 
 	modImplementation "org.popcraft:chunky-common:${project.chunky_common_version}"
-
-	modImplementation include("eu.pb4:polymer-virtual-entity:${project.polymer_virtual_entity_version}")
 }
 
 tasks.register('manhuntDatapack', Zip) {

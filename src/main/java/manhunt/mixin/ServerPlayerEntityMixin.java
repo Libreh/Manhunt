@@ -12,9 +12,11 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtList;
+import net.minecraft.registry.RegistryKeys;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.Unit;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.GlobalPos;
@@ -22,6 +24,7 @@ import net.minecraft.world.GameMode;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -37,13 +40,29 @@ public class ServerPlayerEntityMixin {
     @Shadow
     public MinecraftServer server;
 
+    @Unique
     private long lastDelay = System.currentTimeMillis();
+    @Unique
     private long rate = 1000;
+    @Unique
     private final ServerPlayerEntity player = (ServerPlayerEntity) (Object) this;
-
+    @Unique
+    private int count;
 
     @Inject(method = "tick", at = @At("HEAD"))
     private void tick(CallbackInfo ci) {
+        count++;
+        if (count == 39) {
+            if (slowDownManager.get(player.getUuid()) != 0) {
+                if (slowDownManager.get(player.getUuid()) >= 4) {
+                    slowDownManager.put(player.getUuid(), slowDownManager.get(player.getUuid()) - 4);
+                } else {
+                    slowDownManager.put(player.getUuid(), 0);
+                }
+            }
+            count = 0;
+        }
+
         if (getGameState() == GameState.PLAYING) {
             if (player.isTeamPlayer(player.getScoreboard().getTeam("hunters"))) {
                 if (!hasTracker(player)) {
@@ -51,14 +70,14 @@ public class ServerPlayerEntityMixin {
                     nbt.putBoolean("Tracker", true);
                     nbt.putBoolean("Remove", true);
 
-                    ItemStack trackerStack = new ItemStack(Items.COMPASS);
-                    trackerStack.set(DataComponentTypes.ITEM_NAME, Text.translatable("manhunt.tracker"));
-                    trackerStack.set(DataComponentTypes.HIDE_TOOLTIP, Unit.INSTANCE);
-                    trackerStack.set(DataComponentTypes.LODESTONE_TRACKER, new LodestoneTrackerComponent(Optional.of(GlobalPos.create(overworldWorld, new BlockPos(0, 0, 0))), false));
-                    trackerStack.addEnchantment(Enchantments.VANISHING_CURSE, 1);
-                    trackerStack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(nbt));
+                    ItemStack stack = new ItemStack(Items.COMPASS);
+                    stack.set(DataComponentTypes.ITEM_NAME, Text.translatable("manhunt.item.tracker"));
+                    stack.set(DataComponentTypes.HIDE_TOOLTIP, Unit.INSTANCE);
+                    stack.set(DataComponentTypes.LODESTONE_TRACKER, new LodestoneTrackerComponent(Optional.of(GlobalPos.create(overworldWorld, new BlockPos(0, 0, 0))), false));
+                    stack.addEnchantment(server.getRegistryManager().getWrapperOrThrow(RegistryKeys.ENCHANTMENT).getOrThrow(Enchantments.VANISHING_CURSE), 1);
+                    stack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(nbt));
 
-                    player.giveItemStack(trackerStack);
+                    player.giveItemStack(stack);
                 } else {
                     if (config.isAutomaticCompass() && System.currentTimeMillis() - lastDelay > rate) {
                         for (ItemStack stack : player.getInventory().main) {
@@ -97,7 +116,6 @@ public class ServerPlayerEntityMixin {
     private void onDeath(DamageSource source, CallbackInfo ci) {
         if (player.isTeamPlayer(player.getScoreboard().getTeam("runners"))) {
             if (config.isRunnersHuntOnDeath()) {
-                player.getScoreboard().clearTeam(player.getNameForScoreboard());
                 player.getScoreboard().addScoreHolderToTeam(player.getNameForScoreboard(), player.getScoreboard().getTeam("hunters"));
             }
 
@@ -120,13 +138,14 @@ public class ServerPlayerEntityMixin {
         if (getGameState() == GameState.PREGAME || isPaused()) {
             ci.setReturnValue(false);
         } else {
-            if (player.isTeamPlayer(attacker.getScoreboardTeam())) {
+            if (player.isTeamPlayer(attacker.getScoreboardTeam()) && config.getFriendlyFire() != 1) {
                 if (config.getFriendlyFire() == 2) {
-                    ci.setReturnValue(false);
-                } else if (config.getFriendlyFire() == 1) {
                     if (!friendlyFire.get(player.getUuid()) || !friendlyFire.get(attacker.getUuid())) {
                         ci.setReturnValue(false);
+                        attacker.sendMessage(Text.translatable("manhunt.chat.friendly_fire").formatted(Formatting.RED));
                     }
+                } else if (config.getFriendlyFire() == 3) {
+                    ci.setReturnValue(false);
                 }
             }
         }

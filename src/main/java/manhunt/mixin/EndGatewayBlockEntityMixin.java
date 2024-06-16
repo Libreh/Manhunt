@@ -3,14 +3,17 @@ package manhunt.mixin;
 import net.minecraft.block.entity.EndGatewayBlockEntity;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.world.World;
+import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
+import static manhunt.ManhuntMod.endWorld;
+
 @Mixin(EndGatewayBlockEntity.class)
-public abstract class EndGatewayBlockEntityMixin {
-    @Redirect(method = "tryTeleportingEntity", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/World;getRegistryKey()Lnet/minecraft/registry/RegistryKey;"))
-    private static RegistryKey<World> Manhunt$teleportEntity(World instance) {
-        return World.END;
+public class EndGatewayBlockEntityMixin {
+    @Redirect(method = "getOrCreateExitPortalPos", at = @At(value = "FIELD", target = "Lnet/minecraft/world/World;END:Lnet/minecraft/registry/RegistryKey;", opcode = Opcodes.GETSTATIC))
+    private RegistryKey<World> redirectEnd() {
+        return endWorld;
     }
 }

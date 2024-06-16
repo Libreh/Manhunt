@@ -2,8 +2,8 @@ package manhunt.command;
 
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
+import manhunt.ManhuntMod;
 import manhunt.game.GameState;
-import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.network.packet.s2c.play.SubtitleS2CPacket;
@@ -23,7 +23,7 @@ public class UnpauseCommand {
 
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(literal("unpause")
-                .requires(source -> source.isExecutedByPlayer() && getGameState() == GameState.PLAYING && (Permissions.check(source.getPlayer(), "manhunt.unpause") || (source.hasPermissionLevel(1) || source.hasPermissionLevel(2) || source.hasPermissionLevel(3) || source.hasPermissionLevel(4) || config.isRunnerCanPause())))
+                .requires(source -> source.isExecutedByPlayer() && getGameState() == GameState.PLAYING && ManhuntMod.checkPermission(source.getPlayer(), "manhunt.unpause") || config.isRunnersCanPause() && source.getPlayer().getScoreboard().getTeam("runners").getPlayerList().contains(source.getPlayer().getNameForScoreboard()))
                 .executes(context -> unpauseCommand(context.getSource()))
         );
     }
@@ -32,7 +32,7 @@ public class UnpauseCommand {
         if (isPaused()) {
             unpauseGame(source.getServer());
         } else {
-            source.sendFeedback(() -> Text.translatable("manhunt.chat.already", Text.translatable("manhunt.unpaused")).formatted(Formatting.RED), false);
+            source.sendFeedback(() -> Text.translatable("manhunt.chat.game_is_already", Text.translatable("manhunt.pause.unpaused")).formatted(Formatting.RED), false);
         }
 
         return Command.SINGLE_SUCCESS;

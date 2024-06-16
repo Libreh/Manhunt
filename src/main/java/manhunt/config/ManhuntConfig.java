@@ -16,28 +16,39 @@ public class ManhuntConfig {
     private ManhuntConfig() {
     }
 
+    private int teamPreset = 1;
     private boolean preloadChunks = false;
     private boolean automaticCompass = false;
     private boolean teamColor = true;
     private Formatting huntersColor = Formatting.RED;
     private Formatting runnersColor = Formatting.GREEN;
+    private boolean teamSuffix = true;
     private int runnerHeadstart = 0;
     private int timeLimit = 0;
-    private boolean runnerGlow = false;
-    private Difficulty gameDifficulty = Difficulty.EASY;
+    private boolean runnersGlow = false;
+    private Difficulty difficulty = Difficulty.EASY;
     private int worldBorder = 59999968;
-    private int spawnRadius = 10;
-    private boolean spectateWin = true;
-    private int friendlyFire = 1;
-    private boolean bedExplosions = false;
-    private boolean lavaPvpInNether = false;
+    private int spawnRadius = 0;
+    private boolean spectateOnWin = true;
     private boolean spectatorsGenerateChunks = false;
     private boolean runnersHuntOnDeath = true;
-    private boolean runnerCanPause = true;
+    private boolean runnersCanPause = true;
     private int pauseTimeOnLeave = 2;
     private boolean gameTitles = true;
     private boolean manhuntSounds = true;
     private boolean nightVision = true;
+    private int friendlyFire = 1;
+    private boolean bedExplosions = false;
+    private boolean lavaPvpInNether = false;
+    private boolean runnerPreferences = true;
+
+    public int getTeamPreset() {
+        return teamPreset;
+    }
+
+    public void setTeamPreset(int teamPreset) {
+        this.teamPreset = teamPreset;
+    }
 
     public boolean isPreloadChunks() {
         return preloadChunks;
@@ -79,6 +90,14 @@ public class ManhuntConfig {
         this.runnersColor = runnersColor;
     }
 
+    public boolean isTeamSuffix() {
+        return teamSuffix;
+    }
+
+    public void setTeamSuffix(boolean teamSuffix) {
+        this.teamSuffix = teamSuffix;
+    }
+
     public int getRunnerHeadstart() {
         return runnerHeadstart;
     }
@@ -95,20 +114,20 @@ public class ManhuntConfig {
         this.timeLimit = timeLimit;
     }
 
-    public boolean isRunnerGlow() {
-        return runnerGlow;
+    public boolean isRunnersGlow() {
+        return runnersGlow;
     }
 
-    public void setRunnerGlow(boolean runnersGlow) {
-        this.runnerGlow = runnersGlow;
+    public void setRunnersGlow(boolean runnersGlow) {
+        this.runnersGlow = runnersGlow;
     }
 
-    public Difficulty getGameDifficulty() {
-        return gameDifficulty;
+    public Difficulty getDifficulty() {
+        return difficulty;
     }
 
-    public void setGameDifficulty(Difficulty gameDifficulty) {
-        this.gameDifficulty = gameDifficulty;
+    public void setDifficulty(Difficulty difficulty) {
+        this.difficulty = difficulty;
     }
 
     public int getWorldBorder() {
@@ -127,36 +146,12 @@ public class ManhuntConfig {
         this.spawnRadius = spawnRadius;
     }
 
-    public boolean isSpectateWin() {
-        return spectateWin;
+    public boolean isSpectateOnWin() {
+        return spectateOnWin;
     }
 
-    public void setSpectateWin(boolean spectateWin) {
-        this.spectateWin = spectateWin;
-    }
-
-    public int getFriendlyFire() {
-        return friendlyFire;
-    }
-
-    public void setFriendlyFire(int friendlyFire) {
-        this.friendlyFire = friendlyFire;
-    }
-
-    public boolean isBedExplosions() {
-        return bedExplosions;
-    }
-
-    public void setBedExplosions(boolean bedExplosions) {
-        this.bedExplosions = bedExplosions;
-    }
-
-    public boolean isLavaPvpInNether() {
-        return lavaPvpInNether;
-    }
-
-    public void setLavaPvpInNether(boolean lavaPvpInNether) {
-        this.lavaPvpInNether = lavaPvpInNether;
+    public void setSpectateOnWin(boolean spectateOnWin) {
+        this.spectateOnWin = spectateOnWin;
     }
 
     public boolean isSpectatorsGenerateChunks() {
@@ -175,12 +170,12 @@ public class ManhuntConfig {
         this.runnersHuntOnDeath = runnersHuntOnDeath;
     }
 
-    public boolean isRunnerCanPause() {
-        return runnerCanPause;
+    public boolean isRunnersCanPause() {
+        return runnersCanPause;
     }
 
-    public void setRunnerCanPause(boolean runnerCanPause) {
-        this.runnerCanPause = runnerCanPause;
+    public void setRunnersCanPause(boolean runnersCanPause) {
+        this.runnersCanPause = runnersCanPause;
     }
 
     public int getPauseTimeOnLeave() {
@@ -213,6 +208,38 @@ public class ManhuntConfig {
 
     public void setNightVision(boolean nightVision) {
         this.nightVision = nightVision;
+    }
+
+    public int getFriendlyFire() {
+        return friendlyFire;
+    }
+
+    public void setFriendlyFire(int friendlyFire) {
+        this.friendlyFire = friendlyFire;
+    }
+
+    public boolean isBedExplosions() {
+        return bedExplosions;
+    }
+
+    public void setBedExplosions(boolean bedExplosions) {
+        this.bedExplosions = bedExplosions;
+    }
+
+    public boolean isLavaPvpInNether() {
+        return lavaPvpInNether;
+    }
+
+    public void setLavaPvpInNether(boolean lavaPvpInNether) {
+        this.lavaPvpInNether = lavaPvpInNether;
+    }
+
+    public boolean isRunnerPreferences() {
+        return runnerPreferences;
+    }
+
+    public void setRunnerPreferences(boolean runnerPreferences) {
+        this.runnerPreferences = runnerPreferences;
     }
 
     private String gameStartTitle = "MANHUNT";
@@ -321,27 +348,32 @@ public class ManhuntConfig {
             JsonObject jo = gson.fromJson(new FileReader(confFile), JsonObject.class);
             JsonElement je;
 
-            JsonObject gameOptions = jo.getAsJsonObject("gameOptions");
-            if ((je = gameOptions.get("automaticCompass")) != null) automaticCompass = je.getAsBoolean();
-            if ((je = gameOptions.get("huntersColor")) != null) huntersColor = Formatting.byName(je.getAsString());
-            if ((je = gameOptions.get("runnersColor")) != null) runnersColor = Formatting.byName(je.getAsString());
-            if ((je = gameOptions.get("runnerHeadstart")) != null) runnerHeadstart = je.getAsInt();
-            if ((je = gameOptions.get("timeLimit")) != null) timeLimit = je.getAsInt();
-            if ((je = gameOptions.get("runnersGlow")) != null) runnerGlow = je.getAsBoolean();
-            if ((je = gameOptions.get("gameDifficulty")) != null) gameDifficulty = Difficulty.byName(je.getAsString());
-            if ((je = gameOptions.get("worldBorder")) != null) worldBorder = je.getAsInt();
-            if ((je = gameOptions.get("spawnRadius")) != null) spawnRadius = je.getAsInt();
-            if ((je = gameOptions.get("spectateWin")) != null) spectateWin = je.getAsBoolean();
-            if ((je = gameOptions.get("friendlyFire")) != null) friendlyFire = je.getAsInt();
-            if ((je = gameOptions.get("bedExplosions")) != null) bedExplosions = je.getAsBoolean();
-            if ((je = gameOptions.get("lavaPvpInNether")) != null) lavaPvpInNether = je.getAsBoolean();
-            if ((je = gameOptions.get("spectatorsGenerateChunks")) != null) spectatorsGenerateChunks = je.getAsBoolean();
-            if ((je = gameOptions.get("runnersHuntOnDeath")) != null) runnersHuntOnDeath = je.getAsBoolean();
-            if ((je = gameOptions.get("runnerCanPause")) != null) runnerCanPause = je.getAsBoolean();
-            if ((je = gameOptions.get("pauseTimeOnLeave")) != null) pauseTimeOnLeave = je.getAsInt();
-            if ((je = gameOptions.get("gameTitles")) != null) gameTitles = je.getAsBoolean();
-            if ((je = gameOptions.get("manhuntSounds")) != null) manhuntSounds = je.getAsBoolean();
-            if ((je = gameOptions.get("nightVision")) != null) nightVision = je.getAsBoolean();
+            JsonObject gameSettings = jo.getAsJsonObject("gameSettings");
+            if ((je = gameSettings.get("teamPreset")) != null) teamPreset = je.getAsInt();
+            if ((je = gameSettings.get("preloadChunks")) != null) preloadChunks = je.getAsBoolean();
+            if ((je = gameSettings.get("automaticCompass")) != null) automaticCompass = je.getAsBoolean();
+            if ((je = gameSettings.get("teamColor")) != null) teamColor = je.getAsBoolean();
+            if ((je = gameSettings.get("huntersColor")) != null) huntersColor = Formatting.byName(je.getAsString());
+            if ((je = gameSettings.get("runnersColor")) != null) runnersColor = Formatting.byName(je.getAsString());
+            if ((je = gameSettings.get("teamSuffix")) != null) teamSuffix = je.getAsBoolean();
+            if ((je = gameSettings.get("runnerHeadstart")) != null) runnerHeadstart = je.getAsInt();
+            if ((je = gameSettings.get("timeLimit")) != null) timeLimit = je.getAsInt();
+            if ((je = gameSettings.get("runnersGlow")) != null) runnersGlow = je.getAsBoolean();
+            if ((je = gameSettings.get("difficulty")) != null) difficulty = Difficulty.byName(je.getAsString());
+            if ((je = gameSettings.get("worldBorder")) != null) worldBorder = je.getAsInt();
+            if ((je = gameSettings.get("spawnRadius")) != null) spawnRadius = je.getAsInt();
+            if ((je = gameSettings.get("spectateOnWin")) != null) spectateOnWin = je.getAsBoolean();
+            if ((je = gameSettings.get("spectatorsGenerateChunks")) != null) spectatorsGenerateChunks = je.getAsBoolean();
+            if ((je = gameSettings.get("runnersHuntOnDeath")) != null) runnersHuntOnDeath = je.getAsBoolean();
+            if ((je = gameSettings.get("runnersCanPause")) != null) runnersCanPause = je.getAsBoolean();
+            if ((je = gameSettings.get("pauseTimeOnLeave")) != null) pauseTimeOnLeave = je.getAsInt();
+            if ((je = gameSettings.get("gameTitles")) != null) gameTitles = je.getAsBoolean();
+            if ((je = gameSettings.get("manhuntSounds")) != null) manhuntSounds = je.getAsBoolean();
+            if ((je = gameSettings.get("nightVision")) != null) nightVision = je.getAsBoolean();
+            if ((je = gameSettings.get("friendlyFire")) != null) friendlyFire = je.getAsInt();
+            if ((je = gameSettings.get("bedExplosions")) != null) bedExplosions = je.getAsBoolean();
+            if ((je = gameSettings.get("lavaPvpInNether")) != null) lavaPvpInNether = je.getAsBoolean();
+            if ((je = gameSettings.get("runnerPreferences")) != null) runnerPreferences = je.getAsBoolean();
             JsonObject languageKeys = jo.getAsJsonObject("languageKeys");
             if ((je = languageKeys.get("gameStartTitle")) != null) gameStartTitle = je.getAsString();
             if ((je = languageKeys.get("gameStartSubtitle")) != null) gameStartSubtitle = je.getAsString();
@@ -368,28 +400,32 @@ public class ManhuntConfig {
             }
 
             JsonObject jo = new JsonObject();
-            JsonObject gameOptions = new JsonObject();
-            gameOptions.add("automaticCompass", new JsonPrimitive(automaticCompass));
-            gameOptions.add("teamColor", new JsonPrimitive(teamColor));
-            gameOptions.add("huntersColor", new JsonPrimitive(huntersColor.getName()));
-            gameOptions.add("runnersColor", new JsonPrimitive(runnersColor.getName()));
-            gameOptions.add("runnerHeadstart", new JsonPrimitive(runnerHeadstart));
-            gameOptions.add("timeLimit", new JsonPrimitive(timeLimit));
-            gameOptions.add("runnersGlow", new JsonPrimitive(runnerGlow));
-            gameOptions.add("gameDifficulty", new JsonPrimitive(gameDifficulty.getName()));
-            gameOptions.add("worldBorder", new JsonPrimitive(worldBorder));
-            gameOptions.add("spawnRadius", new JsonPrimitive(spawnRadius));
-            gameOptions.add("spectateWin", new JsonPrimitive(spectateWin));
-            gameOptions.add("friendlyFire", new JsonPrimitive(friendlyFire));
-            gameOptions.add("bedExplosions", new JsonPrimitive(bedExplosions));
-            gameOptions.add("lavaPvpInNether", new JsonPrimitive(lavaPvpInNether));
-            gameOptions.add("spectatorsGenerateChunks", new JsonPrimitive(lavaPvpInNether));
-            gameOptions.add("runnersHuntOnDeath", new JsonPrimitive(runnersHuntOnDeath));
-            gameOptions.add("runnerCanPause", new JsonPrimitive(runnersCanPauseDefault));
-            gameOptions.add("pauseTimeOnLeave", new JsonPrimitive(pauseTimeOnLeave));
-            gameOptions.add("gameTitles", new JsonPrimitive(gameTitles));
-            gameOptions.add("manhuntSounds", new JsonPrimitive(manhuntSounds));
-            gameOptions.add("nightVision", new JsonPrimitive(nightVision));
+            JsonObject gameSettings = new JsonObject();
+            gameSettings.add("teamPreset", new JsonPrimitive(teamPreset));
+            gameSettings.add("preloadChunks", new JsonPrimitive(preloadChunks));
+            gameSettings.add("automaticCompass", new JsonPrimitive(automaticCompass));
+            gameSettings.add("teamColor", new JsonPrimitive(teamColor));
+            gameSettings.add("huntersColor", new JsonPrimitive(huntersColor.getName()));
+            gameSettings.add("runnersColor", new JsonPrimitive(runnersColor.getName()));
+            gameSettings.add("teamSuffix", new JsonPrimitive(teamSuffix));
+            gameSettings.add("runnerHeadstart", new JsonPrimitive(runnerHeadstart));
+            gameSettings.add("timeLimit", new JsonPrimitive(timeLimit));
+            gameSettings.add("runnersGlow", new JsonPrimitive(runnersGlow));
+            gameSettings.add("difficulty", new JsonPrimitive(difficulty.getName()));
+            gameSettings.add("worldBorder", new JsonPrimitive(worldBorder));
+            gameSettings.add("spawnRadius", new JsonPrimitive(spawnRadius));
+            gameSettings.add("spectateWin", new JsonPrimitive(spectateOnWin));
+            gameSettings.add("spectatorsGenerateChunks", new JsonPrimitive(lavaPvpInNether));
+            gameSettings.add("runnersHuntOnDeath", new JsonPrimitive(runnersHuntOnDeath));
+            gameSettings.add("runnersCanPause", new JsonPrimitive(runnersCanPauseDefault));
+            gameSettings.add("pauseTimeOnLeave", new JsonPrimitive(pauseTimeOnLeave));
+            gameSettings.add("gameTitles", new JsonPrimitive(gameTitles));
+            gameSettings.add("manhuntSounds", new JsonPrimitive(manhuntSounds));
+            gameSettings.add("nightVision", new JsonPrimitive(nightVision));
+            gameSettings.add("friendlyFire", new JsonPrimitive(friendlyFire));
+            gameSettings.add("bedExplosions", new JsonPrimitive(bedExplosions));
+            gameSettings.add("lavaPvpInNether", new JsonPrimitive(lavaPvpInNether));
+            gameSettings.add("runnerPreferences", new JsonPrimitive(runnerPreferences));
             JsonObject languageKeys = new JsonObject();
             languageKeys.add("gameStartTitle", new JsonPrimitive(gameStartTitle));
             languageKeys.add("gameStartSubtitle", new JsonPrimitive(gameStartSubtitle));
@@ -402,7 +438,7 @@ public class ManhuntConfig {
             languageKeys.add("gamePausedSubtitle", new JsonPrimitive(gamePausedSubtitle));
             languageKeys.add("gameUnpausedTitle", new JsonPrimitive(gameUnpausedTitle));
             languageKeys.add("gameUnpausedSubtitle", new JsonPrimitive(gameUnpausedSubtitle));
-            jo.add("gameOptions", gameOptions);
+            jo.add("gameSettings", gameSettings);
             jo.add("languageKeys", languageKeys);
 
             PrintWriter printwriter = new PrintWriter(new FileWriter(confFile));
@@ -413,28 +449,35 @@ public class ManhuntConfig {
         }
     }
 
+    private final int teamPresetDefault = teamPreset;
     private final boolean preloadChunksDefault = preloadChunks;
     private final boolean automaticCompassDefault = automaticCompass;
     private final boolean teamColorDefault = teamColor;
     private final Formatting huntersColorDefault = huntersColor;
     private final Formatting runnersColorDefault = runnersColor;
+    private final boolean teamSuffixDefault = teamSuffix;
     private final int runnerHeadstartDefault = runnerHeadstart;
     private final int timeLimitDefault = timeLimit;
-    private final boolean runnersGlowDefault = runnerGlow;
-    private final Difficulty gameDifficultyDefault = gameDifficulty;
+    private final boolean runnersGlowDefault = runnersGlow;
+    private final Difficulty gameDifficultyDefault = difficulty;
     private final int worldBorderDefault = worldBorder;
     private final int spawnRadiusDefault = spawnRadius;
-    private final boolean spectateWinDefault = spectateWin;
-    private final int friendlyFireDefault = friendlyFire;
-    private final boolean bedExplosionsDefault = bedExplosions;
-    private final boolean lavaPvpInNetherDefault = lavaPvpInNether;
+    private final boolean spectateWinDefault = spectateOnWin;
     private final boolean spectatorsGenerateChunksDefault = spectatorsGenerateChunks;
     private final boolean runnersHuntOnDeathDefault = runnersHuntOnDeath;
-    private final boolean runnersCanPauseDefault = runnerCanPause;
+    private final boolean runnersCanPauseDefault = runnersCanPause;
     private final int pauseTimeOnLeaveDefault = pauseTimeOnLeave;
     private final boolean gameTitlesDefault = gameTitles;
     private final boolean manhuntSoundsDefault = manhuntSounds;
     private final boolean nightVisionDefault = nightVision;
+    private final int friendlyFireDefault = friendlyFire;
+    private final boolean bedExplosionsDefault = bedExplosions;
+    private final boolean lavaPvpInNetherDefault = lavaPvpInNether;
+    private final boolean runnerPreferencesDefault = runnerPreferences;
+
+    public int getTeamPresetDefault() {
+        return teamPresetDefault;
+    }
 
     public boolean isPreloadChunksDefault() {
         return preloadChunksDefault;
@@ -454,6 +497,10 @@ public class ManhuntConfig {
 
     public Formatting getRunnersColorDefault() {
         return runnersColorDefault;
+    }
+
+    public boolean isTeamSuffixDefault() {
+        return teamSuffixDefault;
     }
 
     public int getRunnerHeadstartDefault() {
@@ -484,18 +531,6 @@ public class ManhuntConfig {
         return spectateWinDefault;
     }
 
-    public int getFriendlyFireDefault() {
-        return friendlyFireDefault;
-    }
-
-    public boolean isBedExplosionsDefault() {
-        return bedExplosionsDefault;
-    }
-
-    public boolean isLavaPvpInNetherDefault() {
-        return lavaPvpInNetherDefault;
-    }
-
     public boolean isSpectatorsGenerateChunksDefault() {
         return spectatorsGenerateChunksDefault;
     }
@@ -522,5 +557,21 @@ public class ManhuntConfig {
 
     public boolean isNightVisionDefault() {
         return nightVisionDefault;
+    }
+
+    public int getFriendlyFireDefault() {
+        return friendlyFireDefault;
+    }
+
+    public boolean isBedExplosionsDefault() {
+        return bedExplosionsDefault;
+    }
+
+    public boolean isLavaPvpInNetherDefault() {
+        return lavaPvpInNetherDefault;
+    }
+
+    public boolean isRunnerPreferencesDefault() {
+        return runnerPreferencesDefault;
     }
 }

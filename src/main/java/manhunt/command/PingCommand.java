@@ -21,7 +21,7 @@ public class PingCommand {
     }
 
     private static int pingLatency(ServerCommandSource source, ServerPlayerEntity player) {
-        source.sendFeedback(() -> Text.translatable("manhunt.ping", Text.literal(String.valueOf(player.networkHandler.getLatency()))), false);
+        source.sendFeedback(() -> Text.translatable("manhunt.chat.ping", Text.literal(String.valueOf(player.networkHandler.getLatency()))), false);
 
         return Command.SINGLE_SUCCESS;
     }

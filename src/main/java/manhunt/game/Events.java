@@ -48,8 +48,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.GameMode;
 import net.minecraft.world.GameRules;
-import net.minecraft.world.border.WorldBorder;
-import net.minecraft.world.dimension.DimensionTypes;
 
 import java.io.IOException;
 import java.util.LinkedList;
@@ -88,16 +86,24 @@ public class Events {
 
         scoreboard.addTeam("hunters");
         scoreboard.addTeam("runners");
-
         scoreboard.getTeam("hunters").setCollisionRule(AbstractTeam.CollisionRule.NEVER);
         scoreboard.getTeam("runners").setCollisionRule(AbstractTeam.CollisionRule.NEVER);
 
         if (config.isTeamColor()) {
-            server.getScoreboard().getTeam("hunters").setColor(config.getHuntersColor());
-            server.getScoreboard().getTeam("runners").setColor(config.getRunnersColor());
+            scoreboard.getTeam("hunters").setColor(config.getHuntersColor());
+            scoreboard.getTeam("runners").setColor(config.getRunnersColor());
         } else {
-            server.getScoreboard().getTeam("hunters").setColor(Formatting.RESET);
-            server.getScoreboard().getTeam("runners").setColor(Formatting.RESET);
+            scoreboard.getTeam("hunters").setColor(Formatting.RESET);
+            scoreboard.getTeam("runners").setColor(Formatting.RESET);
+
+        }
+
+        if (config.isTeamSuffix()) {
+            scoreboard.getTeam("hunters").setSuffix(Text.translatable("manhunt.chat.team_suffix", Text.literal("H").formatted(config.getHuntersColor())).formatted(Formatting.GRAY));
+            scoreboard.getTeam("runners").setSuffix(Text.translatable("manhunt.chat.team_suffix", Text.literal("R").formatted(config.getRunnersColor())).formatted(Formatting.GRAY));
+        } else {
+            scoreboard.getTeam("hunters").setSuffix(Text.literal(""));
+            scoreboard.getTeam("runners").setSuffix(Text.literal(""));
         }
 
         try {
@@ -115,48 +121,130 @@ public class Events {
                     nbt.putBoolean("Remove", true);
                     nbt.putBoolean("Preferences", true);
 
-                    ItemStack preferencesItem = new ItemStack(Items.PLAYER_HEAD);
-                    preferencesItem.set(DataComponentTypes.CUSTOM_NAME, Text.translatable("manhunt.preferences").setStyle(Style.EMPTY.withColor(Formatting.WHITE).withItalic(false)));
-                    preferencesItem.set(DataComponentTypes.HIDE_TOOLTIP, Unit.INSTANCE);
-                    preferencesItem.set(DataComponentTypes.PROFILE, new ProfileComponent(player.getGameProfile()));
-                    preferencesItem.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(nbt));
+                    ItemStack stack = new ItemStack(Items.PLAYER_HEAD);
+                    stack.set(DataComponentTypes.CUSTOM_NAME, Text.translatable("manhunt.item.preferences").setStyle(Style.EMPTY.withColor(Formatting.AQUA).withItalic(false)));
+                    stack.set(DataComponentTypes.HIDE_ADDITIONAL_TOOLTIP, Unit.INSTANCE);
+                    stack.set(DataComponentTypes.PROFILE, new ProfileComponent(player.getGameProfile()));
+                    stack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(nbt));
 
-                    player.getInventory().setStack(0, preferencesItem);
+                    player.getInventory().setStack(0, stack);
                 } else {
                     int amount = 0;
                     for (ItemStack stack : player.getInventory().main) {
                         if (stack.get(DataComponentTypes.CUSTOM_DATA) != null && stack.get(DataComponentTypes.CUSTOM_DATA).copyNbt().getBoolean("Preferences")) {
                             amount++;
+                            if (amount > 1 || player.getInventory().getSlotWithStack(stack) != 0) {
+                                player.getInventory().removeStack(player.getInventory().getSlotWithStack(stack));
+                            }
                         }
-                    }
-
-                    if (amount > 1) {
-                        player.getInventory().clear();
                     }
                 }
 
-                if (Permissions.check(player, "manhunt.settings") || (player.hasPermissionLevel(1) || player.hasPermissionLevel(2) || player.hasPermissionLevel(3) || player.hasPermissionLevel(4))) {
-                    if (!hasItem(player, Items.COMMAND_BLOCK, "Settings")) {
+                if (config.getTeamPreset() == 1) {
+                    if (!hasItem(player, Items.RECOVERY_COMPASS, "JoinHunters")) {
                         NbtCompound nbt = new NbtCompound();
                         nbt.putBoolean("Remove", true);
-                        nbt.putBoolean("Settings", true);
+                        nbt.putBoolean("JoinHunters", true);
 
-                        ItemStack settingsItem = new ItemStack(Items.COMMAND_BLOCK);
-                        settingsItem.set(DataComponentTypes.CUSTOM_NAME, Text.translatable("manhunt.settings").setStyle(Style.EMPTY.withColor(Formatting.WHITE).withItalic(false)));
-                        settingsItem.set(DataComponentTypes.HIDE_TOOLTIP, Unit.INSTANCE);
-                        settingsItem.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(nbt));
+                        ItemStack stack = new ItemStack(Items.RECOVERY_COMPASS);
+                        stack.set(DataComponentTypes.CUSTOM_NAME, Text.translatable("manhunt.item.join_hunters").setStyle(Style.EMPTY.withColor(Formatting.GOLD).withItalic(false)));
+                        stack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(nbt));
 
-                        player.getInventory().setStack(8, settingsItem);
+                        player.getInventory().setStack(2, stack);
                     } else {
                         int amount = 0;
                         for (ItemStack stack : player.getInventory().main) {
-                            if (stack.get(DataComponentTypes.CUSTOM_DATA) != null && stack.get(DataComponentTypes.CUSTOM_DATA).copyNbt().getBoolean("Settings")) {
+                            if (stack.get(DataComponentTypes.CUSTOM_DATA) != null && stack.get(DataComponentTypes.CUSTOM_DATA).copyNbt().getBoolean("JoinHunters")) {
                                 amount++;
+                                if (amount > 1 || player.getInventory().getSlotWithStack(stack) != 2) {
+                                    player.getInventory().removeStack(player.getInventory().getSlotWithStack(stack));
+                                }
                             }
                         }
+                    }
 
-                        if (amount > 1) {
-                            player.getInventory().clear();
+                    if (!hasItem(player, Items.CLOCK, "JoinRunners")) {
+                        NbtCompound nbt = new NbtCompound();
+                        nbt.putBoolean("Remove", true);
+                        nbt.putBoolean("JoinRunners", true);
+
+                        ItemStack stack = new ItemStack(Items.CLOCK);
+                        stack.set(DataComponentTypes.CUSTOM_NAME, Text.translatable("manhunt.item.join_runners").setStyle(Style.EMPTY.withColor(Formatting.GOLD).withItalic(false)));
+                        stack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(nbt));
+
+                        player.getInventory().setStack(6, stack);
+                    } else {
+                        int amount = 0;
+                        for (ItemStack stack : player.getInventory().main) {
+                            if (stack.get(DataComponentTypes.CUSTOM_DATA) != null && stack.get(DataComponentTypes.CUSTOM_DATA).copyNbt().getBoolean("JoinRunners")) {
+                                amount++;
+                                if (amount > 1 || player.getInventory().getSlotWithStack(stack) != 6) {
+                                    player.getInventory().removeStack(player.getInventory().getSlotWithStack(stack));
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    for (ItemStack stack : player.getInventory().main) {
+                        if (stack.get(DataComponentTypes.CUSTOM_DATA) != null && (stack.get(DataComponentTypes.CUSTOM_DATA).copyNbt().getBoolean("JoinHunters") || stack.get(DataComponentTypes.CUSTOM_DATA).copyNbt().getBoolean("JoinRunners"))) {
+                            player.getInventory().removeStack(player.getInventory().getSlotWithStack(stack));
+                        }
+                    }
+                }
+
+                if (!hasItem(player, Items.RED_CONCRETE, "NotReady") && !hasItem(player, Items.LIME_CONCRETE, "Ready")) {
+                    NbtCompound nbt = new NbtCompound();
+                    nbt.putBoolean("Remove", true);
+                    nbt.putBoolean("NotReady", true);
+
+                    ItemStack stack = new ItemStack(Items.RED_CONCRETE);
+                    stack.set(DataComponentTypes.CUSTOM_NAME, Text.translatable("manhunt.item.not_ready").setStyle(Style.EMPTY.withColor(Formatting.RED).withItalic(false)));
+                    stack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(nbt));
+
+                    player.getInventory().setStack(4, stack);
+                } else {
+                    if (hasItem(player, Items.RED_CONCRETE, "NotReady")) {
+                        int amount = 0;
+                        for (ItemStack stack : player.getInventory().main) {
+                            if (stack.get(DataComponentTypes.CUSTOM_DATA) != null && stack.get(DataComponentTypes.CUSTOM_DATA).copyNbt().getBoolean("NotReady")) {
+                                amount++;
+                                if (amount > 1 || player.getInventory().getSlotWithStack(stack) != 4) {
+                                    player.getInventory().removeStack(player.getInventory().getSlotWithStack(stack));
+                                }
+                            }
+                        }
+                    }
+                    if (hasItem(player, Items.LIME_CONCRETE, "Ready")) {
+                        int amount = 0;
+                        for (ItemStack stack : player.getInventory().main) {
+                            if (stack.get(DataComponentTypes.CUSTOM_DATA) != null && stack.get(DataComponentTypes.CUSTOM_DATA).copyNbt().getBoolean("Ready")) {
+                                amount++;
+                                if (amount > 1) {
+                                    player.getInventory().removeStack(player.getInventory().getSlotWithStack(stack));
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (!hasItem(player, Items.COMMAND_BLOCK, "Settings")) {
+                    NbtCompound nbt = new NbtCompound();
+                    nbt.putBoolean("Remove", true);
+                    nbt.putBoolean("Settings", true);
+
+                    ItemStack stack = new ItemStack(Items.COMMAND_BLOCK);
+                    stack.set(DataComponentTypes.CUSTOM_NAME, Text.translatable("manhunt.item.settings").setStyle(Style.EMPTY.withColor(Formatting.AQUA).withItalic(false)));
+                    stack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(nbt));
+
+                    player.getInventory().setStack(8, stack);
+                } else {
+                    int amount = 0;
+                    for (ItemStack stack : player.getInventory().main) {
+                        if (stack.get(DataComponentTypes.CUSTOM_DATA) != null && stack.get(DataComponentTypes.CUSTOM_DATA).copyNbt().getBoolean("Settings")) {
+                            amount++;
+                            if (amount > 1 || player.getInventory().getSlotWithStack(stack) != 8) {
+                                player.getInventory().removeStack(player.getInventory().getSlotWithStack(stack));
+                            }
                         }
                     }
                 }
@@ -194,19 +282,19 @@ public class Events {
 
                         if (startedParkour.get(player.getUuid())) {
                             if (player.getZ() < -4) {
-                                player.sendMessage(Text.translatable("manhunt.parkour.time", secSeconds, msSeconds), true);
+                                player.sendMessage(Text.translatable("manhunt.chat.parkour_time", secSeconds, msSeconds), true);
                                 parkourTimer.put(player.getUuid(), parkourTimer.get(player.getUuid()) + 1);
                                 player.addStatusEffect(new StatusEffectInstance(StatusEffects.INVISIBILITY, StatusEffectInstance.INFINITE, 255, false, false, false));
 
                                 if (player.getZ() < -24 && player.getZ() > -27 && player.getX() < -6 && player.getY() >= 70 && player.getY() < 72) {
-                                    player.sendMessage(Text.translatable("manhunt.parkour.time", secSeconds, msSeconds).formatted(Formatting.GREEN), true);
+                                    player.sendMessage(Text.translatable("manhunt.chat.parkour_time", secSeconds, msSeconds).formatted(Formatting.GREEN), true);
                                     player.playSoundToPlayer(SoundEvents.BLOCK_NOTE_BLOCK_FLUTE.value(), SoundCategory.MASTER, 1f, 2f);
                                     finishedParkour.put(player.getUuid(), true);
                                 }
                             }
 
                             if (player.getZ() > -4 || player.getY() < 61 || (player.getZ() < -27 && player.getY() < 68)) {
-                                player.sendMessage(Text.translatable("manhunt.parkour.time", secSeconds, msSeconds).formatted(Formatting.RED), true);
+                                player.sendMessage(Text.translatable("manhunt.chat.parkour_time", secSeconds, msSeconds).formatted(Formatting.RED), true);
                                 resetPlayer(player, player.getServerWorld());
                                 player.playSoundToPlayer(SoundEvents.BLOCK_NOTE_BLOCK_FLUTE.value(), SoundCategory.MASTER, 1f, 0.5f);
                             }
@@ -216,6 +304,14 @@ public class Events {
                     if ((player.getX() < -24 || player.getX() > 24) || (player.getY() < 54 || player.getY() > 74) || (player.getZ() < -64 || player.getZ() > 32)) {
                         resetPlayer(player, player.getServerWorld());
                     }
+                }
+
+                if (player.getWorld().getRegistryKey() != lobbyWorld) {
+                    resetPlayer(player, player.getServerWorld());
+                }
+
+                if (player.getWorld().getRegistryKey() != lobbyWorld) {
+                    player.teleport(server.getWorld(lobbyWorld), 0.5, 63, 0.5, 0F, 0F);
                 }
             }
         }
@@ -302,7 +398,7 @@ public class Events {
                         playerPos.put(player.getUuid(), player.getPos());
                     }
 
-                    player.sendMessage(Text.translatable("manhunt.chat.pausetime", hoursString, minutesString, secondsString).formatted(Formatting.YELLOW), true);
+                    player.sendMessage(Text.translatable("manhunt.chat.paused_for", hoursString, minutesString, secondsString).formatted(Formatting.YELLOW), true);
                 }
 
                 if (minutes >= config.getPauseTimeOnLeave()) {
@@ -354,8 +450,11 @@ public class Events {
     public static void playerJoin(ServerPlayNetworkHandler handler, MinecraftServer server) {
         ServerPlayerEntity player = handler.player;
 
+        if (!slowDownManager.containsKey(player.getUuid())) {
+            slowDownManager.put(player.getUuid(), 0);
+        }
+
         if (ManhuntMod.getGameState() == GameState.PREGAME) {
-            player.teleport(server.getWorld(RegistryKey.of(RegistryKeys.WORLD, lobbyKey)), 0.5, 63, 0.5, 0, 0);
             player.getInventory().clear();
             player.changeGameMode(GameMode.ADVENTURE);
             player.setFireTicks(0);
@@ -377,8 +476,24 @@ public class Events {
                 }
             }
 
-            if (player.getScoreboardTeam() == null) {
+            if (config.getTeamPreset() == 1) {
                 player.getScoreboard().addScoreHolderToTeam(player.getNameForScoreboard(), player.getScoreboard().getTeam("hunters"));
+            } else {
+                if (config.getTeamPreset() == 2) {
+                    if (player.getScoreboard().getTeam("runners").getPlayerList().isEmpty()) {
+                        player.getScoreboard().addScoreHolderToTeam(player.getNameForScoreboard(), player.getScoreboard().getTeam("runners"));
+                    } else {
+                        player.getScoreboard().addScoreHolderToTeam(player.getNameForScoreboard(), player.getScoreboard().getTeam("hunters"));
+                    }
+                } else if (config.getTeamPreset() == 3) {
+                    if (player.getScoreboard().getTeam("hunters").getPlayerList().isEmpty()) {
+                        player.getScoreboard().addScoreHolderToTeam(player.getNameForScoreboard(), player.getScoreboard().getTeam("hunters"));
+                    } else {
+                        player.getScoreboard().addScoreHolderToTeam(player.getNameForScoreboard(), player.getScoreboard().getTeam("runners"));
+                    }
+                } else {
+                    player.getScoreboard().addScoreHolderToTeam(player.getNameForScoreboard(), player.getScoreboard().getTeam("runners"));
+                }
             }
 
             player.getAttributeInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED).setBaseValue(0.10000000149011612);
@@ -386,15 +501,11 @@ public class Events {
             player.getAttributeInstance(EntityAttributes.PLAYER_BLOCK_BREAK_SPEED).setBaseValue(1.0);
 
             ManhuntGame.setPlayerSpawn(overworld, player);
-
-            WorldBorder worldBorder = overworld.getWorldBorder();
-
-            overworld.getWorldBorder().interpolateSize(worldBorder.getSize(), config.getWorldBorder(), 0);
         }
 
-        if (getGameState() != GameState.PREGAME) {
-            if (!hasPlayed.containsKey(player.getUuid())) {
-                hasPlayed.put(player.getUuid(), true);
+        if (getGameState() == GameState.PLAYING) {
+            if (!hasPlayed.contains(player.getUuid())) {
+                hasPlayed.add(player.getUuid());
 
                 player.teleport(server.getWorld(RegistryKey.of(RegistryKeys.WORLD, lobbyKey)), 0.5, 63, 0.5, PositionFlag.ROT, 0, 0);
                 player.clearStatusEffects();
@@ -408,15 +519,15 @@ public class Events {
 
                 if (getGameState() == GameState.PLAYING) {
                     player.changeGameMode(GameMode.SURVIVAL);
-                } else if (getGameState() == GameState.POSTGAME && config.isSpectateWin()) {
+                } else if (getGameState() == GameState.POSTGAME && config.isSpectateOnWin()) {
                     player.changeGameMode(GameMode.SPECTATOR);
                 }
 
-                player.getScoreboard().addScoreHolderToTeam(player.getName().getString(), player.getScoreboard().getTeam("hunters"));
+                player.getScoreboard().addScoreHolderToTeam(player.getNameForScoreboard(), player.getScoreboard().getTeam("hunters"));
             }
 
             if (isPaused()) {
-                if (!leftOnPause.containsKey(player.getUuid())) {
+                if (!leftOnPause.contains(player.getUuid())) {
                     player.playSoundToPlayer(SoundEvents.BLOCK_ANVIL_LAND, SoundCategory.MASTER, 0.1f, 0.5f);
                     if (!player.getStatusEffects().isEmpty()) {
                         playerEffects.put(player.getUuid(), player.getStatusEffects());
@@ -461,9 +572,7 @@ public class Events {
                 player.getAttributeInstance(EntityAttributes.GENERIC_JUMP_STRENGTH).setBaseValue(0.41999998688697815);
                 player.getAttributeInstance(EntityAttributes.PLAYER_BLOCK_BREAK_SPEED).setBaseValue(1.0);
 
-                leftOnPause.putIfAbsent(player.getUuid(), false);
-
-                if (leftOnPause.get(player.getUuid())) {
+                if (leftOnPause.contains(player.getUuid())) {
                     player.playSoundToPlayer(SoundEvents.BLOCK_ANVIL_LAND, SoundCategory.MASTER, 0.1f, 1.5f);
                     player.clearStatusEffects();
                     if (playerEffects.containsKey(player.getUuid())) {
@@ -482,6 +591,8 @@ public class Events {
             manhuntSounds.putIfAbsent(player.getUuid(), config.isManhuntSoundsDefault());
             nightVision.putIfAbsent(player.getUuid(), false);
             friendlyFire.putIfAbsent(player.getUuid(), true);
+            bedExplosions.putIfAbsent(player.getUuid(), config.isBedExplosionsDefault());
+            lavaPvpInNether.putIfAbsent(player.getUuid(), config.isLavaPvpInNetherDefault());
 
             DataContainer dataContainer = ManhuntMod.getTable().get(player.getUuid());
 
@@ -490,6 +601,8 @@ public class Events {
                 manhuntSounds.put(player.getUuid(), dataContainer.getBool("manhunt_sounds"));
                 nightVision.put(player.getUuid(), dataContainer.getBool("night_vision"));
                 friendlyFire.put(player.getUuid(), dataContainer.getBool("friendly_fire"));
+                bedExplosions.put(player.getUuid(), dataContainer.getBool("bed_explosions"));
+                lavaPvpInNether.put(player.getUuid(), dataContainer.getBool("lava_pvp_in_nether"));
             }
         }
     }
@@ -497,12 +610,12 @@ public class Events {
     public static void playerLeave(ServerPlayNetworkHandler handler) {
         ServerPlayerEntity player = handler.player;
 
-        if (isPaused()) {
-            leftOnPause.put(player.getUuid(), true);
-        } else {
-            if (player.getScoreboardTeam() != null & player.getScoreboardTeam() == player.getScoreboard().getTeam("runners")) {
-                if (player.getScoreboard().getTeam("runners").getPlayerList().size() == 1) {
-                    leftOnPause.put(player.getUuid(), true);
+        if (getGameState() == GameState.PLAYING) {
+            if (isPaused()) {
+                leftOnPause.add(player.getUuid());
+            } else {
+                if (player.getScoreboard().getTeam("runners").getPlayerList().contains(player.getNameForScoreboard()) && player.getScoreboard().getTeam("runners").getPlayerList().size() == 1) {
+                    leftOnPause.add(player.getUuid());
 
                     PauseCommand.pauseGame(player.getServer());
                 }
@@ -515,6 +628,8 @@ public class Events {
         dataContainer.put("manhunt_sounds", manhuntSounds.get(player.getUuid()));
         dataContainer.put("night_vision", nightVision.get(player.getUuid()));
         dataContainer.put("friendly_fire", friendlyFire.get(player.getUuid()));
+        dataContainer.put("bed_explosions", bedExplosions.get(player.getUuid()));
+        dataContainer.put("lava_pvp_in_nether", lavaPvpInNether.get(player.getUuid()));
     }
 
     public static TypedActionResult<ItemStack> useItem(PlayerEntity player, Hand hand) {
@@ -522,11 +637,97 @@ public class Events {
 
         if (ManhuntMod.getGameState() == GameState.PREGAME) {
             if (stack.get(DataComponentTypes.CUSTOM_DATA).copyNbt().getBoolean("Preferences")) {
-                ManhuntGame.openPreferencesGui((ServerPlayerEntity) player);
+                ManhuntSettings.openPreferencesGui((ServerPlayerEntity) player);
+            }
+
+            if (stack.get(DataComponentTypes.CUSTOM_DATA).copyNbt().getBoolean("JoinHunters")) {
+                if (slowDownManager.get(player.getUuid()) < 8) slowDownManager.put(player.getUuid(), slowDownManager.get(player.getUuid()) + 1);
+                if (slowDownManager.get(player.getUuid()) < 4) {
+                    if (!player.getScoreboard().getTeam("hunters").getPlayerList().contains(player.getNameForScoreboard())) {
+                        player.getScoreboard().addScoreHolderToTeam(player.getNameForScoreboard(), player.getScoreboard().getTeam("hunters"));
+
+                        player.getServer().getPlayerManager().broadcast(Text.translatable("manhunt.chat.joined_team", Text.literal(player.getNameForScoreboard()).formatted(config.getHuntersColor()), Text.translatable("manhunt.role.hunters").formatted(config.getHuntersColor())), false);
+
+                        player.playSoundToPlayer(SoundEvents.ITEM_LODESTONE_COMPASS_LOCK, SoundCategory.PLAYERS, 0.5f, 1f);
+                    } else {
+                        player.sendMessage(Text.translatable("manhunt.chat.already_team", Text.translatable("manhunt.role.hunter").formatted(Formatting.RED)), false);
+                    }
+                } else {
+                    player.sendMessage(Text.translatable("manhunt.chat.slow_down").formatted(Formatting.RED));
+                }
+            }
+
+            if (stack.get(DataComponentTypes.CUSTOM_DATA).copyNbt().getBoolean("NotReady")) {
+                if (slowDownManager.get(player.getUuid()) < 8) slowDownManager.put(player.getUuid(), slowDownManager.get(player.getUuid()) + 1);
+                if (slowDownManager.get(player.getUuid()) < 4) {
+                    readyList.add(player.getUuid());
+
+                    NbtCompound nbt = new NbtCompound();
+                    nbt.putBoolean("Remove", true);
+                    nbt.putBoolean("Ready", true);
+
+                    ItemStack itemStack = new ItemStack(Items.LIME_CONCRETE);
+                    itemStack.set(DataComponentTypes.CUSTOM_NAME, Text.translatable("manhunt.item.ready").setStyle(Style.EMPTY.withColor(Formatting.GREEN).withItalic(false)));
+                    itemStack.set(DataComponentTypes.HIDE_TOOLTIP, Unit.INSTANCE);
+                    itemStack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(nbt));
+
+                    player.getInventory().setStack(4, itemStack);
+
+                    player.playSoundToPlayer(SoundEvents.BLOCK_STONE_PLACE, SoundCategory.BLOCKS, 0.5f, 1.0f);
+
+                    if (readyList.size() == player.getServer().getPlayerManager().getPlayerList().size()) {
+                        if (player.getScoreboard().getTeam("runners").getPlayerList().isEmpty()) {
+                            player.getServer().getPlayerManager().broadcast(Text.translatable("manhunt.chat.minimum", Text.translatable("manhunt.role.runner")).formatted(Formatting.RED), false);
+                        } else {
+                            ManhuntGame.startGame(player.getServer());
+                        }
+                    }
+                } else {
+                    player.sendMessage(Text.translatable("manhunt.chat.slow_down").formatted(Formatting.RED));
+                }
+            }
+
+            if (stack.get(DataComponentTypes.CUSTOM_DATA).copyNbt().getBoolean("Ready")) {
+                if (slowDownManager.get(player.getUuid()) < 8) slowDownManager.put(player.getUuid(), slowDownManager.get(player.getUuid()) + 1);
+                if (slowDownManager.get(player.getUuid()) < 4) {
+                    readyList.remove(player.getUuid());
+
+                    NbtCompound nbt = new NbtCompound();
+                    nbt.putBoolean("Remove", true);
+                    nbt.putBoolean("NotReady", true);
+
+                    ItemStack itemStack = new ItemStack(Items.LIME_CONCRETE);
+                    itemStack.set(DataComponentTypes.CUSTOM_NAME, Text.translatable("manhunt.item.not_ready").setStyle(Style.EMPTY.withColor(Formatting.RED).withItalic(false)));
+                    itemStack.set(DataComponentTypes.HIDE_TOOLTIP, Unit.INSTANCE);
+                    itemStack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(nbt));
+
+                    player.getInventory().setStack(4, itemStack);
+
+                    player.playSoundToPlayer(SoundEvents.BLOCK_STONE_BREAK, SoundCategory.BLOCKS, 0.5f, 1.0f);
+                } else {
+                    player.sendMessage(Text.translatable("manhunt.chat.slow_down").formatted(Formatting.RED));
+                }
+            }
+
+            if (stack.get(DataComponentTypes.CUSTOM_DATA).copyNbt().getBoolean("JoinRunners")) {
+                if (slowDownManager.get(player.getUuid()) < 8) slowDownManager.put(player.getUuid(), slowDownManager.get(player.getUuid()) + 1);
+                if (slowDownManager.get(player.getUuid()) < 4) {
+                    if (!player.getScoreboard().getTeam("runners").getPlayerList().contains(player.getNameForScoreboard())) {
+                        player.getScoreboard().addScoreHolderToTeam(player.getNameForScoreboard(), player.getScoreboard().getTeam("runners"));
+
+                        player.getServer().getPlayerManager().broadcast(Text.translatable("manhunt.chat.joined_team", Text.literal(player.getNameForScoreboard()).formatted(config.getRunnersColor()), Text.translatable("manhunt.role.runners").formatted(config.getRunnersColor())), false);
+
+                        player.playSoundToPlayer(SoundEvents.ENTITY_ENDER_EYE_LAUNCH, SoundCategory.PLAYERS, 0.5f, 1f);
+                    } else {
+                        player.sendMessage(Text.translatable("manhunt.chat.already_team", Text.translatable("manhunt.role.runner").formatted(Formatting.RED)), false);
+                    }
+                } else {
+                    player.sendMessage(Text.translatable("manhunt.chat.slow_down").formatted(Formatting.RED));
+                }
             }
 
             if (stack.get(DataComponentTypes.CUSTOM_DATA).copyNbt().getBoolean("Settings")) {
-                ManhuntGame.openSettingsGui((ServerPlayerEntity) player);
+                ManhuntSettings.openGameSettingsGui((ServerPlayerEntity) player);
             }
         }
 
@@ -553,10 +754,10 @@ public class Events {
             }
 
             if (!config.isBedExplosions()) {
-                if (player.getWorld().getDimensionEntry() != DimensionTypes.OVERWORLD && stack.getName().toString().contains("_bed")) {
+                if (player.getWorld().getRegistryKey() != overworldWorld && stack.getName().toString().contains("_bed")) {
                     for (ServerPlayerEntity serverPlayer : player.getServer().getPlayerManager().getPlayerList()) {
                         if (player.distanceTo(serverPlayer) <= 9.0F && !player.isTeamPlayer(serverPlayer.getScoreboardTeam())) {
-                            player.sendMessage(Text.translatable("manhunt.chat.disabled").formatted(Formatting.RED));
+                            player.sendMessage(Text.translatable("manhunt.chat.disabled_if_close").formatted(Formatting.RED));
                             return TypedActionResult.fail(stack);
                         }
                     }
@@ -564,10 +765,10 @@ public class Events {
             }
 
             if (!config.isLavaPvpInNether()) {
-                if (player.getWorld().getDimensionEntry() == DimensionTypes.THE_NETHER && stack.getItem() == Items.LAVA_BUCKET) {
+                if (player.getWorld().getRegistryKey() == netherWorld && stack.getItem() == Items.LAVA_BUCKET) {
                     for (ServerPlayerEntity serverPlayer : player.getServer().getPlayerManager().getPlayerList()) {
                         if (player.distanceTo(serverPlayer) <= 9.0F && !player.isTeamPlayer(serverPlayer.getScoreboardTeam())) {
-                            player.sendMessage(Text.translatable("manhunt.chat.disabled").formatted(Formatting.RED));
+                            player.sendMessage(Text.translatable("manhunt.chat.disabled_if_close").formatted(Formatting.RED));
                             return TypedActionResult.fail(stack);
                         }
                     }
@@ -579,7 +780,7 @@ public class Events {
     }
 
     public static void playerRespawn(ServerPlayerEntity player) {
-        if (player.isTeamPlayer(player.getScoreboard().getTeam("runners")) && getGameState() != GameState.POSTGAME) {
+        if (player.isTeamPlayer(player.getScoreboard().getTeam("runners")) && getGameState() == GameState.PLAYING) {
             if (!config.isRunnersHuntOnDeath()) {
                 player.changeGameMode(GameMode.SPECTATOR);
             }

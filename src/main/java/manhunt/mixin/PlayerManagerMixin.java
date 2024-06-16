@@ -4,18 +4,12 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtDouble;
 import net.minecraft.nbt.NbtFloat;
 import net.minecraft.nbt.NbtList;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-
-import static manhunt.ManhuntMod.overworld;
 
 @Mixin(PlayerManager.class)
 public class PlayerManagerMixin {
@@ -39,10 +33,5 @@ public class PlayerManagerMixin {
             player.readNbt(nbt);
             ci.setReturnValue(nbt);
         }
-    }
-
-    @Redirect(method = "respawnPlayer", at = @At(value = "INVOKE", target = "net/minecraft/server/MinecraftServer.getOverworld()Lnet/minecraft/server/world/ServerWorld;"))
-    private ServerWorld redirectOverworld(@NotNull MinecraftServer server, @NotNull ServerPlayerEntity player, boolean alive) {
-        return overworld;
     }
 }
