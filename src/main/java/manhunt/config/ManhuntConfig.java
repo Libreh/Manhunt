@@ -17,8 +17,8 @@ public class ManhuntConfig {
     }
 
     private int teamPreset = 1;
-    private boolean preloadChunks = false;
-    private boolean automaticCompass = false;
+    private boolean preloadChunks = true;
+    private boolean automaticCompass = true;
     private boolean teamColor = true;
     private Formatting huntersColor = Formatting.RED;
     private Formatting runnersColor = Formatting.GREEN;

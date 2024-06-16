@@ -662,6 +662,8 @@ public class Events {
                 if (slowDownManager.get(player.getUuid()) < 4) {
                     readyList.add(player.getUuid());
 
+                    player.getServer().getPlayerManager().broadcast(Text.translatable("manhunt.chat.ready", Text.literal(player.getNameForScoreboard()).formatted(Formatting.GREEN)), false);
+
                     NbtCompound nbt = new NbtCompound();
                     nbt.putBoolean("Remove", true);
                     nbt.putBoolean("Ready", true);
@@ -691,6 +693,8 @@ public class Events {
                 if (slowDownManager.get(player.getUuid()) < 8) slowDownManager.put(player.getUuid(), slowDownManager.get(player.getUuid()) + 1);
                 if (slowDownManager.get(player.getUuid()) < 4) {
                     readyList.remove(player.getUuid());
+
+                    player.getServer().getPlayerManager().broadcast(Text.translatable("manhunt.chat.not_ready", Text.literal(player.getNameForScoreboard()).formatted(Formatting.RED)), false);
 
                     NbtCompound nbt = new NbtCompound();
                     nbt.putBoolean("Remove", true);
@@ -727,7 +731,7 @@ public class Events {
             }
 
             if (stack.get(DataComponentTypes.CUSTOM_DATA).copyNbt().getBoolean("Settings")) {
-                ManhuntSettings.openGameSettingsGui((ServerPlayerEntity) player);
+                ManhuntSettings.openSettingsGui((ServerPlayerEntity) player);
             }
         }
 

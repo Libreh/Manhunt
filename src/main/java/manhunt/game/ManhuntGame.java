@@ -39,7 +39,8 @@ import net.minecraft.world.Heightmap;
 import net.minecraft.world.chunk.WorldChunk;
 import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.Nullable;
-
+import org.popcraft.chunky.ChunkyProvider;
+import org.popcraft.chunky.api.ChunkyAPI;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -67,6 +68,13 @@ public class ManhuntGame {
         server.getGameRules().get(GameRules.SPAWN_RADIUS).set(config.getSpawnRadius(), server);
         server.getGameRules().get(GameRules.FALL_DAMAGE).set(true, server);
         server.getGameRules().get(GameRules.SPECTATORS_GENERATE_CHUNKS).set(config.isSpectatorsGenerateChunks(), server);
+
+        if (isChunkyIntegration() && config.isPreloadChunks()) {
+            ChunkyAPI chunky = ChunkyProvider.get().getApi();
+
+            chunky.cancelTask("manhunt:overworld");
+            chunky.cancelTask("manhunt:the_nether");
+        }
 
         if (config.isTeamColor()) {
             server.getScoreboard().getTeam("hunters").setColor(config.getHuntersColor());

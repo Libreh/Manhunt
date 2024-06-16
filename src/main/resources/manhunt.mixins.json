@@ -9,6 +9,7 @@
 		"EndPortalBlockMixin",
 		"NetherPortalBlockMixin",
 		"ExplosionMixin",
+		"LivingEntityMixin",
 		"PlayerEntityMixin",
 		"PlayerManagerMixin",
 		"ServerPlayerEntityMixin",

@@ -23,7 +23,7 @@ public class RunnerCommand {
         dispatcher.register(literal("runner")
                 .requires(source -> source.isExecutedByPlayer() && getGameState() == GameState.PREGAME)
                 .executes(context -> setRunner(context.getSource(), context.getSource().getPlayer()))
-                .requires(source -> ManhuntMod.checkPermission(source.getPlayer(), "manhunt.role.runner"))
+                .requires(source -> ManhuntMod.checkPermission(source.getPlayer(), "manhunt.runner"))
                 .then(argument("targets", EntityArgumentType.players())
                         .executes(context -> setRunners(context.getSource(), EntityArgumentType.getPlayers(context, "targets")))
                 )

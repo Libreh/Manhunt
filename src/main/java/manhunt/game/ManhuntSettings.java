@@ -399,7 +399,7 @@ public class ManhuntSettings {
                             }
                             config.save();
                             player.networkHandler.sendPacket(new PlaySoundS2CPacket(SoundEvents.UI_BUTTON_CLICK, SoundCategory.MASTER, player.getPos().getX(), player.getPos().getY(), player.getPos().getZ(), 0.5F, 1.0F, player.getWorld().random.nextLong()));
-                            openGameSettingsGui(player);
+                            openGlobalPreferencesGui(player);
                         } else {
                             player.sendMessage(Text.translatable("manhunt.chat.slow_down").formatted(Formatting.RED));
                         }
@@ -438,7 +438,7 @@ public class ManhuntSettings {
                             }
                             config.save();
                             player.networkHandler.sendPacket(new PlaySoundS2CPacket(SoundEvents.UI_BUTTON_CLICK, SoundCategory.MASTER, player.getPos().getX(), player.getPos().getY(), player.getPos().getZ(), 0.5F, 1.0F, player.getWorld().random.nextLong()));
-                            openGameSettingsGui(player);
+                            openGlobalPreferencesGui(player);
                         } else {
                             player.sendMessage(Text.translatable("manhunt.chat.slow_down").formatted(Formatting.RED));
                         }
@@ -477,7 +477,7 @@ public class ManhuntSettings {
                             }
                             config.save();
                             player.networkHandler.sendPacket(new PlaySoundS2CPacket(SoundEvents.UI_BUTTON_CLICK, SoundCategory.MASTER, player.getPos().getX(), player.getPos().getY(), player.getPos().getZ(), 0.5F, 1.0F, player.getWorld().random.nextLong()));
-                            openGameSettingsGui(player);
+                            openGlobalPreferencesGui(player);
                         } else {
                             player.sendMessage(Text.translatable("manhunt.chat.slow_down").formatted(Formatting.RED));
                         }
@@ -524,7 +524,7 @@ public class ManhuntSettings {
                             }
                             config.save();
                             player.networkHandler.sendPacket(new PlaySoundS2CPacket(SoundEvents.UI_BUTTON_CLICK, SoundCategory.MASTER, player.getPos().getX(), player.getPos().getY(), player.getPos().getZ(), 0.5F, 1.0F, player.getWorld().random.nextLong()));
-                            openGameSettingsGui(player);
+                            openGlobalPreferencesGui(player);
                         } else {
                             player.sendMessage(Text.translatable("manhunt.chat.slow_down").formatted(Formatting.RED));
                         }
@@ -563,7 +563,7 @@ public class ManhuntSettings {
                             }
                             config.save();
                             player.networkHandler.sendPacket(new PlaySoundS2CPacket(SoundEvents.UI_BUTTON_CLICK, SoundCategory.MASTER, player.getPos().getX(), player.getPos().getY(), player.getPos().getZ(), 0.5F, 1.0F, player.getWorld().random.nextLong()));
-                            openGameSettingsGui(player);
+                            openGlobalPreferencesGui(player);
                         } else {
                             player.sendMessage(Text.translatable("manhunt.chat.slow_down").formatted(Formatting.RED));
                         }
@@ -603,7 +603,7 @@ public class ManhuntSettings {
                             }
                             config.save();
                             player.networkHandler.sendPacket(new PlaySoundS2CPacket(SoundEvents.UI_BUTTON_CLICK, SoundCategory.MASTER, player.getPos().getX(), player.getPos().getY(), player.getPos().getZ(), 0.5F, 1.0F, player.getWorld().random.nextLong()));
-                            openGameSettingsGui(player);
+                            openGlobalPreferencesGui(player);
                         } else {
                             player.sendMessage(Text.translatable("manhunt.chat.slow_down").formatted(Formatting.RED));
                         }
@@ -642,7 +642,7 @@ public class ManhuntSettings {
                             }
                             config.save();
                             player.networkHandler.sendPacket(new PlaySoundS2CPacket(SoundEvents.UI_BUTTON_CLICK, SoundCategory.MASTER, player.getPos().getX(), player.getPos().getY(), player.getPos().getZ(), 0.5F, 1.0F, player.getWorld().random.nextLong()));
-                            openGameSettingsGui(player);
+                            openGlobalPreferencesGui(player);
                         } else {
                             player.sendMessage(Text.translatable("manhunt.chat.slow_down").formatted(Formatting.RED));
                         }
@@ -1792,7 +1792,7 @@ public class ManhuntSettings {
                     loreList.add(Text.translatable("manhunt.item_lore.runners_color").setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
                     loreList.add(Text.translatable("manhunt.item_lore.click_drop").setStyle(Style.EMPTY.withColor(Formatting.AQUA).withItalic(false)));
 
-                    teamColorGui.setSlot(5, new GuiElementBuilder(Items.BLAZE_POWDER)
+                    teamColorGui.setSlot(5, new GuiElementBuilder(Items.CLOCK)
                             .setName(Text.translatable("manhunt.setting.runners_color").formatted(config.getRunnersColor()))
                             .setLore(loreList)
                             .setCallback(() -> {
