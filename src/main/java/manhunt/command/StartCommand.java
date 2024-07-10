@@ -2,38 +2,39 @@ package manhunt.command;
 
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
-import manhunt.ManhuntMod;
 import manhunt.game.GameState;
-import manhunt.game.ManhuntGame;
+import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import org.popcraft.chunky.ChunkyProvider;
 import org.popcraft.chunky.api.ChunkyAPI;
 
-import static net.minecraft.server.command.CommandManager.literal;
+import static manhunt.ManhuntMod.*;
+import static manhunt.game.ManhuntGame.gameStart;
 
 public class StartCommand {
 
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
-        dispatcher.register(literal("start")
-                .requires(source -> source.isExecutedByPlayer() && ManhuntMod.getGameState() == GameState.PREGAME && ManhuntMod.checkPermission(source.getPlayer(), "manhunt.start"))
+        dispatcher.register(CommandManager.literal("start")
+                .requires(source -> source.isExecutedByPlayer() && state == GameState.PREGAME && checkPermission(source.getPlayer(), "manhunt.start"))
                 .executes(context -> executeStart(context.getSource()))
         );
     }
 
     private static int executeStart(ServerCommandSource source) {
         if (!source.getServer().getScoreboard().getTeam("runners").getPlayerList().isEmpty()) {
-            if (ManhuntMod.isChunkyIntegration() && !ManhuntMod.isPreloaded()) {
+            if (chunkyLoaded && config.isChunky()) {
                 ChunkyAPI chunky = ChunkyProvider.get().getApi();
 
                 chunky.cancelTask("manhunt:overworld");
                 chunky.cancelTask("manhunt:the_nether");
+                chunky.cancelTask("manhunt:the_end");
             }
 
-            ManhuntGame.startGame(source.getServer());
-        } else if (source.getServer().getScoreboard().getTeam("runners").getPlayerList().isEmpty()) {
-            source.sendFeedback(() -> Text.translatable("manhunt.chat.minimum", Text.translatable("manhunt.role.runner")).formatted(Formatting.RED), false);
+            gameStart(source.getServer());
+        } else {
+            source.sendFeedback(() -> Text.translatable("chat.minimum", Text.translatable("role.manhunt.runner")).formatted(Formatting.RED), false);
         }
 
         return Command.SINGLE_SUCCESS;

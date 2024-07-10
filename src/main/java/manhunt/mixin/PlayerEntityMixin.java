@@ -2,7 +2,9 @@ package manhunt.mixin;
 
 import com.mojang.serialization.DataResult;
 import net.minecraft.component.DataComponentTypes;
+import net.minecraft.entity.EntityType;
 import net.minecraft.entity.ItemEntity;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.*;
@@ -18,14 +20,16 @@ import java.util.Objects;
 import static manhunt.ManhuntMod.LOGGER;
 
 @Mixin(PlayerEntity.class)
-public class PlayerEntityMixin {
+public abstract class PlayerEntityMixin extends LivingEntity {
     NbtList positions = new NbtList();
-    private PlayerEntity player = (PlayerEntity) (Object) this;
+
+    protected PlayerEntityMixin(EntityType<? extends LivingEntity> entityType, World world) {
+        super(entityType, world);
+    }
 
     @Inject(at = @At("HEAD"), method = "tick")
     private void Manhunt$tick(CallbackInfo ci) {
-
-        DataResult<NbtElement> var10000 = World.CODEC.encodeStart(NbtOps.INSTANCE, player.getWorld().getRegistryKey());
+        DataResult<NbtElement> var10000 = World.CODEC.encodeStart(NbtOps.INSTANCE, this.getWorld().getRegistryKey());
         var10000.resultOrPartial(LOGGER::error).ifPresent((dimension) -> {
             for (int i = 0; i < positions.size(); ++i) {
                 NbtCompound compound = positions.getCompound(i);
@@ -35,7 +39,7 @@ public class PlayerEntityMixin {
             }
 
             NbtCompound nbtCompound = new NbtCompound();
-            nbtCompound.put("LodestonePos", NbtHelper.fromBlockPos(player.getBlockPos()));
+            nbtCompound.put("LodestonePos", NbtHelper.fromBlockPos(this.getBlockPos()));
             nbtCompound.put("LodestoneDimension", dimension);
             positions.add(nbtCompound);
         });

@@ -2,9 +2,9 @@ package manhunt.command;
 
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
-import manhunt.ManhuntMod;
 import manhunt.game.GameState;
 import net.minecraft.command.argument.EntityArgumentType;
+import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
@@ -12,19 +12,15 @@ import net.minecraft.util.Formatting;
 
 import java.util.Collection;
 
-import static manhunt.ManhuntMod.config;
-import static manhunt.ManhuntMod.getGameState;
-import static net.minecraft.server.command.CommandManager.argument;
-import static net.minecraft.server.command.CommandManager.literal;
+import static manhunt.ManhuntMod.*;
 
 public class RunnerCommand {
-
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
-        dispatcher.register(literal("runner")
-                .requires(source -> source.isExecutedByPlayer() && getGameState() == GameState.PREGAME)
+        dispatcher.register(CommandManager.literal("runner")
+                .requires(source -> source.isExecutedByPlayer() && state == GameState.PREGAME)
                 .executes(context -> setRunner(context.getSource(), context.getSource().getPlayer()))
-                .requires(source -> ManhuntMod.checkPermission(source.getPlayer(), "manhunt.runner"))
-                .then(argument("targets", EntityArgumentType.players())
+                .then(CommandManager.argument("targets", EntityArgumentType.players())
+                        .requires(source -> checkPermission(source.getPlayer(), "manhunt.runner"))
                         .executes(context -> setRunners(context.getSource(), EntityArgumentType.getPlayers(context, "targets")))
                 )
         );
@@ -34,9 +30,9 @@ public class RunnerCommand {
         if (!player.getScoreboard().getTeam("runners").getPlayerList().contains(player.getNameForScoreboard())) {
             player.getScoreboard().addScoreHolderToTeam(player.getNameForScoreboard(), player.getScoreboard().getTeam("runners"));
 
-            player.getServer().getPlayerManager().broadcast(Text.translatable("manhunt.chat.joined_team", Text.literal(player.getNameForScoreboard()).formatted(config.getRunnersColor()), Text.translatable("manhunt.role.runners").formatted(config.getRunnersColor())), false);
+            player.getServer().getPlayerManager().broadcast(Text.translatable("chat.joined_team", Text.literal(player.getNameForScoreboard()).formatted(config.getRunnersColor()), Text.translatable("role.manhunt.runners").formatted(config.getRunnersColor())), false);
         } else {
-            source.sendFeedback(() -> Text.translatable("manhunt.chat.already_team", Text.translatable("manhunt.role.runner").formatted(Formatting.RED)), false);
+            source.sendFeedback(() -> Text.translatable("chat.already_team", Text.translatable("role.manhunt.runner")).formatted(Formatting.RED), false);
         }
 
         return Command.SINGLE_SUCCESS;
@@ -46,7 +42,7 @@ public class RunnerCommand {
         for (ServerPlayerEntity player : players) {
             player.getScoreboard().addScoreHolderToTeam(player.getNameForScoreboard(), player.getScoreboard().getTeam("runners"));
 
-            player.getServer().getPlayerManager().broadcast(Text.translatable("manhunt.chat.set_role", Text.literal(player.getNameForScoreboard()).formatted(config.getRunnersColor()), Text.translatable("manhunt.role.runner").formatted(config.getRunnersColor())), false);
+            player.getServer().getPlayerManager().broadcast(Text.translatable("chat.set_role", Text.literal(player.getNameForScoreboard()).formatted(config.getRunnersColor()), Text.translatable("role.manhunt.runner").formatted(config.getRunnersColor())), false);
         }
 
         return Command.SINGLE_SUCCESS;

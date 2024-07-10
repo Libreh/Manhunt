@@ -2,44 +2,34 @@ package manhunt.command;
 
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
-import manhunt.ManhuntMod;
 import manhunt.game.GameState;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.network.packet.s2c.play.SubtitleS2CPacket;
-import net.minecraft.network.packet.s2c.play.TitleS2CPacket;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
 
 import static manhunt.ManhuntMod.*;
-import static net.minecraft.server.command.CommandManager.literal;
 
 public class UnpauseCommand {
-
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
-        dispatcher.register(literal("unpause")
-                .requires(source -> source.isExecutedByPlayer() && getGameState() == GameState.PLAYING && ManhuntMod.checkPermission(source.getPlayer(), "manhunt.unpause") || config.isRunnersCanPause() && source.getPlayer().getScoreboard().getTeam("runners").getPlayerList().contains(source.getPlayer().getNameForScoreboard()))
+        dispatcher.register(CommandManager.literal("unpause")
+                .requires(source -> source.isExecutedByPlayer() && state == GameState.PLAYING && paused && checkPermission(source.getPlayer(), "manhunt.unpause") || config.isRunnersCanPause() && source.getPlayer().getScoreboard().getTeam("runners").getPlayerList().contains(source.getPlayer().getNameForScoreboard()))
                 .executes(context -> unpauseCommand(context.getSource()))
         );
     }
 
     private static int unpauseCommand(ServerCommandSource source) {
-        if (isPaused()) {
-            unpauseGame(source.getServer());
-        } else {
-            source.sendFeedback(() -> Text.translatable("manhunt.chat.game_is_already", Text.translatable("manhunt.pause.unpaused")).formatted(Formatting.RED), false);
-        }
+        unpauseGame(source.getServer());
 
         return Command.SINGLE_SUCCESS;
     }
 
     public static void unpauseGame(MinecraftServer server) {
-        setPaused(false);
+        paused = false;
 
         server.getTickManager().setFrozen(false);
 
@@ -57,8 +47,6 @@ public class UnpauseCommand {
             serverPlayer.getHungerManager().setFoodLevel(playerFood.get(serverPlayer.getUuid()));
             serverPlayer.getHungerManager().setSaturationLevel(playerSaturation.get(serverPlayer.getUuid()));
             serverPlayer.getHungerManager().setExhaustion(playerExhuastion.get(serverPlayer.getUuid()));
-            serverPlayer.networkHandler.sendPacket(new TitleS2CPacket(Text.literal(config.getGameUnpausedTitle()).formatted(Formatting.YELLOW)));
-            serverPlayer.networkHandler.sendPacket(new SubtitleS2CPacket(Text.literal(config.getGameUnpausedSubtitle()).formatted(Formatting.GOLD)));
         }
     }
 }

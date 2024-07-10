@@ -2,7 +2,7 @@ package manhunt.game;
 
 public enum GameState {
     PREGAME("§a", "PRE-GAME"),
-    PLAYING("§c", "IN-GAME"),
+    PLAYING("§e", "IN-GAME"),
     POSTGAME("§6", "POST-GAME");
 
     private final String color;

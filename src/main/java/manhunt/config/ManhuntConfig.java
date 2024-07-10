@@ -2,7 +2,6 @@ package manhunt.config;
 
 import com.google.gson.*;
 import net.minecraft.util.Formatting;
-import net.minecraft.world.Difficulty;
 
 import java.io.*;
 
@@ -11,36 +10,45 @@ import static manhunt.ManhuntMod.LOGGER;
 public class ManhuntConfig {
     public static final ManhuntConfig INSTANCE = new ManhuntConfig();
     private final File confFile = new File("./config/manhunt.json");
-    Gson gson = new GsonBuilder().setPrettyPrinting().create();
+    private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
     private ManhuntConfig() {
     }
 
+    private boolean setMotd = true;
+    private boolean automaticCompass = false;
+    private int runnerHeadstart = 0;
+    private int timeLimit = 240;
+    private int worldBorder = 59999968;
     private int teamPreset = 1;
-    private boolean preloadChunks = true;
-    private boolean automaticCompass = true;
     private boolean teamColor = true;
     private Formatting huntersColor = Formatting.RED;
     private Formatting runnersColor = Formatting.GREEN;
-    private boolean teamSuffix = true;
-    private int runnerHeadstart = 0;
-    private int timeLimit = 0;
+    private boolean nametagColor = false;
     private boolean runnersGlow = false;
-    private Difficulty difficulty = Difficulty.EASY;
-    private int worldBorder = 59999968;
-    private int spawnRadius = 0;
-    private boolean spectateOnWin = true;
-    private boolean spectatorsGenerateChunks = false;
     private boolean runnersHuntOnDeath = true;
     private boolean runnersCanPause = true;
-    private int pauseTimeOnLeave = 2;
+    private int runnerLeavingPauseTime = 5;
+    private boolean spectateOnWin = false;
     private boolean gameTitles = true;
     private boolean manhuntSounds = true;
     private boolean nightVision = true;
     private int friendlyFire = 1;
-    private boolean bedExplosions = false;
-    private boolean lavaPvpInNether = false;
+    private boolean bedExplosions = true;
+    private boolean lavaPvpInNether = true;
     private boolean runnerPreferences = true;
+    private boolean chunky = true;
+    private int overworld = 8000;
+    private int nether = 1000;
+    private int end = 0;
+
+    public boolean isSetMotd() {
+        return setMotd;
+    }
+
+    public void setSetMotd(boolean setMotd) {
+        this.setMotd = setMotd;
+    }
 
     public int getTeamPreset() {
         return teamPreset;
@@ -50,12 +58,36 @@ public class ManhuntConfig {
         this.teamPreset = teamPreset;
     }
 
-    public boolean isPreloadChunks() {
-        return preloadChunks;
+    public boolean isChunky() {
+        return chunky;
     }
 
-    public void setPreloadChunks(boolean preloadChunks) {
-        this.preloadChunks = preloadChunks;
+    public void setChunky(boolean chunky) {
+        this.chunky = chunky;
+    }
+
+    public int getNether() {
+        return nether;
+    }
+
+    public void setNether(int nether) {
+        this.nether = nether;
+    }
+
+    public int getOverworld() {
+        return overworld;
+    }
+
+    public void setOverworld(int overworld) {
+        this.overworld = overworld;
+    }
+
+    public int getEnd() {
+        return end;
+    }
+
+    public void setEnd(int end) {
+        this.end = end;
     }
 
     public boolean isAutomaticCompass() {
@@ -90,12 +122,12 @@ public class ManhuntConfig {
         this.runnersColor = runnersColor;
     }
 
-    public boolean isTeamSuffix() {
-        return teamSuffix;
+    public boolean isNametagColor() {
+        return nametagColor;
     }
 
-    public void setTeamSuffix(boolean teamSuffix) {
-        this.teamSuffix = teamSuffix;
+    public void setNametagColor(boolean nametagColor) {
+        this.nametagColor = nametagColor;
     }
 
     public int getRunnerHeadstart() {
@@ -122,14 +154,6 @@ public class ManhuntConfig {
         this.runnersGlow = runnersGlow;
     }
 
-    public Difficulty getDifficulty() {
-        return difficulty;
-    }
-
-    public void setDifficulty(Difficulty difficulty) {
-        this.difficulty = difficulty;
-    }
-
     public int getWorldBorder() {
         return worldBorder;
     }
@@ -138,28 +162,12 @@ public class ManhuntConfig {
         this.worldBorder = worldBorder;
     }
 
-    public int getSpawnRadius() {
-        return spawnRadius;
-    }
-
-    public void setSpawnRadius(int spawnRadius) {
-        this.spawnRadius = spawnRadius;
-    }
-
     public boolean isSpectateOnWin() {
         return spectateOnWin;
     }
 
     public void setSpectateOnWin(boolean spectateOnWin) {
         this.spectateOnWin = spectateOnWin;
-    }
-
-    public boolean isSpectatorsGenerateChunks() {
-        return spectatorsGenerateChunks;
-    }
-
-    public void setSpectatorsGenerateChunks(boolean spectatorsGenerateChunks) {
-        this.spectatorsGenerateChunks = spectatorsGenerateChunks;
     }
 
     public boolean isRunnersHuntOnDeath() {
@@ -178,12 +186,12 @@ public class ManhuntConfig {
         this.runnersCanPause = runnersCanPause;
     }
 
-    public int getPauseTimeOnLeave() {
-        return pauseTimeOnLeave;
+    public int getRunnerLeavingPauseTime() {
+        return runnerLeavingPauseTime;
     }
 
-    public void setPauseTimeOnLeave(int pauseTimeOnLeave) {
-        this.pauseTimeOnLeave = pauseTimeOnLeave;
+    public void setRunnerLeavingPauseTime(int runnerLeavingPauseTime) {
+        this.runnerLeavingPauseTime = runnerLeavingPauseTime;
     }
 
     public boolean isGameTitles() {
@@ -242,17 +250,9 @@ public class ManhuntConfig {
         this.runnerPreferences = runnerPreferences;
     }
 
-    private String gameStartTitle = "MANHUNT";
-    private String gameStartSubtitle = "Good luck have fun";
-    private String hunterWinTitle = "HUNTERS WON";
-    private String runnerDiedSubtitle = "Runner was slain";
-    private String timeLimitSubtitle = "Time limit was reached";
-    private String runnerWinTitle = "RUNNERS WON";
-    private String enderDragonDiedSubtitle = "Ender Dragon was slain";
-    private String gamePausedTitle = "GAME PAUSED";
-    private String gamePausedSubtitle = "Back in no time surely";
-    private String gameUnpausedTitle = "GAME UNPAUSED";
-    private String gameUnpausedSubtitle = "I suggest you run";
+    private String gameStartTitle = "Manhunt";
+    private String gameStartSubtitle = "Good luck and have fun";
+    private String gamePausedTitle = "Game paused";
 
     public String getGameStartTitle() {
         return gameStartTitle;
@@ -270,76 +270,12 @@ public class ManhuntConfig {
         this.gameStartSubtitle = gameStartSubtitle;
     }
 
-    public String getHunterWinTitle() {
-        return hunterWinTitle;
-    }
-
-    public void setHunterWinTitle(String hunterWinTitle) {
-        this.hunterWinTitle = hunterWinTitle;
-    }
-
-    public String getRunnerDiedSubtitle() {
-        return runnerDiedSubtitle;
-    }
-
-    public void setRunnerDiedSubtitle(String runnerDiedSubtitle) {
-        this.runnerDiedSubtitle = runnerDiedSubtitle;
-    }
-
-    public String getTimeLimitSubtitle() {
-        return timeLimitSubtitle;
-    }
-
-    public void setTimeLimitSubtitle(String timeLimitSubtitle) {
-        this.timeLimitSubtitle = timeLimitSubtitle;
-    }
-
-    public String getRunnerWinTitle() {
-        return runnerWinTitle;
-    }
-
-    public void setRunnerWinTitle(String runnerWinTitle) {
-        this.runnerWinTitle = runnerWinTitle;
-    }
-
-    public String getEnderDragonDiedSubtitle() {
-        return enderDragonDiedSubtitle;
-    }
-
-    public void setEnderDragonDiedSubtitle(String enderDragonDiedSubtitle) {
-        this.enderDragonDiedSubtitle = enderDragonDiedSubtitle;
-    }
-
     public String getGamePausedTitle() {
         return gamePausedTitle;
     }
 
     public void setGamePausedTitle(String gamePausedTitle) {
         this.gamePausedTitle = gamePausedTitle;
-    }
-
-    public String getGamePausedSubtitle() {
-        return gamePausedSubtitle;
-    }
-
-    public void setGamePausedSubtitle(String gamePausedSubtitle) {
-        this.gamePausedSubtitle = gamePausedSubtitle;
-    }
-
-    public String getGameUnpausedTitle() {
-        return gameUnpausedTitle;
-    }
-
-    public void setGameUnpausedTitle(String gameUnpausedTitle) {
-        this.gameUnpausedTitle = gameUnpausedTitle;
-    }
-
-    public String getGameUnpausedSubtitle() {
-        return gameUnpausedSubtitle;
-    }
-
-    public void setGameUnpausedSubtitle(String gameUnpausedSubtitle) {
-        this.gameUnpausedSubtitle = gameUnpausedSubtitle;
     }
 
     public void load() {
@@ -349,43 +285,39 @@ public class ManhuntConfig {
             JsonElement je;
 
             JsonObject gameSettings = jo.getAsJsonObject("gameSettings");
+            if ((je = gameSettings.get("setMotd")) != null) setMotd = je.getAsBoolean();
             if ((je = gameSettings.get("teamPreset")) != null) teamPreset = je.getAsInt();
-            if ((je = gameSettings.get("preloadChunks")) != null) preloadChunks = je.getAsBoolean();
             if ((je = gameSettings.get("automaticCompass")) != null) automaticCompass = je.getAsBoolean();
             if ((je = gameSettings.get("teamColor")) != null) teamColor = je.getAsBoolean();
             if ((je = gameSettings.get("huntersColor")) != null) huntersColor = Formatting.byName(je.getAsString());
             if ((je = gameSettings.get("runnersColor")) != null) runnersColor = Formatting.byName(je.getAsString());
-            if ((je = gameSettings.get("teamSuffix")) != null) teamSuffix = je.getAsBoolean();
+            if ((je = gameSettings.get("nameColorToTeamColor")) != null) nametagColor = je.getAsBoolean();
             if ((je = gameSettings.get("runnerHeadstart")) != null) runnerHeadstart = je.getAsInt();
             if ((je = gameSettings.get("timeLimit")) != null) timeLimit = je.getAsInt();
             if ((je = gameSettings.get("runnersGlow")) != null) runnersGlow = je.getAsBoolean();
-            if ((je = gameSettings.get("difficulty")) != null) difficulty = Difficulty.byName(je.getAsString());
             if ((je = gameSettings.get("worldBorder")) != null) worldBorder = je.getAsInt();
-            if ((je = gameSettings.get("spawnRadius")) != null) spawnRadius = je.getAsInt();
             if ((je = gameSettings.get("spectateOnWin")) != null) spectateOnWin = je.getAsBoolean();
-            if ((je = gameSettings.get("spectatorsGenerateChunks")) != null) spectatorsGenerateChunks = je.getAsBoolean();
             if ((je = gameSettings.get("runnersHuntOnDeath")) != null) runnersHuntOnDeath = je.getAsBoolean();
             if ((je = gameSettings.get("runnersCanPause")) != null) runnersCanPause = je.getAsBoolean();
-            if ((je = gameSettings.get("pauseTimeOnLeave")) != null) pauseTimeOnLeave = je.getAsInt();
-            if ((je = gameSettings.get("gameTitles")) != null) gameTitles = je.getAsBoolean();
-            if ((je = gameSettings.get("manhuntSounds")) != null) manhuntSounds = je.getAsBoolean();
-            if ((je = gameSettings.get("nightVision")) != null) nightVision = je.getAsBoolean();
-            if ((je = gameSettings.get("friendlyFire")) != null) friendlyFire = je.getAsInt();
-            if ((je = gameSettings.get("bedExplosions")) != null) bedExplosions = je.getAsBoolean();
-            if ((je = gameSettings.get("lavaPvpInNether")) != null) lavaPvpInNether = je.getAsBoolean();
-            if ((je = gameSettings.get("runnerPreferences")) != null) runnerPreferences = je.getAsBoolean();
-            JsonObject languageKeys = jo.getAsJsonObject("languageKeys");
-            if ((je = languageKeys.get("gameStartTitle")) != null) gameStartTitle = je.getAsString();
-            if ((je = languageKeys.get("gameStartSubtitle")) != null) gameStartSubtitle = je.getAsString();
-            if ((je = languageKeys.get("hunterWinTitle")) != null) hunterWinTitle = je.getAsString();
-            if ((je = languageKeys.get("runnerDiedSubtitle")) != null) runnerDiedSubtitle = je.getAsString();
-            if ((je = languageKeys.get("timeLimitSubtitle")) != null) timeLimitSubtitle = je.getAsString();
-            if ((je = languageKeys.get("runnerWinTitle")) != null) runnerWinTitle = je.getAsString();
-            if ((je = languageKeys.get("enderDragonDiedSubtitle")) != null) enderDragonDiedSubtitle = je.getAsString();
-            if ((je = languageKeys.get("gamePausedTitle")) != null) gamePausedTitle = je.getAsString();
-            if ((je = languageKeys.get("gamePausedSubtitle")) != null) gamePausedSubtitle = je.getAsString();
-            if ((je = languageKeys.get("gameUnpausedTitle")) != null) gameUnpausedTitle = je.getAsString();
-            if ((je = languageKeys.get("gameUnpausedSubtitle")) != null) gameUnpausedSubtitle = je.getAsString();
+            if ((je = gameSettings.get("runnerLeavingPauseTime")) != null) runnerLeavingPauseTime = je.getAsInt();
+            JsonObject globalPreferences = jo.getAsJsonObject("globalPreferences");
+            if ((je = globalPreferences.get("gameTitles")) != null) gameTitles = je.getAsBoolean();
+            if ((je = globalPreferences.get("manhuntSounds")) != null) manhuntSounds = je.getAsBoolean();
+            if ((je = globalPreferences.get("nightVision")) != null) nightVision = je.getAsBoolean();
+            if ((je = globalPreferences.get("friendlyFire")) != null) friendlyFire = je.getAsInt();
+            if ((je = globalPreferences.get("bedExplosions")) != null) bedExplosions = je.getAsBoolean();
+            if ((je = globalPreferences.get("lavaPvpInNether")) != null) lavaPvpInNether = je.getAsBoolean();
+            if ((je = globalPreferences.get("runnerPreferences")) != null) runnerPreferences = je.getAsBoolean();
+            JsonObject titleTexts = jo.getAsJsonObject("titleTexts");
+            if ((je = titleTexts.get("gameStartTitle")) != null) gameStartTitle = je.getAsString();
+            if ((je = titleTexts.get("gameStartSubtitle")) != null) gameStartSubtitle = je.getAsString();
+            if ((je = titleTexts.get("gamePausedTitle")) != null) gamePausedTitle = je.getAsString();
+            JsonObject modIntegrations = jo.getAsJsonObject("modIntegrations");
+            JsonObject chunky = modIntegrations.getAsJsonObject("chunky");
+            if ((je = chunky.get("enabled")) != null) this.chunky = je.getAsBoolean();
+            if ((je = chunky.get("overworld")) != null) overworld = je.getAsInt();
+            if ((je = chunky.get("the_nether")) != null) nether = je.getAsInt();
+            if ((je = chunky.get("the_end")) != null) end = je.getAsInt();
         } catch (FileNotFoundException ex) {
             LOGGER.trace("Couldn't load configuration file", ex);
         }
@@ -401,45 +333,44 @@ public class ManhuntConfig {
 
             JsonObject jo = new JsonObject();
             JsonObject gameSettings = new JsonObject();
+            gameSettings.add("setMotd", new JsonPrimitive(setMotd));
             gameSettings.add("teamPreset", new JsonPrimitive(teamPreset));
-            gameSettings.add("preloadChunks", new JsonPrimitive(preloadChunks));
             gameSettings.add("automaticCompass", new JsonPrimitive(automaticCompass));
             gameSettings.add("teamColor", new JsonPrimitive(teamColor));
             gameSettings.add("huntersColor", new JsonPrimitive(huntersColor.getName()));
             gameSettings.add("runnersColor", new JsonPrimitive(runnersColor.getName()));
-            gameSettings.add("teamSuffix", new JsonPrimitive(teamSuffix));
+            gameSettings.add("nameColorToTeamColor", new JsonPrimitive(nametagColor));
             gameSettings.add("runnerHeadstart", new JsonPrimitive(runnerHeadstart));
             gameSettings.add("timeLimit", new JsonPrimitive(timeLimit));
             gameSettings.add("runnersGlow", new JsonPrimitive(runnersGlow));
-            gameSettings.add("difficulty", new JsonPrimitive(difficulty.getName()));
             gameSettings.add("worldBorder", new JsonPrimitive(worldBorder));
-            gameSettings.add("spawnRadius", new JsonPrimitive(spawnRadius));
             gameSettings.add("spectateWin", new JsonPrimitive(spectateOnWin));
-            gameSettings.add("spectatorsGenerateChunks", new JsonPrimitive(lavaPvpInNether));
             gameSettings.add("runnersHuntOnDeath", new JsonPrimitive(runnersHuntOnDeath));
             gameSettings.add("runnersCanPause", new JsonPrimitive(runnersCanPauseDefault));
-            gameSettings.add("pauseTimeOnLeave", new JsonPrimitive(pauseTimeOnLeave));
-            gameSettings.add("gameTitles", new JsonPrimitive(gameTitles));
-            gameSettings.add("manhuntSounds", new JsonPrimitive(manhuntSounds));
-            gameSettings.add("nightVision", new JsonPrimitive(nightVision));
-            gameSettings.add("friendlyFire", new JsonPrimitive(friendlyFire));
-            gameSettings.add("bedExplosions", new JsonPrimitive(bedExplosions));
-            gameSettings.add("lavaPvpInNether", new JsonPrimitive(lavaPvpInNether));
-            gameSettings.add("runnerPreferences", new JsonPrimitive(runnerPreferences));
-            JsonObject languageKeys = new JsonObject();
-            languageKeys.add("gameStartTitle", new JsonPrimitive(gameStartTitle));
-            languageKeys.add("gameStartSubtitle", new JsonPrimitive(gameStartSubtitle));
-            languageKeys.add("hunterWinTitle", new JsonPrimitive(hunterWinTitle));
-            languageKeys.add("runnerDiedSubtitle", new JsonPrimitive(runnerDiedSubtitle));
-            languageKeys.add("timeLimitSubtitle", new JsonPrimitive(timeLimitSubtitle));
-            languageKeys.add("runnerWinTitle", new JsonPrimitive(runnerWinTitle));
-            languageKeys.add("enderDragonDiedSubtitle", new JsonPrimitive(enderDragonDiedSubtitle));
-            languageKeys.add("gamePausedTitle", new JsonPrimitive(gamePausedTitle));
-            languageKeys.add("gamePausedSubtitle", new JsonPrimitive(gamePausedSubtitle));
-            languageKeys.add("gameUnpausedTitle", new JsonPrimitive(gameUnpausedTitle));
-            languageKeys.add("gameUnpausedSubtitle", new JsonPrimitive(gameUnpausedSubtitle));
+            gameSettings.add("runnerLeavingPauseTime", new JsonPrimitive(runnerLeavingPauseTime));
+            JsonObject globalPreferences = new JsonObject();
+            globalPreferences.add("gameTitles", new JsonPrimitive(gameTitles));
+            globalPreferences.add("manhuntSounds", new JsonPrimitive(manhuntSounds));
+            globalPreferences.add("nightVision", new JsonPrimitive(nightVision));
+            globalPreferences.add("friendlyFire", new JsonPrimitive(friendlyFire));
+            globalPreferences.add("bedExplosions", new JsonPrimitive(bedExplosions));
+            globalPreferences.add("lavaPvpInNether", new JsonPrimitive(lavaPvpInNether));
+            globalPreferences.add("runnerPreferences", new JsonPrimitive(runnerPreferences));
+            JsonObject titleTexts = new JsonObject();
+            titleTexts.add("gameStartTitle", new JsonPrimitive(gameStartTitle));
+            titleTexts.add("gameStartSubtitle", new JsonPrimitive(gameStartSubtitle));
+            titleTexts.add("gamePausedTitle", new JsonPrimitive(gamePausedTitle));
+            JsonObject modIntegrations = new JsonObject();
+            JsonObject chunky = new JsonObject();
+            chunky.add("enabled", new JsonPrimitive(this.chunky));
+            chunky.add("overworld", new JsonPrimitive(overworld));
+            chunky.add("the_nether", new JsonPrimitive(nether));
+            chunky.add("the_end", new JsonPrimitive(end));
             jo.add("gameSettings", gameSettings);
-            jo.add("languageKeys", languageKeys);
+            jo.add("globalPreferences", globalPreferences);
+            jo.add("titleTexts", titleTexts);
+            jo.add("modIntegrations", modIntegrations);
+            modIntegrations.add("chunky", chunky);
 
             PrintWriter printwriter = new PrintWriter(new FileWriter(confFile));
             printwriter.print(gson.toJson(jo));
@@ -449,24 +380,25 @@ public class ManhuntConfig {
         }
     }
 
+    private final boolean setMotdDefault = setMotd;
     private final int teamPresetDefault = teamPreset;
-    private final boolean preloadChunksDefault = preloadChunks;
+    private final boolean chunkyIntegrationDefault = chunky;
+    private final int overworldDefault = overworld;
+    private final int netherDefault = nether;
+    private final int endDefault = end;
     private final boolean automaticCompassDefault = automaticCompass;
     private final boolean teamColorDefault = teamColor;
     private final Formatting huntersColorDefault = huntersColor;
     private final Formatting runnersColorDefault = runnersColor;
-    private final boolean teamSuffixDefault = teamSuffix;
+    private final boolean nameTagDefault = nametagColor;
     private final int runnerHeadstartDefault = runnerHeadstart;
     private final int timeLimitDefault = timeLimit;
     private final boolean runnersGlowDefault = runnersGlow;
-    private final Difficulty gameDifficultyDefault = difficulty;
     private final int worldBorderDefault = worldBorder;
-    private final int spawnRadiusDefault = spawnRadius;
     private final boolean spectateWinDefault = spectateOnWin;
-    private final boolean spectatorsGenerateChunksDefault = spectatorsGenerateChunks;
     private final boolean runnersHuntOnDeathDefault = runnersHuntOnDeath;
     private final boolean runnersCanPauseDefault = runnersCanPause;
-    private final int pauseTimeOnLeaveDefault = pauseTimeOnLeave;
+    private final int runnerLeavingPauseTimeDefault = runnerLeavingPauseTime;
     private final boolean gameTitlesDefault = gameTitles;
     private final boolean manhuntSoundsDefault = manhuntSounds;
     private final boolean nightVisionDefault = nightVision;
@@ -475,12 +407,28 @@ public class ManhuntConfig {
     private final boolean lavaPvpInNetherDefault = lavaPvpInNether;
     private final boolean runnerPreferencesDefault = runnerPreferences;
 
+    public boolean isSetMotdDefault() {
+        return setMotdDefault;
+    }
+
     public int getTeamPresetDefault() {
         return teamPresetDefault;
     }
 
-    public boolean isPreloadChunksDefault() {
-        return preloadChunksDefault;
+    public boolean isChunkyIntegrationDefault() {
+        return chunkyIntegrationDefault;
+    }
+
+    public int getOverworldDefault() {
+        return overworldDefault;
+    }
+
+    public int getNetherDefault() {
+        return netherDefault;
+    }
+
+    public int getEndDefault() {
+        return endDefault;
     }
 
     public boolean isAutomaticCompassDefault() {
@@ -499,8 +447,8 @@ public class ManhuntConfig {
         return runnersColorDefault;
     }
 
-    public boolean isTeamSuffixDefault() {
-        return teamSuffixDefault;
+    public boolean isNameTagDefault() {
+        return nameTagDefault;
     }
 
     public int getRunnerHeadstartDefault() {
@@ -515,36 +463,24 @@ public class ManhuntConfig {
         return runnersGlowDefault;
     }
 
-    public Difficulty getGameDifficultyDefault() {
-        return gameDifficultyDefault;
-    }
-
     public int getWorldBorderDefault() {
         return worldBorderDefault;
-    }
-
-    public int getSpawnRadiusDefault() {
-        return spawnRadiusDefault;
     }
 
     public boolean isSpectateWinDefault() {
         return spectateWinDefault;
     }
 
-    public boolean isSpectatorsGenerateChunksDefault() {
-        return spectatorsGenerateChunksDefault;
-    }
-
     public boolean isRunnersHuntOnDeathDefault() {
         return runnersHuntOnDeathDefault;
     }
 
-    public boolean isRunnerCanPauseDefault() {
+    public boolean isRunnersCanPauseDefault() {
         return runnersCanPauseDefault;
     }
 
-    public int getPauseTimeOnLeaveDefault() {
-        return pauseTimeOnLeaveDefault;
+    public int getRunnerLeavingPauseTimeDefault() {
+        return runnerLeavingPauseTimeDefault;
     }
 
     public boolean isGameTitlesDefault() {
@@ -573,5 +509,21 @@ public class ManhuntConfig {
 
     public boolean isRunnerPreferencesDefault() {
         return runnerPreferencesDefault;
+    }
+
+    private final String gameStartTitleDefault = gameStartTitle;
+    private final String gameStartSubtitleDefault = gameStartSubtitle;
+    private final String gamePausedTitleDefault = gamePausedTitle;
+
+    public String getGameStartTitleDefault() {
+        return gameStartTitleDefault;
+    }
+
+    public String getGameStartSubtitleDefault() {
+        return gameStartSubtitleDefault;
+    }
+
+    public String getGamePausedTitleDefault() {
+        return gamePausedTitleDefault;
     }
 }

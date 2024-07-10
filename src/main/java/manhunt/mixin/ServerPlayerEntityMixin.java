@@ -1,7 +1,7 @@
 package manhunt.mixin;
 
+import com.mojang.authlib.GameProfile;
 import manhunt.game.GameState;
-import manhunt.game.ManhuntGame;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.LodestoneTrackerComponent;
 import net.minecraft.component.type.NbtComponent;
@@ -20,7 +20,7 @@ import net.minecraft.util.Formatting;
 import net.minecraft.util.Unit;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.GlobalPos;
-import net.minecraft.world.GameMode;
+import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -33,54 +33,56 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import java.util.Optional;
 
 import static manhunt.ManhuntMod.*;
+import static manhunt.game.ManhuntGame.gameOver;
 
 @Mixin(ServerPlayerEntity.class)
-public class ServerPlayerEntityMixin {
+public abstract class ServerPlayerEntityMixin extends PlayerEntity {
     @Final
     @Shadow
     public MinecraftServer server;
-
     @Unique
     private long lastDelay = System.currentTimeMillis();
     @Unique
     private long rate = 1000;
     @Unique
-    private final ServerPlayerEntity player = (ServerPlayerEntity) (Object) this;
-    @Unique
     private int count;
+
+    public ServerPlayerEntityMixin(World world, BlockPos pos, float yaw, GameProfile gameProfile) {
+        super(world, pos, yaw, gameProfile);
+    }
 
     @Inject(method = "tick", at = @At("HEAD"))
     private void tick(CallbackInfo ci) {
         count++;
         if (count == 39) {
-            if (slowDownManager.get(player.getUuid()) != 0) {
-                if (slowDownManager.get(player.getUuid()) >= 4) {
-                    slowDownManager.put(player.getUuid(), slowDownManager.get(player.getUuid()) - 4);
+            if (slowDownManager.get(this.getUuid()) != 0) {
+                if (slowDownManager.get(this.getUuid()) >= 4) {
+                    slowDownManager.put(this.getUuid(), slowDownManager.get(this.getUuid()) - 4);
                 } else {
-                    slowDownManager.put(player.getUuid(), 0);
+                    slowDownManager.put(this.getUuid(), 0);
                 }
             }
             count = 0;
         }
 
-        if (getGameState() == GameState.PLAYING) {
-            if (player.isTeamPlayer(player.getScoreboard().getTeam("hunters"))) {
-                if (!hasTracker(player)) {
+        if (state == GameState.PLAYING) {
+            if (this.isTeamPlayer(this.getScoreboard().getTeam("hunters"))) {
+                if (!hasTracker((ServerPlayerEntity) (Object)this)) {
                     NbtCompound nbt = new NbtCompound();
                     nbt.putBoolean("Tracker", true);
                     nbt.putBoolean("Remove", true);
 
                     ItemStack stack = new ItemStack(Items.COMPASS);
-                    stack.set(DataComponentTypes.ITEM_NAME, Text.translatable("manhunt.item.tracker"));
+                    stack.set(DataComponentTypes.ITEM_NAME, Text.translatable("item.manhunt.tracker"));
                     stack.set(DataComponentTypes.HIDE_TOOLTIP, Unit.INSTANCE);
-                    stack.set(DataComponentTypes.LODESTONE_TRACKER, new LodestoneTrackerComponent(Optional.of(GlobalPos.create(overworldWorld, new BlockPos(0, 0, 0))), false));
+                    stack.set(DataComponentTypes.LODESTONE_TRACKER, new LodestoneTrackerComponent(Optional.of(GlobalPos.create(getOverworld().getRegistryKey(), new BlockPos(0, 0, 0))), false));
                     stack.addEnchantment(server.getRegistryManager().getWrapperOrThrow(RegistryKeys.ENCHANTMENT).getOrThrow(Enchantments.VANISHING_CURSE), 1);
                     stack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(nbt));
 
-                    player.giveItemStack(stack);
+                    this.giveItemStack(stack);
                 } else {
                     if (config.isAutomaticCompass() && System.currentTimeMillis() - lastDelay > rate) {
-                        for (ItemStack stack : player.getInventory().main) {
+                        for (ItemStack stack : this.getInventory().main) {
                             if (stack.getItem().equals(Items.COMPASS) && stack.get(DataComponentTypes.CUSTOM_DATA) != null && stack.get(DataComponentTypes.CUSTOM_DATA).copyNbt().getBoolean("Tracker")) {
                                 if (!stack.get(DataComponentTypes.CUSTOM_DATA).copyNbt().contains("Name") && !allRunners.isEmpty()) {
                                     NbtCompound nbt = stack.get(DataComponentTypes.CUSTOM_DATA).copyNbt();
@@ -91,17 +93,17 @@ public class ServerPlayerEntityMixin {
                                 ServerPlayerEntity trackedPlayer = server.getPlayerManager().getPlayer(stack.get(DataComponentTypes.CUSTOM_DATA).copyNbt().getString("Name"));
 
                                 if (trackedPlayer != null) {
-                                    if (player.distanceTo(trackedPlayer) <= 128) {
+                                    if (this.distanceTo(trackedPlayer) <= 128) {
                                         rate = 750;
-                                    } else if (player.distanceTo(trackedPlayer) <= 512) {
+                                    } else if (this.distanceTo(trackedPlayer) <= 512) {
                                         rate = 1500;
-                                    } else if (player.distanceTo(trackedPlayer) <= 1024) {
+                                    } else if (this.distanceTo(trackedPlayer) <= 1024) {
                                         rate = 3000;
                                     } else {
                                         rate = 6000;
                                     }
 
-                                    updateCompass(player, stack, trackedPlayer);
+                                    updateCompass((ServerPlayerEntity) (Object)this, stack, trackedPlayer);
                                 }
                             }
                         }
@@ -114,35 +116,23 @@ public class ServerPlayerEntityMixin {
 
     @Inject(at = @At("HEAD"), method = "onDeath")
     private void onDeath(DamageSource source, CallbackInfo ci) {
-        if (player.isTeamPlayer(player.getScoreboard().getTeam("runners"))) {
-            if (config.isRunnersHuntOnDeath()) {
-                player.getScoreboard().addScoreHolderToTeam(player.getNameForScoreboard(), player.getScoreboard().getTeam("hunters"));
-            }
-
-            boolean runnersLeft = false;
-
-            for (ServerPlayerEntity serverPlayer : server.getPlayerManager().getPlayerList()) {
-                if (player.interactionManager.getGameMode() != GameMode.SPECTATOR && serverPlayer.getScoreboardTeam() != null && serverPlayer.getScoreboardTeam() == player.getScoreboard().getTeam("runners")) {
-                    runnersLeft = true;
-                }
-            }
-
-            if (!runnersLeft) {
-                ManhuntGame.endGame(server, true, false);
+        if (this.isTeamPlayer(this.getScoreboard().getTeam("runners"))) {
+            if (server.getScoreboard().getTeam("runners").getPlayerList().size() == 1) {
+                gameOver(server, true);
             }
         }
     }
 
     @Inject(method = "shouldDamagePlayer", at = @At("HEAD"), cancellable = true)
     private void Manhunt$pvpMixin(PlayerEntity attacker, CallbackInfoReturnable<Boolean> ci) {
-        if (getGameState() == GameState.PREGAME || isPaused()) {
+        if (state == GameState.PREGAME || paused) {
             ci.setReturnValue(false);
         } else {
-            if (player.isTeamPlayer(attacker.getScoreboardTeam()) && config.getFriendlyFire() != 1) {
+            if (this.isTeamPlayer(attacker.getScoreboardTeam()) && config.getFriendlyFire() != 1) {
                 if (config.getFriendlyFire() == 2) {
-                    if (!friendlyFire.get(player.getUuid()) || !friendlyFire.get(attacker.getUuid())) {
+                    if (!friendlyFire.get(this.getUuid()) || !friendlyFire.get(attacker.getUuid())) {
                         ci.setReturnValue(false);
-                        attacker.sendMessage(Text.translatable("manhunt.chat.friendly_fire").formatted(Formatting.RED));
+                        attacker.sendMessage(Text.translatable("chat.friendly_fire").formatted(Formatting.RED));
                     }
                 } else if (config.getFriendlyFire() == 3) {
                     ci.setReturnValue(false);
@@ -151,9 +141,9 @@ public class ServerPlayerEntityMixin {
         }
     }
 
-    private static void updateCompass(ServerPlayerEntity player, ItemStack stack, ServerPlayerEntity trackedPlayer) {
-        NbtCompound playerTag = trackedPlayer.writeNbt(new NbtCompound());
-        NbtList positions = playerTag.getList("Positions", 10);
+    private void updateCompass(ServerPlayerEntity player, ItemStack stack, ServerPlayerEntity trackedPlayer) {
+        NbtCompound thisTag = trackedPlayer.writeNbt(new NbtCompound());
+        NbtList positions = thisTag.getList("Positions", 10);
         int i;
         for (i = 0; i < positions.size(); ++i) {
             NbtCompound compound = positions.getCompound(i);
@@ -168,7 +158,7 @@ public class ServerPlayerEntityMixin {
 
         BlockPos blockPos = new BlockPos(is[0], is[1], is[2]);
 
-        stack.set(DataComponentTypes.LODESTONE_TRACKER, new LodestoneTrackerComponent(Optional.of(GlobalPos.create(player.getWorld().getRegistryKey(), blockPos)), false));
+        stack.set(DataComponentTypes.LODESTONE_TRACKER, new LodestoneTrackerComponent(Optional.of(GlobalPos.create(this.getWorld().getRegistryKey(), blockPos)), false));
     }
 
     private static boolean hasTracker(ServerPlayerEntity player) {
