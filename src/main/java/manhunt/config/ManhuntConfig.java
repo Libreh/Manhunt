@@ -20,7 +20,7 @@ public class ManhuntConfig {
     private int runnerHeadstart = 0;
     private int timeLimit = 240;
     private int worldBorder = 59999968;
-    private int teamPreset = 1;
+    private int teamPreset = 3;
     private boolean teamColor = true;
     private Formatting huntersColor = Formatting.RED;
     private Formatting runnersColor = Formatting.GREEN;
@@ -33,7 +33,7 @@ public class ManhuntConfig {
     private boolean gameTitles = true;
     private boolean manhuntSounds = true;
     private boolean nightVision = true;
-    private int friendlyFire = 1;
+    private int friendlyFire = 2;
     private boolean bedExplosions = true;
     private boolean lavaPvpInNether = true;
     private boolean runnerPreferences = true;

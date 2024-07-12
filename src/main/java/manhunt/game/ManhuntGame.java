@@ -28,6 +28,7 @@ import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.stat.Stats;
 import net.minecraft.text.Text;
+import net.minecraft.text.Texts;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.*;
 import net.minecraft.util.math.random.Random;
@@ -227,7 +228,7 @@ public class ManhuntGame {
 
             if (manhuntSounds.get(player.getUuid())) {
                 player.playSoundToPlayer(
-                        SoundEvents.BLOCK_NOTE_BLOCK_PLING.value(),
+                        SoundEvents.BLOCK_NOTE_BLOCK_HARP.value(),
                         SoundCategory.MASTER,
                         0.5f,
                         2f
@@ -280,7 +281,7 @@ public class ManhuntGame {
 
         LOGGER.info("Seed: {}", getOverworld().getSeed());
 
-        server.getPlayerManager().broadcast(Text.translatable("text.both", Text.literal("Seed:"), Text.literal(String.valueOf(getOverworld().getSeed())).formatted(Formatting.GREEN)), false);
+        server.getPlayerManager().broadcast(Text.translatable("text.both", Text.literal("Seed:"), Texts.bracketedCopyable(String.valueOf(getOverworld().getSeed())).formatted(Formatting.GREEN)), false);
 
         for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
             player.changeGameMode(getGameMode());
@@ -302,10 +303,10 @@ public class ManhuntGame {
 
             if (config.isManhuntSounds() && manhuntSounds.get(player.getUuid())) {
                 player.playSoundToPlayer(
-                        SoundEvents.BLOCK_NOTE_BLOCK_PLING.value(),
+                        SoundEvents.BLOCK_NOTE_BLOCK_IRON_XYLOPHONE.value(),
                         SoundCategory.MASTER,
                         1f,
-                        2f
+                        0.5f
                 );
             }
         }
@@ -420,8 +421,14 @@ public class ManhuntGame {
             );
         }
 
-        if (config.getTeamPreset() != 1) {
+        if (config.getTeamPreset() != 1 && config.getTeamPreset() != 5) {
             if (config.getTeamPreset() == 2) {
+                for (ServerPlayerEntity serverPlayer : server.getPlayerManager().getPlayerList()) {
+                    serverPlayer.getScoreboard().addScoreHolderToTeam(
+                            serverPlayer.getNameForScoreboard(), server.getScoreboard().getTeam("runners")
+                    );
+                }
+            } else if (config.getTeamPreset() == 3) {
                 if (playerList == null || playerList.isEmpty()) {
                     playerList = new ArrayList<>(server.getPlayerManager().getPlayerList());
                 }
@@ -446,7 +453,7 @@ public class ManhuntGame {
                 );
 
                 playerList.remove(runner);
-            } else if (config.getTeamPreset() == 3) {
+            } else {
                 List<ServerPlayerEntity> players = new ArrayList<>(server.getPlayerManager().getPlayerList());
 
                 Collections.shuffle(players);
@@ -462,12 +469,6 @@ public class ManhuntGame {
                 server.getScoreboard().addScoreHolderToTeam(
                         hunter.getNameForScoreboard(), server.getScoreboard().getTeam("hunters")
                 );
-            } else {
-                for (ServerPlayerEntity serverPlayer : server.getPlayerManager().getPlayerList()) {
-                    serverPlayer.getScoreboard().addScoreHolderToTeam(
-                            serverPlayer.getNameForScoreboard(), server.getScoreboard().getTeam("runners")
-                    );
-                }
             }
         }
 

@@ -21,7 +21,7 @@ public abstract class LivingEntityMixin extends Entity {
     }
 
     @Inject(method = "damage", at = @At("RETURN"))
-    private void Manhunt$resetInvulnerabilityTicksWhenNoDamage(DamageSource damageSource, float amount, CallbackInfoReturnable<Boolean> callback) {
+    private void resetInvulnerabilityTicksWhenNoDamage(DamageSource damageSource, float amount, CallbackInfoReturnable<Boolean> callback) {
         if (!callback.getReturnValueZ() && lastDamageTaken <= 0) {
             this.timeUntilRegen = 0;
         }

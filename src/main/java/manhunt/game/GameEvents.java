@@ -21,9 +21,7 @@ import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.nbt.NbtSizeTracker;
-import net.minecraft.network.packet.s2c.play.PositionFlag;
-import net.minecraft.network.packet.s2c.play.SubtitleS2CPacket;
-import net.minecraft.network.packet.s2c.play.TitleS2CPacket;
+import net.minecraft.network.packet.s2c.play.*;
 import net.minecraft.scoreboard.AbstractTeam;
 import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.scoreboard.Team;
@@ -53,6 +51,7 @@ import static manhunt.game.ManhuntGame.*;
 
 public class GameEvents {
     private static boolean headstartCountdown = false;
+    private static int count;
 
     public static void serverStart(MinecraftServer server) {
         state = GameState.PREGAME;
@@ -121,46 +120,6 @@ public class GameEvents {
 
             if (duration && !paused) {
                 durationTime = durationTime - 1;
-
-                if (durationTime % (20 * 60 * 60) / (20 * 60) >= config.getTimeLimit()) {
-                    gameOver(server, true);
-                    return;
-                } else {
-                    String hoursString;
-                    int hours = (int) Math.floor((double) durationTime % (20 * 60 * 60 * 24) / (20 * 60 * 60));
-                    if (hours <= 9) {
-                        hoursString = "0" + hours;
-                    } else {
-                        hoursString = String.valueOf(hours);
-                    }
-                    String minutesString;
-                    int minutes = (int) Math.floor((double) durationTime % (20 * 60 * 60) / (20 * 60));
-                    if (minutes <= 9) {
-                        minutesString = "0" + minutes;
-                    } else {
-                        minutesString = String.valueOf(minutes);
-                    }
-                    String secondsString;
-                    int seconds = (int) Math.floor((double) durationTime % (20 * 60) / (20));
-                    if (seconds <= 9) {
-                        secondsString = "0" + seconds;
-                    } else {
-                        secondsString = String.valueOf(seconds);
-                    }
-
-                    if (!headstart) {
-                        for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
-                            player.sendMessage(Text.translatable(
-                                            "chat.time.triple",
-                                            hoursString,
-                                            minutesString,
-                                            secondsString
-                                    ).setStyle(Style.EMPTY.withBold(true)),
-                                    true
-                            );
-                        }
-                    }
-                }
             }
 
             if (paused) {
@@ -169,121 +128,142 @@ public class GameEvents {
                 } else {
                     pauseTime = pauseTime + 1;
                 }
-
-                String minutesString;
-                int minutes = (int) Math.floor((double) pauseTime % (20 * 60 * 60) / (20 * 60));
-
-                if (minutes >= config.getRunnerLeavingPauseTime()) {
-                    pauseTime = 0;
-                    UnpauseCommand.unpauseGame(server);
-                } else {
-                    if (minutes <= 9) {
-                        minutesString = "0" + minutes;
-                    } else {
-                        minutesString = String.valueOf(minutes);
-                    }
-                    String secondsString;
-                    int seconds = (int) Math.floor((double) pauseTime % (20 * 60) / (20));
-                    if (seconds <= 9) {
-                        secondsString = "0" + seconds;
-                    } else {
-                        secondsString = String.valueOf(seconds);
-                    }
-
-                    for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
-                        if (playerPos.containsKey(player.getUuid())) {
-                            player.teleport(
-                                    server.getWorld(player.getWorld().getRegistryKey()),
-                                    playerPos.get(player.getUuid()).getX(),
-                                    playerPos.get(player.getUuid()).getY(),
-                                    playerPos.get(player.getUuid()).getZ(),
-                                    playerYaw.get(player.getUuid()),
-                                    playerPitch.get(player.getUuid())
-                            );
-                        } else {
-                            playerPos.put(player.getUuid(), player.getPos());
-                        }
-
-                        player.networkHandler.sendPacket(new TitleS2CPacket(Text.literal(
-                                config.getGamePausedTitle()).formatted(Formatting.YELLOW))
-                        );
-                        player.networkHandler.sendPacket(new SubtitleS2CPacket(Text.translatable(
-                                "chat.time.double",
-                                minutesString,
-                                secondsString).formatted(Formatting.GOLD))
-                        );
-                    }
-                }
             }
 
-            if (headstart) {
-                if (!headstartCountdown) {
-                    for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
-                        player.sendMessage(Text.translatable("chat.runner_headstart.start").formatted(Formatting.AQUA), true);
+            if (headstart && !paused && headstartCountdown) {
+                headstartTime = headstartTime - 1;
+            }
 
-                        if (player.getScoreboardTeam() != null && player.getScoreboardTeam().getName().equals("runners")) {
-                            if (
-                                    Math.abs(
-                                            (player.getBlockPos().getX() - playerSpawnPos.get(player.getUuid()).getX())
-                                                    *
-                                            (player.getBlockPos().getZ() - playerSpawnPos.get(player.getUuid()).getZ()))
-                                        >= 1
-                            ) {
-                                headstartCountdown = true;
+            count++;
+            if (count == 19) {
+                if (duration && !paused) {
+                    if (durationTime % (20 * 60 * 60) / (20 * 60) >= config.getTimeLimit() && state == GameState.PLAYING) {
+                        gameOver(server, true);
+                        return;
+                    } else {
+                        String hoursString;
+                        int hours = (int) Math.floor((double) durationTime % (20 * 60 * 60 * 24) / (20 * 60 * 60));
+                        if (hours <= 9) {
+                            hoursString = "0" + hours;
+                        } else {
+                            hoursString = String.valueOf(hours);
+                        }
+                        String minutesString;
+                        int minutes = (int) Math.floor((double) durationTime % (20 * 60 * 60) / (20 * 60));
+                        if (minutes <= 9) {
+                            minutesString = "0" + minutes;
+                        } else {
+                            minutesString = String.valueOf(minutes);
+                        }
+                        String secondsString;
+                        int seconds = (int) Math.floor((double) durationTime % (20 * 60) / (20));
+                        if (seconds <= 9) {
+                            secondsString = "0" + seconds;
+                        } else {
+                            secondsString = String.valueOf(seconds);
+                        }
+
+                        if (!headstart) {
+                            for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+                                player.sendMessage(Text.translatable(
+                                                "chat.time.triple",
+                                                hoursString,
+                                                minutesString,
+                                                secondsString
+                                        ).setStyle(Style.EMPTY.withBold(true)),
+                                        true
+                                );
                             }
                         }
                     }
-                } else {
-                    headstartTime = headstartTime - 1;
-                    if (headstartTime >= 20) {
-                        int seconds = (int) Math.floor((double) headstartTime % (20 * 60) / (20));
-                        Formatting formatting;
-                        if (seconds > 10) {
-                            formatting = Formatting.YELLOW;
-                        } else if (seconds < 10 && seconds > 5) {
-                            formatting = Formatting.GOLD;
+                }
+
+                if (paused) {
+                    String minutesString;
+                    int minutes = (int) Math.floor((double) pauseTime % (20 * 60 * 60) / (20 * 60));
+
+                    if (minutes >= config.getRunnerLeavingPauseTime()) {
+                        pauseTime = 0;
+                        UnpauseCommand.unpauseGame(server);
+
+                        for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+                            player.networkHandler.sendPacket(new ClearTitleS2CPacket(
+                                    false)
+                            );
+                        }
+                    } else {
+                        if (minutes <= 9) {
+                            minutesString = "0" + minutes;
                         } else {
-                            formatting = Formatting.RED;
+                            minutesString = String.valueOf(minutes);
+                        }
+                        String secondsString;
+                        int seconds = (int) Math.floor((double) pauseTime % (20 * 60) / (20));
+                        if (seconds <= 9) {
+                            secondsString = "0" + seconds;
+                        } else {
+                            secondsString = String.valueOf(seconds);
                         }
 
                         for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
-                            player.sendMessage(Text.translatable("chat.runner_headstart.hunter", Text.literal(seconds + " seconds").formatted(formatting)), true);
+                            player.networkHandler.sendPacket(new TitleFadeS2CPacket(0, 20, 5)
+                            );
 
-                            if (player.getScoreboardTeam() != null && player.getScoreboardTeam().getName().equals("hunters")) {
-                                if (playerSpawnPos.get(player.getUuid()).getX() == player.getBlockX()) {
-                                    if (playerPos.containsKey(player.getUuid()) && playerYaw.containsKey(player.getUuid()) && playerPitch.containsKey(player.getUuid())) {
-                                        player.teleport(
-                                                server.getWorld(player.getWorld().getRegistryKey()),
-                                                playerPos.get(player.getUuid()).getX(),
-                                                playerPos.get(player.getUuid()).getY(),
-                                                playerPos.get(player.getUuid()).getZ(),
-                                                playerYaw.get(player.getUuid()),
-                                                playerPitch.get(player.getUuid())
-                                        );
+                            player.networkHandler.sendPacket(new TitleS2CPacket(Text.literal(
+                                    config.getGamePausedTitle()).formatted(Formatting.YELLOW))
+                            );
+                            player.networkHandler.sendPacket(new SubtitleS2CPacket(Text.translatable(
+                                    "chat.time.double",
+                                    minutesString,
+                                    secondsString).formatted(Formatting.GOLD))
+                            );
+                        }
+                    }
+                }
+
+                if (headstart && !paused) {
+                    if (!headstartCountdown) {
+                        for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+                            player.sendMessage(Text.translatable("chat.runner_headstart.start").formatted(Formatting.AQUA), true);
+                        }
+                    } else {
+                        if (headstartTime >= 20) {
+                            int seconds = (int) Math.floor((double) headstartTime % (20 * 60) / (20));
+                            Formatting formatting;
+                            float pitch = 0f;
+                            if (seconds <= 10) {
+                                if (seconds <= 5) {
+                                    if (seconds <= 3) {
+                                        formatting = Formatting.DARK_RED;
+                                        pitch = 2f;
                                     } else {
-                                        playerPos.put(player.getUuid(), player.getPos());
-                                        playerYaw.put(player.getUuid(), player.getYaw());
-                                        playerPitch.put(player.getUuid(), player.getPitch());
+                                        formatting = Formatting.RED;
+                                        pitch = 1.0f;
                                     }
                                 } else {
-                                    setPlayerSpawn(getOverworld(), player);
+                                    pitch = 0.5f;
+                                    formatting = Formatting.GOLD;
+                                }
+                            } else {
+                                formatting = Formatting.YELLOW;
+                            }
+
+                            for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+                                player.sendMessage(Text.translatable("chat.runner_headstart.hunter", Text.literal(seconds + " seconds").formatted(formatting)), true);
+
+                                if (pitch != 0f) {
+                                    player.playSoundToPlayer(
+                                            SoundEvents.BLOCK_NOTE_BLOCK_BASS.value(),
+                                            SoundCategory.MASTER,
+                                            0.5f,
+                                            pitch
+                                    );
                                 }
                             }
                         }
-                    } else {
-                        headstart = false;
-                        headstartCountdown = false;
-
-                        for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
-                            if (player.getScoreboardTeam() != null && player.getScoreboardTeam() == player.getScoreboard().getTeam("hunters")) {
-                                player.clearStatusEffects();
-                                player.getAttributeInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED).setBaseValue(0.10000000149011612);
-                                player.getAttributeInstance(EntityAttributes.GENERIC_JUMP_STRENGTH).setBaseValue(0.41999998688697815);
-                                player.getAttributeInstance(EntityAttributes.PLAYER_BLOCK_BREAK_SPEED).setBaseValue(1.0);
-                            }
-                        }
                     }
                 }
+                count = 0;
             }
         }
 
@@ -291,7 +271,7 @@ public class GameEvents {
             if (newPlayersList.contains(player.getUuid()) && !player.notInAnyWorld) {
                 newPlayersList.remove(player.getUuid());
 
-                if (player.interactionManager.getGameMode() != getGameMode() || player.getWorld().getRegistryKey() == lobbyRegistry && state != GameState.PREGAME) {
+                if (player.interactionManager.getGameMode() != getGameMode() || (player.getWorld().getRegistryKey() == lobbyRegistry || player.getWorld().getRegistryKey() == World.OVERWORLD) && state != GameState.PREGAME || player.getWorld().getRegistryKey() != lobbyRegistry && state == GameState.PREGAME) {
                     player.clearStatusEffects();
                     player.addStatusEffect(new StatusEffectInstance(StatusEffects.SATURATION, StatusEffectInstance.INFINITE, 255, false, false, false));
                     player.setFireTicks(0);
@@ -311,7 +291,6 @@ public class GameEvents {
 
                     player.getInventory().clear();
                     player.changeGameMode(getGameMode());
-                    player.getScoreboard().addScoreHolderToTeam(player.getNameForScoreboard(), player.getScoreboard().getTeam("hunters"));
 
                     for (AdvancementEntry advancement : player.getServer().getAdvancementLoader().getAdvancements()) {
                         AdvancementProgress progress = player.getAdvancementTracker().getProgress(advancement);
@@ -327,26 +306,6 @@ public class GameEvents {
                     if (state == GameState.PREGAME) {
                         player.teleport(server.getWorld(lobbyRegistry), lobbySpawn.x, lobbySpawn.y, lobbySpawn.z, 180f, 0f);
                         player.setSpawnPoint(lobbyRegistry, lobbySpawnPos, 180f, true, false);
-
-                        if (config.getTeamPreset() == 1) {
-                            player.getScoreboard().addScoreHolderToTeam(player.getNameForScoreboard(), player.getScoreboard().getTeam("hunters"));
-                        } else {
-                            if (config.getTeamPreset() == 2) {
-                                if (player.getScoreboard().getTeam("runners").getPlayerList().isEmpty()) {
-                                    player.getScoreboard().addScoreHolderToTeam(player.getNameForScoreboard(), player.getScoreboard().getTeam("runners"));
-                                } else {
-                                    player.getScoreboard().addScoreHolderToTeam(player.getNameForScoreboard(), player.getScoreboard().getTeam("hunters"));
-                                }
-                            } else if (config.getTeamPreset() == 3) {
-                                if (player.getScoreboard().getTeam("hunters").getPlayerList().isEmpty()) {
-                                    player.getScoreboard().addScoreHolderToTeam(player.getNameForScoreboard(), player.getScoreboard().getTeam("hunters"));
-                                } else {
-                                    player.getScoreboard().addScoreHolderToTeam(player.getNameForScoreboard(), player.getScoreboard().getTeam("runners"));
-                                }
-                            } else {
-                                player.getScoreboard().addScoreHolderToTeam(player.getNameForScoreboard(), player.getScoreboard().getTeam("runners"));
-                            }
-                        }
                     } else {
                         if (!playerSpawnPos.containsKey(player.getUuid())) {
                             setPlayerSpawn(getOverworld(), player);
@@ -358,7 +317,33 @@ public class GameEvents {
                         player.teleport(getOverworld(), playerX, playerY, playerZ, 0, 0);
                     }
                 }
+
+                if (state == GameState.PREGAME) {
+                    if (config.getTeamPreset() == 1 || config.getTeamPreset() == 5) {
+                        player.getScoreboard().addScoreHolderToTeam(player.getNameForScoreboard(), player.getScoreboard().getTeam("hunters"));
+                    } else {
+                        if (config.getTeamPreset() == 2) {
+                            player.getScoreboard().addScoreHolderToTeam(player.getNameForScoreboard(), player.getScoreboard().getTeam("runners"));
+                        } else if (config.getTeamPreset() == 3) {
+                            if (player.getScoreboard().getTeam("runners").getPlayerList().isEmpty()) {
+                                player.getScoreboard().addScoreHolderToTeam(player.getNameForScoreboard(), player.getScoreboard().getTeam("runners"));
+                            } else {
+                                player.getScoreboard().addScoreHolderToTeam(player.getNameForScoreboard(), player.getScoreboard().getTeam("hunters"));
+                            }
+                        } else {
+                            if (player.getScoreboard().getTeam("hunters").getPlayerList().isEmpty()) {
+                                player.getScoreboard().addScoreHolderToTeam(player.getNameForScoreboard(), player.getScoreboard().getTeam("hunters"));
+                            } else {
+                                player.getScoreboard().addScoreHolderToTeam(player.getNameForScoreboard(), player.getScoreboard().getTeam("runners"));
+                            }
+                        }
+                    }
+                }
             }
+
+            if (player.getScoreboardTeam() == null) player.getScoreboard().addScoreHolderToTeam(
+                    player.getNameForScoreboard(), player.getScoreboard().getTeam("hunters")
+            );
 
             if (state == GameState.PREGAME) {
                 if (!hasItem(player, Items.PLAYER_HEAD)) {
@@ -493,23 +478,56 @@ public class GameEvents {
             }
 
             if (state == GameState.PLAYING) {
-                if (headstartTime >= 20) {
-                    if (player.getScoreboardTeam() != null && player.getScoreboardTeam() == player.getScoreboard().getTeam("hunters")) {
-                        if (playerSpawnPos.get(player.getUuid()).getX() == player.getBlockX()) {
-                            if (playerPos.containsKey(player.getUuid()) && playerYaw.containsKey(player.getUuid()) && playerPitch.containsKey(player.getUuid())) {
-                                player.teleport(server.getWorld(player.getWorld().getRegistryKey()), playerPos.get(player.getUuid()).getX(), playerPos.get(player.getUuid()).getY(), playerPos.get(player.getUuid()).getZ(), playerYaw.get(player.getUuid()), playerPitch.get(player.getUuid()));
-                            } else {
-                                playerPos.put(player.getUuid(), player.getPos());
-                                playerYaw.put(player.getUuid(), player.getYaw());
-                                playerPitch.put(player.getUuid(), player.getPitch());
+                if (paused) {
+                    if (playerPos.containsKey(player.getUuid())) {
+                        player.teleport(
+                                server.getWorld(player.getWorld().getRegistryKey()),
+                                playerPos.get(player.getUuid()).getX(),
+                                playerPos.get(player.getUuid()).getY(),
+                                playerPos.get(player.getUuid()).getZ(),
+                                0f,
+                                0f
+                        );
+                    } else {
+                        playerPos.put(player.getUuid(), player.getPos());
+                    }
+                }
+
+                if (headstart && !paused) {
+                    if (!headstartCountdown) {
+                        if (player.getScoreboard().getTeam("runners").getPlayerList().contains(player.getNameForScoreboard())) {
+                            if (
+                                    Math.abs(
+                                            (player.getX() - playerSpawnPos.get(player.getUuid()).getX())
+                                                    *
+                                                    (player.getZ() - playerSpawnPos.get(player.getUuid()).getZ()))
+                                            >= 0.5
+                            ) {
+                                headstartCountdown = true;
                             }
-                        } else {
-                            setPlayerSpawn(getOverworld(), player);
                         }
                     }
 
-                    if (!headstart) {
-                        if (player.getScoreboardTeam() != null && player.getScoreboardTeam() == player.getScoreboard().getTeam("hunters")) {
+                    if (headstartTime >= 20) {
+                        if (player.getScoreboard().getTeam("hunters").getPlayerList().contains(player.getNameForScoreboard())) {
+                            if (playerPos.containsKey(player.getUuid())) {
+                                player.teleport(
+                                        server.getWorld(player.getWorld().getRegistryKey()),
+                                        playerPos.get(player.getUuid()).getX(),
+                                        playerPos.get(player.getUuid()).getY(),
+                                        playerPos.get(player.getUuid()).getZ(),
+                                        0f,
+                                        0f
+                                );
+                            } else {
+                                playerPos.put(player.getUuid(), player.getPos());
+                            }
+                        }
+                    } else {
+                        headstart = false;
+                        headstartCountdown = false;
+
+                        if (player.getScoreboard().getTeam("hunters").getPlayerList().contains(player.getNameForScoreboard())) {
                             player.clearStatusEffects();
                             player.getAttributeInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED).setBaseValue(0.10000000149011612);
                             player.getAttributeInstance(EntityAttributes.GENERIC_JUMP_STRENGTH).setBaseValue(0.41999998688697815);
@@ -939,7 +957,6 @@ public class GameEvents {
 
     private static boolean hasItem(PlayerEntity player, Item item) {
         boolean hasItem = player.getOffHandStack().getItem() == item;
-
         if (!hasItem) {
             for (ItemStack stack : player.getInventory().main) {
                 if (stack.getItem() == item) {
@@ -963,7 +980,6 @@ public class GameEvents {
 
     private static void clearWrongSlots(PlayerEntity player, Item item, int slot) {
         boolean hasItem = player.getOffHandStack().getItem() == item;
-
         if (hasItem) {
             player.getInventory().offHand.clear();
         }
@@ -982,7 +998,6 @@ public class GameEvents {
 
     private static void removeItem(PlayerEntity player, Item item) {
         boolean hasItem = player.getOffHandStack().getItem() == item;
-
         if (hasItem) {
             player.getInventory().offHand.clear();
         }

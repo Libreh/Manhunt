@@ -117,14 +117,14 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity {
     @Inject(at = @At("HEAD"), method = "onDeath")
     private void onDeath(DamageSource source, CallbackInfo ci) {
         if (this.isTeamPlayer(this.getScoreboard().getTeam("runners"))) {
-            if (server.getScoreboard().getTeam("runners").getPlayerList().size() == 1) {
+            if (server.getScoreboard().getTeam("runners").getPlayerList().size() == 1 && state == GameState.PLAYING) {
                 gameOver(server, true);
             }
         }
     }
 
     @Inject(method = "shouldDamagePlayer", at = @At("HEAD"), cancellable = true)
-    private void Manhunt$pvpMixin(PlayerEntity attacker, CallbackInfoReturnable<Boolean> ci) {
+    private void pvpMixin(PlayerEntity attacker, CallbackInfoReturnable<Boolean> ci) {
         if (state == GameState.PREGAME || paused) {
             ci.setReturnValue(false);
         } else {
@@ -132,9 +132,10 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity {
                 if (config.getFriendlyFire() == 2) {
                     if (!friendlyFire.get(this.getUuid()) || !friendlyFire.get(attacker.getUuid())) {
                         ci.setReturnValue(false);
-                        attacker.sendMessage(Text.translatable("chat.friendly_fire").formatted(Formatting.RED));
+                        attacker.sendMessage(Text.translatable("chat.friendly_fire.per_player").formatted(Formatting.RED));
                     }
                 } else if (config.getFriendlyFire() == 3) {
+                    attacker.sendMessage(Text.translatable("chat.friendly_fire").formatted(Formatting.RED));
                     ci.setReturnValue(false);
                 }
             }
@@ -163,7 +164,6 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity {
 
     private static boolean hasTracker(ServerPlayerEntity player) {
         boolean tracker = false;
-
         for (ItemStack stack : player.getInventory().main) {
             if (stack.getItem() == Items.COMPASS && stack.get(DataComponentTypes.CUSTOM_DATA) != null && stack.get(DataComponentTypes.CUSTOM_DATA).copyNbt().getBoolean("Tracker")) {
                 tracker = true;

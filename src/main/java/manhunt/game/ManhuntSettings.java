@@ -226,7 +226,7 @@ public class ManhuntSettings {
 
         SimpleGui runnerPreferencesGui = new SimpleGui(ScreenHandlerType.GENERIC_9X1, player, false);
 
-        runnerPreferencesGui.setTitle(Text.translatable("setting.runner_preferences"));
+        runnerPreferencesGui.setTitle(Text.translatable("menu_category.runner_preferences"));
 
         List<Text> loreList;
         String name;
@@ -436,20 +436,25 @@ public class ManhuntSettings {
 
         loreList.add(Text.translatable("item_lore." + name).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         if (intvalue == 1) {
-            loreList.add(Text.translatable("item_lore.double", Text.translatable("item_lore.team_preset.free_select").formatted(Formatting.GREEN), Text.translatable("item_lore.team_preset.no_selection")).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
-            loreList.add(Text.translatable("item_lore.triple", Text.translatable("item_lore.team_preset.hunter_infection"), Text.translatable("item_lore.team_preset.runner_cycle"), Text.translatable("item_lore.team_preset.hunter_infection")).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+            loreList.add(Text.translatable("item_lore.double", Text.translatable("item_lore.team_preset.free_select").formatted(Formatting.GREEN), Text.translatable("item_lore.team_preset.speedrun_showdown")).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+            loreList.add(Text.translatable("item_lore.double", Text.translatable("item_lore.team_preset.runner_cycle"), Text.translatable("item_lore.team_preset.hunter_infection")).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+            loreList.add(Text.translatable("item_lore.single", Text.translatable("item_lore.team_preset.no_selection")).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         } else if (intvalue == 2) {
-            loreList.add(Text.translatable("item_lore.double", Text.translatable("item_lore.team_preset.free_select"), Text.translatable("item_lore.team_preset.no_selection").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
-            loreList.add(Text.translatable("item_lore.triple", Text.translatable("item_lore.team_preset.hunter_infection"), Text.translatable("item_lore.team_preset.runner_cycle"), Text.translatable("item_lore.team_preset.hunter_infection")).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+            loreList.add(Text.translatable("item_lore.double", Text.translatable("item_lore.team_preset.free_select"), Text.translatable("item_lore.team_preset.speedrun_showdown").formatted(Formatting.YELLOW)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+            loreList.add(Text.translatable("item_lore.double", Text.translatable("item_lore.team_preset.runner_cycle"), Text.translatable("item_lore.team_preset.hunter_infection")).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+            loreList.add(Text.translatable("item_lore.single", Text.translatable("item_lore.team_preset.no_selection")).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         } else if (intvalue == 3) {
-            loreList.add(Text.translatable("item_lore.double", Text.translatable("item_lore.team_preset.free_select"), Text.translatable("item_lore.team_preset.no_selection")).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
-            loreList.add(Text.translatable("item_lore.triple", Text.translatable("item_lore.team_preset.hunter_infection").formatted(Formatting.GREEN), Text.translatable("item_lore.team_preset.runner_cycle"), Text.translatable("item_lore.team_preset.hunter_infection")).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+            loreList.add(Text.translatable("item_lore.double", Text.translatable("item_lore.team_preset.free_select"), Text.translatable("item_lore.team_preset.speedrun_showdown")).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+            loreList.add(Text.translatable("item_lore.double", Text.translatable("item_lore.team_preset.runner_cycle").formatted(Formatting.GOLD), Text.translatable("item_lore.team_preset.hunter_infection")).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+            loreList.add(Text.translatable("item_lore.single", Text.translatable("item_lore.team_preset.no_selection")).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         } else if (intvalue == 4) {
-            loreList.add(Text.translatable("item_lore.double", Text.translatable("item_lore.team_preset.free_select"), Text.translatable("item_lore.team_preset.no_selection")).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
-            loreList.add(Text.translatable("item_lore.triple", Text.translatable("item_lore.team_preset.hunter_infection"), Text.translatable("item_lore.team_preset.runner_cycle").formatted(Formatting.YELLOW), Text.translatable("item_lore.team_preset.hunter_infection")).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+            loreList.add(Text.translatable("item_lore.double", Text.translatable("item_lore.team_preset.free_select"), Text.translatable("item_lore.team_preset.speedrun_showdown")).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+            loreList.add(Text.translatable("item_lore.double", Text.translatable("item_lore.team_preset.runner_cycle"), Text.translatable("item_lore.team_preset.hunter_infection").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+            loreList.add(Text.translatable("item_lore.single", Text.translatable("item_lore.team_preset.no_selection")).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         } else {
-            loreList.add(Text.translatable("item_lore.double", Text.translatable("item_lore.team_preset.free_select"), Text.translatable("item_lore.team_preset.no_selection")).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
-            loreList.add(Text.translatable("item_lore.triple", Text.translatable("item_lore.team_preset.hunter_infection"), Text.translatable("item_lore.team_preset.runner_cycle"), Text.translatable("item_lore.team_preset.hunter_infection").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+            loreList.add(Text.translatable("item_lore.double", Text.translatable("item_lore.team_preset.free_select"), Text.translatable("item_lore.team_preset.speedrun_showdown")).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+            loreList.add(Text.translatable("item_lore.double", Text.translatable("item_lore.team_preset.runner_cycle"), Text.translatable("item_lore.team_preset.hunter_infection")).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+            loreList.add(Text.translatable("item_lore.single", Text.translatable("item_lore.team_preset.no_selection").formatted(Formatting.DARK_RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         }
         loreList.add(Text.translatable("item_lore.click_drop").setStyle(Style.EMPTY.withColor(Formatting.AQUA).withItalic(false)));
 
@@ -466,28 +471,6 @@ public class ManhuntSettings {
                             } else {
                                 if (teamPresetInt == 1) {
                                     config.setTeamPreset(2);
-                                } else if (teamPresetInt == 2) {
-                                    config.setTeamPreset(3);
-
-                                    List<ServerPlayerEntity> players = new ArrayList<>(player.getServer().getPlayerManager().getPlayerList());
-
-                                    Collections.shuffle(players);
-
-                                    ServerPlayerEntity hunter = players.get(0);
-
-                                    for (ServerPlayerEntity serverPlayer : player.getServer().getPlayerManager().getPlayerList()) {
-                                        serverPlayer.getScoreboard().addScoreHolderToTeam(
-                                                serverPlayer.getNameForScoreboard(), player.getScoreboard().getTeam("runners")
-                                        );
-                                    }
-
-                                    player.getScoreboard().addScoreHolderToTeam(
-                                            hunter.getNameForScoreboard(), player.getScoreboard().getTeam("hunters")
-                                    );
-                                    player.getServer().getPlayerManager().broadcast(Text.translatable("chat.one_role", Text.literal(hunter.getNameForScoreboard()).formatted(config.getHuntersColor()), Text.translatable("role.manhunt.hunter")), false);
-                                } else if (teamPresetInt == 3) {
-                                    config.setTeamPreset(4);
-
                                     for (ServerPlayerEntity serverPlayer : player.getServer().getPlayerManager().getPlayerList()) {
                                         serverPlayer.getScoreboard().addScoreHolderToTeam(
                                                 serverPlayer.getNameForScoreboard(), player.getScoreboard().getTeam("runners")
@@ -495,9 +478,8 @@ public class ManhuntSettings {
                                     }
 
                                     player.getServer().getPlayerManager().broadcast(Text.translatable("chat.set_role", Text.literal("Everyone").formatted(config.getRunnersColor()), Text.translatable("role.manhunt.runner")), false);
-                                } else if (teamPresetInt == 4) {
-                                    config.setTeamPreset(5);
-
+                                } else if (teamPresetInt == 2) {
+                                    config.setTeamPreset(3);
                                     if (playerList == null || playerList.isEmpty()) {
                                         playerList = new ArrayList<>(player.getServer().getPlayerManager().getPlayerList());
                                     }
@@ -522,10 +504,29 @@ public class ManhuntSettings {
                                     );
                                     playerList.remove(runner);
                                     player.getServer().getPlayerManager().broadcast(Text.translatable("chat.one_role", Text.literal(runner.getNameForScoreboard()).formatted(config.getRunnersColor()), Text.translatable("role.manhunt.runner")), false);
+                                } else if (teamPresetInt == 3) {
+                                    config.setTeamPreset(4);
+                                    List<ServerPlayerEntity> players = new ArrayList<>(player.getServer().getPlayerManager().getPlayerList());
+                                    Collections.shuffle(players);
+                                    ServerPlayerEntity hunter = players.get(0);
+
+                                    for (ServerPlayerEntity serverPlayer : player.getServer().getPlayerManager().getPlayerList()) {
+                                        serverPlayer.getScoreboard().addScoreHolderToTeam(
+                                                serverPlayer.getNameForScoreboard(), player.getScoreboard().getTeam("runners")
+                                        );
+                                    }
+
+                                    player.getScoreboard().addScoreHolderToTeam(
+                                            hunter.getNameForScoreboard(), player.getScoreboard().getTeam("hunters")
+                                    );
+                                    player.getServer().getPlayerManager().broadcast(Text.translatable("chat.one_role", Text.literal(hunter.getNameForScoreboard()).formatted(config.getHuntersColor()), Text.translatable("role.manhunt.hunter").formatted(config.getHuntersColor())), false);
+                                } else if (teamPresetInt == 4) {
+                                    config.setTeamPreset(5);
                                 } else {
                                     config.setTeamPreset(1);
                                 }
                             }
+                            config.save();
                             player.networkHandler.sendPacket(new PlaySoundS2CPacket(SoundEvents.UI_BUTTON_CLICK, SoundCategory.MASTER, player.getPos().getX(), player.getPos().getY(), player.getPos().getZ(), 0.5f, 1f, player.getWorld().random.nextLong()));
                             openGameSettingsGui(player);
                         } else {
@@ -589,7 +590,7 @@ public class ManhuntSettings {
             loreList.add(Text.translatable("item_lore.double", Text.translatable("item_lore.on"), Text.translatable("item_lore.off").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         }
         loreList.add(Text.translatable("item_lore.click_drop").setStyle(Style.EMPTY.withColor(Formatting.AQUA).withItalic(false)));
-        loreList.add(Text.translatable("item_lore.click_shift").setStyle(Style.EMPTY.withColor(Formatting.GOLD).withItalic(false)));
+        loreList.add(Text.translatable("item_lore.click_shift").setStyle(Style.EMPTY.withColor(Formatting.LIGHT_PURPLE).withItalic(false)));
 
         var teamColorBool = boolvalue;
         gameSettingsGui.setSlot(slot, new GuiElementBuilder(item)
@@ -659,7 +660,7 @@ public class ManhuntSettings {
             }
         }
         loreList.add(Text.translatable("item_lore.click_drop").setStyle(Style.EMPTY.withColor(Formatting.AQUA).withItalic(false)));
-        loreList.add(Text.translatable("item_lore.click_shift").setStyle(Style.EMPTY.withColor(Formatting.GOLD).withItalic(false)));
+        loreList.add(Text.translatable("item_lore.click_shift").setStyle(Style.EMPTY.withColor(Formatting.LIGHT_PURPLE).withItalic(false)));
 
         int runnerHeadstartInt = intvalue;
         gameSettingsGui.setSlot(slot, new GuiElementBuilder(item)
@@ -742,7 +743,7 @@ public class ManhuntSettings {
             }
         }
         loreList.add(Text.translatable("item_lore.click_drop").setStyle(Style.EMPTY.withColor(Formatting.AQUA).withItalic(false)));
-        loreList.add(Text.translatable("item_lore.click_shift").setStyle(Style.EMPTY.withColor(Formatting.GOLD).withItalic(false)));
+        loreList.add(Text.translatable("item_lore.click_shift").setStyle(Style.EMPTY.withColor(Formatting.LIGHT_PURPLE).withItalic(false)));
 
         int timeLimitInt = intvalue;
         gameSettingsGui.setSlot(slot, new GuiElementBuilder(item)
@@ -810,6 +811,7 @@ public class ManhuntSettings {
         boolvalue = config.isRunnersGlow();
 
         loreList.add(Text.translatable("item_lore." + name).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+        loreList.add(Text.translatable("item_lore." + name + ".second").setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         if (boolvalue) {
             loreList.add(Text.translatable("item_lore.double", Text.translatable("item_lore.on").formatted(Formatting.GREEN), Text.translatable("item_lore.off")).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         } else {
@@ -860,19 +862,19 @@ public class ManhuntSettings {
         loreList.add(Text.translatable("item_lore." + name).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         if (intvalue == 0) {
             loreList.add(Text.translatable("item_lore.single", Text.translatable("item_lore.off").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
-        } else if (intvalue != 2816 && intvalue != 5888 && intvalue != 59999968) {
+        } else if (intvalue != 5632 && intvalue != 11776 && intvalue != 59999968) {
             loreList.add(Text.translatable("item_lore.single", Text.literal(String.valueOf(intvalue)).formatted(Formatting.GREEN)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         } else {
-            if (intvalue == 2816) {
+            if (intvalue == 5632) {
                 loreList.add(Text.translatable("item_lore.triple", Text.literal("1st ring").formatted(Formatting.RED), Text.literal("2nd ring"), Text.literal("Maximum")).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
-            } else if (intvalue == 5888) {
+            } else if (intvalue == 11776) {
                 loreList.add(Text.translatable("item_lore.triple", Text.literal("1st ring"), Text.literal("2nd ring").formatted(Formatting.YELLOW), Text.literal("Maximum")).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
             } else {
                 loreList.add(Text.translatable("item_lore.triple", Text.literal("1st ring"), Text.literal("2nd ring"), Text.literal("Maximum").formatted(Formatting.GREEN)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
             }
         }
         loreList.add(Text.translatable("item_lore.click_drop").setStyle(Style.EMPTY.withColor(Formatting.AQUA).withItalic(false)));
-        loreList.add(Text.translatable("item_lore.click_shift").setStyle(Style.EMPTY.withColor(Formatting.GOLD).withItalic(false)));
+        loreList.add(Text.translatable("item_lore.click_shift").setStyle(Style.EMPTY.withColor(Formatting.LIGHT_PURPLE).withItalic(false)));
 
         int worldBorderInt = intvalue;
         gameSettingsGui.setSlot(slot, new GuiElementBuilder(item)
@@ -886,16 +888,19 @@ public class ManhuntSettings {
                                 if (type == ClickType.DROP) {
                                     config.setWorldBorder(config.getWorldBorderDefault());
                                 } else {
-                                    if (worldBorderInt != 2816 && worldBorderInt != 5888) {
-                                        config.setWorldBorder(2816);
+                                    if (worldBorderInt != 5632 && worldBorderInt != 11776) {
+                                        config.setWorldBorder(5632);
                                     } else {
-                                        if (worldBorderInt == 2816) {
-                                            config.setWorldBorder(5888);
+                                        if (worldBorderInt == 5632) {
+                                            config.setWorldBorder(11776);
                                         } else {
                                             config.setWorldBorder(59999968);
                                         }
                                     }
                                 }
+                                config.save();
+                                player.networkHandler.sendPacket(new PlaySoundS2CPacket(SoundEvents.UI_BUTTON_CLICK, SoundCategory.MASTER, player.getPos().getX(), player.getPos().getY(), player.getPos().getZ(), 0.5f, 1f, player.getWorld().random.nextLong()));
+                                openGameSettingsGui(player);
                             } else {
                                 AnvilInputGui worldBorderGui = new AnvilInputGui(player, false) {
                                     @Override
@@ -910,6 +915,9 @@ public class ManhuntSettings {
                                                         player.sendMessage(Text.translatable("chat.invalid_input").formatted(Formatting.RED));
                                                     }
                                                     config.setWorldBorder(value);
+                                                    config.save();
+                                                    player.networkHandler.sendPacket(new PlaySoundS2CPacket(SoundEvents.UI_BUTTON_CLICK, SoundCategory.MASTER, player.getPos().getX(), player.getPos().getY(), player.getPos().getZ(), 0.5f, 1f, player.getWorld().random.nextLong()));
+                                                    openGameSettingsGui(player);
                                                 })
                                         );
                                     }
@@ -918,9 +926,6 @@ public class ManhuntSettings {
                                 worldBorderGui.setDefaultInputValue("");
                                 worldBorderGui.open();
                             }
-                            config.save();
-                            player.networkHandler.sendPacket(new PlaySoundS2CPacket(SoundEvents.UI_BUTTON_CLICK, SoundCategory.MASTER, player.getPos().getX(), player.getPos().getY(), player.getPos().getZ(), 0.5f, 1f, player.getWorld().random.nextLong()));
-                            openGameSettingsGui(player);
                         } else {
                             player.sendMessage(Text.translatable("chat.slow_down").formatted(Formatting.RED));
                         }
@@ -1054,6 +1059,8 @@ public class ManhuntSettings {
         intvalue = config.getRunnerLeavingPauseTime();
 
         loreList.add(Text.translatable("item_lore." + name).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+        loreList.add(Text.translatable("item_lore." + name + ".second").setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+        loreList.add(Text.translatable("item_lore." + name + ".third").setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         if (intvalue == 0) {
             loreList.add(Text.translatable("item_lore.single", Text.translatable("item_lore.off").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         } else if (intvalue != 1 && intvalue != 2 && intvalue != 5) {
@@ -1068,7 +1075,7 @@ public class ManhuntSettings {
             }
         }
         loreList.add(Text.translatable("item_lore.click_drop").setStyle(Style.EMPTY.withColor(Formatting.AQUA).withItalic(false)));
-        loreList.add(Text.translatable("item_lore.click_shift").setStyle(Style.EMPTY.withColor(Formatting.GOLD).withItalic(false)));
+        loreList.add(Text.translatable("item_lore.click_shift").setStyle(Style.EMPTY.withColor(Formatting.LIGHT_PURPLE).withItalic(false)));
 
         int pauseTimeOnLeaveInt = intvalue;
         gameSettingsGui.setSlot(slot, new GuiElementBuilder(item)
@@ -1079,7 +1086,6 @@ public class ManhuntSettings {
                         if (slowDownManager.get(player.getUuid()) < 4) {
                             if (!type.shift) {
                                 if (slowDownManager.get(player.getUuid()) < 8) slowDownManager.put(player.getUuid(), slowDownManager.get(player.getUuid()) + 1);
-
                                 if (type == ClickType.DROP) {
                                     config.setRunnerLeavingPauseTime(config.getRunnerLeavingPauseTimeDefault());
                                 } else {
@@ -1093,6 +1099,9 @@ public class ManhuntSettings {
                                         }
                                     }
                                 }
+                                config.save();
+                                player.networkHandler.sendPacket(new PlaySoundS2CPacket(SoundEvents.UI_BUTTON_CLICK, SoundCategory.MASTER, player.getPos().getX(), player.getPos().getY(), player.getPos().getZ(), 0.5f, 1f, player.getWorld().random.nextLong()));
+                                openGameSettingsGui(player);
                             } else {
                                 AnvilInputGui pauseTimeOnLeaveGui = new AnvilInputGui(player, false) {
                                     @Override
@@ -1151,7 +1160,6 @@ public class ManhuntSettings {
                             player.getScoreboard().getTeam("runners").setColor(Formatting.RESET);
                         }
                     }
-
                     config.save();
                     player.networkHandler.sendPacket(new PlaySoundS2CPacket(SoundEvents.UI_BUTTON_CLICK, SoundCategory.MASTER, player.getPos().getX(), player.getPos().getY(), player.getPos().getZ(), 0.5f, 1f, player.getWorld().random.nextLong()));
                     openGameSettingsGui(player);
@@ -1343,7 +1351,6 @@ public class ManhuntSettings {
                                     if (slowDownManager.get(player.getUuid()) < 4) {
                                         if (type == ClickType.DROP) {
                                             config.setRunnersColor(config.getRunnersColorDefault());
-
                                             config.save();
                                             player.networkHandler.sendPacket(new PlaySoundS2CPacket(SoundEvents.UI_BUTTON_CLICK, SoundCategory.MASTER, player.getPos().getX(), player.getPos().getY(), player.getPos().getZ(), 0.5f, 1f, player.getWorld().random.nextLong()));
                                             openGameSettingsGui(player);
@@ -1693,6 +1700,7 @@ public class ManhuntSettings {
                     }
                 })
         );
+        slot++;
 
         loreList = new ArrayList<>();
         name = "bed_explosions";
@@ -1789,7 +1797,7 @@ public class ManhuntSettings {
 
         var runnerPreferencesBool = bool;
         globalPreferencesGui.setSlot(slot, new GuiElementBuilder(item)
-                .setName(Text.translatable("setting." + name))
+                .setName(Text.translatable("menu_category." + name))
                 .setLore(loreList)
                 .setCallback((index, type, action) ->  {
                     if (slowDownManager.get(player.getUuid()) < 8) slowDownManager.put(player.getUuid(), slowDownManager.get(player.getUuid()) + 1);
@@ -2012,7 +2020,7 @@ public class ManhuntSettings {
             loreList.add(Text.translatable("item_lore.double", Text.translatable("item_lore.on"), Text.translatable("item_lore.off").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         }
         loreList.add(Text.translatable("item_lore.click_drop").setStyle(Style.EMPTY.withColor(Formatting.AQUA).withItalic(false)));
-        loreList.add(Text.translatable("item_lore.click_shift").setStyle(Style.EMPTY.withColor(Formatting.GOLD).withItalic(false)));
+        loreList.add(Text.translatable("item_lore.click_shift").setStyle(Style.EMPTY.withColor(Formatting.LIGHT_PURPLE).withItalic(false)));
 
         var preloadChunksBool = boolvalue;
         modIntegrationsGui.setSlot(slot, new GuiElementBuilder(item)
@@ -2075,7 +2083,7 @@ public class ManhuntSettings {
                     item = Items.GRASS_BLOCK;
                     intvalue = config.getOverworld();
 
-                    loreList.add(Text.translatable("manhunt.world_lore").setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+                    loreList.add(Text.translatable("world.manhunt.lore").setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
                     if (intvalue == 0) {
                         loreList.add(Text.translatable("item_lore.single", Text.translatable("item_lore.off").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
                     } else if (intvalue != 2000 && intvalue != 4000 && intvalue != 8000) {
@@ -2090,7 +2098,7 @@ public class ManhuntSettings {
                         }
                     }
                     loreList.add(Text.translatable("item_lore.click_drop").setStyle(Style.EMPTY.withColor(Formatting.AQUA).withItalic(false)));
-                    loreList.add(Text.translatable("item_lore.click_shift").setStyle(Style.EMPTY.withColor(Formatting.GOLD).withItalic(false)));
+                    loreList.add(Text.translatable("item_lore.click_shift").setStyle(Style.EMPTY.withColor(Formatting.LIGHT_PURPLE).withItalic(false)));
 
                     var overworldInt = intvalue;
                     chunkyIntegrationGui.setSlot(slot, new GuiElementBuilder(item)
@@ -2167,7 +2175,7 @@ public class ManhuntSettings {
                     item = Items.NETHERRACK;
                     intvalue = config.getNether();
 
-                    loreList.add(Text.translatable("manhunt.world_lore").setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+                    loreList.add(Text.translatable("world.manhunt.lore").setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
                     if (intvalue == 0) {
                         loreList.add(Text.translatable("item_lore.single", Text.translatable("item_lore.off").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
                     } else if (intvalue != 250 && intvalue != 500 && intvalue != 1000) {
@@ -2182,7 +2190,7 @@ public class ManhuntSettings {
                         }
                     }
                     loreList.add(Text.translatable("item_lore.click_drop").setStyle(Style.EMPTY.withColor(Formatting.AQUA).withItalic(false)));
-                    loreList.add(Text.translatable("item_lore.click_shift").setStyle(Style.EMPTY.withColor(Formatting.GOLD).withItalic(false)));
+                    loreList.add(Text.translatable("item_lore.click_shift").setStyle(Style.EMPTY.withColor(Formatting.LIGHT_PURPLE).withItalic(false)));
 
                     var netherInt = intvalue;
                     chunkyIntegrationGui.setSlot(slot, new GuiElementBuilder(item)
@@ -2259,7 +2267,7 @@ public class ManhuntSettings {
                     item = Items.END_STONE;
                     intvalue = config.getEnd();
 
-                    loreList.add(Text.translatable("manhunt.world_lore").setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+                    loreList.add(Text.translatable("world.manhunt.lore").setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
                     if (intvalue == 0) {
                         loreList.add(Text.translatable("item_lore.single", Text.translatable("item_lore.off").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
                     } else if (intvalue != 250 && intvalue != 500 && intvalue != 1000) {
@@ -2274,7 +2282,7 @@ public class ManhuntSettings {
                         }
                     }
                     loreList.add(Text.translatable("item_lore.click_drop").setStyle(Style.EMPTY.withColor(Formatting.AQUA).withItalic(false)));
-                    loreList.add(Text.translatable("item_lore.click_shift").setStyle(Style.EMPTY.withColor(Formatting.GOLD).withItalic(false)));
+                    loreList.add(Text.translatable("item_lore.click_shift").setStyle(Style.EMPTY.withColor(Formatting.LIGHT_PURPLE).withItalic(false)));
 
                     var endInt = intvalue;
                     chunkyIntegrationGui.setSlot(slot, new GuiElementBuilder(item)

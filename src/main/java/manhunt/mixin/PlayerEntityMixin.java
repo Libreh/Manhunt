@@ -28,7 +28,7 @@ public abstract class PlayerEntityMixin extends LivingEntity {
     }
 
     @Inject(at = @At("HEAD"), method = "tick")
-    private void Manhunt$tick(CallbackInfo ci) {
+    private void tick(CallbackInfo ci) {
         DataResult<NbtElement> var10000 = World.CODEC.encodeStart(NbtOps.INSTANCE, this.getWorld().getRegistryKey());
         var10000.resultOrPartial(LOGGER::error).ifPresent((dimension) -> {
             for (int i = 0; i < positions.size(); ++i) {
@@ -46,7 +46,7 @@ public abstract class PlayerEntityMixin extends LivingEntity {
     }
 
     @Inject(at = @At(value = "HEAD"), method = "dropItem(Lnet/minecraft/item/ItemStack;ZZ)Lnet/minecraft/entity/ItemEntity;", cancellable = true)
-    private void Manhunt$dropItem(ItemStack stack, boolean throwRandomly, boolean retainOwnership, CallbackInfoReturnable<ItemEntity> ci) {
+    private void dropItem(ItemStack stack, boolean throwRandomly, boolean retainOwnership, CallbackInfoReturnable<ItemEntity> ci) {
         if (stack.get(DataComponentTypes.CUSTOM_DATA) != null) {
             if (stack.get(DataComponentTypes.CUSTOM_DATA).copyNbt().getBoolean("Remove")) {
                 ci.setReturnValue(null);
@@ -56,13 +56,13 @@ public abstract class PlayerEntityMixin extends LivingEntity {
     }
 
     @Inject(at = @At("RETURN"), method = "writeCustomDataToNbt")
-    private void Manhunt$addAdditionalSaveData(NbtCompound nbt, CallbackInfo cbi) {
+    private void addAdditionalSaveData(NbtCompound nbt, CallbackInfo cbi) {
         nbt.putBoolean("manhuntModded", true);
         nbt.put("Positions", positions);
     }
 
     @Inject(at = @At("RETURN"), method = "readCustomDataFromNbt")
-    public void Manhunt$readAdditionalSaveData(NbtCompound nbt, CallbackInfo cbi) {
+    public void readAdditionalSaveData(NbtCompound nbt, CallbackInfo cbi) {
         this.positions = nbt.getList("Positions", 10);
     }
 }
