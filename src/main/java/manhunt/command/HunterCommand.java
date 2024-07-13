@@ -18,7 +18,7 @@ import static manhunt.ManhuntMod.config;
 public class HunterCommand {
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(CommandManager.literal("hunter")
-                .requires(source -> source.isExecutedByPlayer() && ManhuntMod.state == GameState.PREGAME)
+                .requires(source -> source.isExecutedByPlayer() && ManhuntMod.state == GameState.PREGAME && config.getTeamPreset() == 1)
                 .executes(context -> setHunter(context.getSource(), context.getSource().getPlayer()))
                 .then(CommandManager.argument("targets", EntityArgumentType.players())
                         .requires(source -> ManhuntMod.checkPermission(source.getPlayer(), "manhunt.hunter"))

@@ -176,7 +176,7 @@ public class ManhuntMod implements ModInitializer {
 		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> GameEvents.playerJoin(handler));
 		ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> GameEvents.playerLeave(handler));
 		UseItemCallback.EVENT.register(GameEvents::useItem);
-		UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> GameEvents.useBlock(player, world, hand));
+		UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> GameEvents.useBlock(player, world, hand, hitResult));
 	}
 
 	public static void loadManhuntWorlds(MinecraftServer server, long seed) {
@@ -276,6 +276,6 @@ public class ManhuntMod implements ModInitializer {
 	}
 
 	public static boolean checkPermission(ServerPlayerEntity player, String key) {
-		return Permissions.check(player, key) || player.hasPermissionLevel(1) || player.hasPermissionLevel(2) ||player.hasPermissionLevel(2) ||player.hasPermissionLevel(4);
+		return Permissions.check(player, key) || Permissions.check(player, "manhunt.leader") || player.hasPermissionLevel(1) || player.hasPermissionLevel(2) ||player.hasPermissionLevel(2) ||player.hasPermissionLevel(4);
 	}
 }

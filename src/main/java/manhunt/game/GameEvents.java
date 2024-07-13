@@ -7,6 +7,7 @@ import me.lucko.fabric.api.permissions.v0.Permissions;
 import me.mrnavastar.sqlib.DataContainer;
 import net.minecraft.advancement.AdvancementEntry;
 import net.minecraft.advancement.AdvancementProgress;
+import net.minecraft.block.Block;
 import net.minecraft.block.entity.StructureBlockBlockEntity;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.NbtComponent;
@@ -37,8 +38,10 @@ import net.minecraft.structure.StructureTemplate;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.util.*;
+import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
 import net.minecraft.world.GameRules;
 import net.minecraft.world.World;
@@ -908,15 +911,21 @@ public class GameEvents {
         return TypedActionResult.pass(stack);
     }
 
-    public static ActionResult useBlock(PlayerEntity player, World world, Hand hand) {
-        ItemStack stack = player.getStackInHand(hand);
-
+    public static ActionResult useBlock(PlayerEntity player, World world, Hand hand, HitResult hitResult) {
         if (!config.isBedExplosions()) {
-            if (world.getRegistryKey() != getOverworld().getRegistryKey() && stack.getName().getString().toLowerCase().contains("bed")) {
-                for (ServerPlayerEntity serverPlayer : player.getServer().getPlayerManager().getPlayerList()) {
-                    if (player.distanceTo(serverPlayer) <= 9.0f && !player.isTeamPlayer(serverPlayer.getScoreboardTeam())) {
-                        player.sendMessage(Text.translatable("chat.disabled_if_close").formatted(Formatting.RED));
-                        return ActionResult.FAIL;
+            if (world.getRegistryKey() != getOverworld().getRegistryKey()) {
+                Vec3d pos = hitResult.getPos();
+                Block block = player.getWorld().getBlockState(new BlockPos((int) pos.x, (int) pos.y, (int) pos.z)).getBlock();
+                if (
+                        player.getStackInHand(hand).getName().getString().toLowerCase().contains(" bed")
+                                ||
+                        block.getName().getString().toLowerCase().contains(" bed")
+                ) {
+                    for (ServerPlayerEntity serverPlayer : player.getServer().getPlayerManager().getPlayerList()) {
+                        if (player.distanceTo(serverPlayer) <= 9.0f && !player.isTeamPlayer(serverPlayer.getScoreboardTeam())) {
+                            player.sendMessage(Text.translatable("chat.disabled_if_close").formatted(Formatting.RED));
+                            return ActionResult.FAIL;
+                        }
                     }
                 }
             }
