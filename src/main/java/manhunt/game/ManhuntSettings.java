@@ -545,6 +545,7 @@ public class ManhuntSettings {
         boolvalue = config.isAutomaticCompass();
 
         loreList.add(Text.translatable("item_lore." + name).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+        loreList.add(Text.translatable("item_lore." + name + ".second").setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         if (boolvalue) {
             loreList.add(Text.translatable("item_lore.double", Text.translatable("item_lore.on").formatted(Formatting.GREEN), Text.translatable("item_lore.off")).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         } else {
@@ -646,6 +647,7 @@ public class ManhuntSettings {
         intvalue = config.getRunnerHeadstart();
 
         loreList.add(Text.translatable("item_lore." + name).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+        loreList.add(Text.translatable("item_lore." + name + ".second").setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         if (intvalue == 0) {
             loreList.add(Text.translatable("item_lore.single", Text.translatable("item_lore.off").formatted(Formatting.RED)).setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
         } else if (intvalue != 10 && intvalue != 20 && intvalue != 30) {
@@ -1877,9 +1879,6 @@ public class ManhuntSettings {
                                 gameStartTitleGui.setDefaultInputValue("");
                                 gameStartTitleGui.open();
                             }
-                            config.save();
-                            player.networkHandler.sendPacket(new PlaySoundS2CPacket(SoundEvents.UI_BUTTON_CLICK, SoundCategory.MASTER, player.getPos().getX(), player.getPos().getY(), player.getPos().getZ(), 0.5f, 1f, player.getWorld().random.nextLong()));
-                            openTitleTextsGui(player);
                         } else {
                             player.sendMessage(Text.translatable("chat.slow_down").formatted(Formatting.RED));
                         }
@@ -1924,9 +1923,6 @@ public class ManhuntSettings {
                                 gameStartSubtitleGui.setDefaultInputValue("");
                                 gameStartSubtitleGui.open();
                             }
-                            config.save();
-                            player.networkHandler.sendPacket(new PlaySoundS2CPacket(SoundEvents.UI_BUTTON_CLICK, SoundCategory.MASTER, player.getPos().getX(), player.getPos().getY(), player.getPos().getZ(), 0.5f, 1f, player.getWorld().random.nextLong()));
-                            openTitleTextsGui(player);
                         } else {
                             player.sendMessage(Text.translatable("chat.slow_down").formatted(Formatting.RED));
                         }

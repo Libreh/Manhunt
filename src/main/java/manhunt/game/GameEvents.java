@@ -482,17 +482,19 @@ public class GameEvents {
 
             if (state == GameState.PLAYING) {
                 if (paused) {
-                    if (playerPos.containsKey(player.getUuid())) {
+                    if (playerPos.containsKey(player.getUuid()) && playerYaw.containsKey(player.getUuid()) && playerPitch.containsKey(player.getUuid())) {
                         player.teleport(
                                 server.getWorld(player.getWorld().getRegistryKey()),
                                 playerPos.get(player.getUuid()).getX(),
                                 playerPos.get(player.getUuid()).getY(),
                                 playerPos.get(player.getUuid()).getZ(),
-                                0f,
-                                0f
+                                playerYaw.get(player.getUuid()),
+                                playerPitch.get(player.getUuid())
                         );
                     } else {
                         playerPos.put(player.getUuid(), player.getPos());
+                        playerYaw.put(player.getUuid(), player.getYaw());
+                        playerPitch.put(player.getUuid(), player.getPitch());
                     }
                 }
 

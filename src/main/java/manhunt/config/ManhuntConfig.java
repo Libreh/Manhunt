@@ -20,7 +20,7 @@ public class ManhuntConfig {
     private int runnerHeadstart = 0;
     private int timeLimit = 240;
     private int worldBorder = 59999968;
-    private int teamPreset = 3;
+    private int teamPreset = 1;
     private boolean teamColor = true;
     private Formatting huntersColor = Formatting.RED;
     private Formatting runnersColor = Formatting.GREEN;
