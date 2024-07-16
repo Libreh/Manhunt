@@ -4,7 +4,8 @@ import manhunt.ManhuntMod;
 import manhunt.command.PauseCommand;
 import manhunt.command.UnpauseCommand;
 import me.lucko.fabric.api.permissions.v0.Permissions;
-import me.mrnavastar.sqlib.DataContainer;
+import me.mrnavastar.sqlib.api.DataContainer;
+import me.mrnavastar.sqlib.api.types.JavaTypes;
 import net.minecraft.advancement.AdvancementEntry;
 import net.minecraft.advancement.AdvancementProgress;
 import net.minecraft.block.Block;
@@ -670,16 +671,15 @@ public class GameEvents {
             bedExplosions.putIfAbsent(player.getUuid(), config.isBedExplosionsDefault());
             lavaPvpInNether.putIfAbsent(player.getUuid(), config.isLavaPvpInNetherDefault());
 
-            DataContainer dataContainer = table.get(player.getUuid());
+            DataContainer dataContainer = store.getContainer("uuid", player.getUuid());
+            if (dataContainer == null) return;
 
-            if (dataContainer != null) {
-                gameTitles.put(player.getUuid(), dataContainer.getBool("game_titles"));
-                manhuntSounds.put(player.getUuid(), dataContainer.getBool("manhunt_sounds"));
-                nightVision.put(player.getUuid(), dataContainer.getBool("night_vision"));
-                friendlyFire.put(player.getUuid(), dataContainer.getBool("friendly_fire"));
-                bedExplosions.put(player.getUuid(), dataContainer.getBool("bed_explosions"));
-                lavaPvpInNether.put(player.getUuid(), dataContainer.getBool("lava_pvp_in_nether"));
-            }
+            gameTitles.put(player.getUuid(), dataContainer.get(JavaTypes.BOOL, "game_titles"));
+            manhuntSounds.put(player.getUuid(), dataContainer.get(JavaTypes.BOOL, "manhunt_sounds"));
+            nightVision.put(player.getUuid(), dataContainer.get(JavaTypes.BOOL, "night_vision"));
+            friendlyFire.put(player.getUuid(), dataContainer.get(JavaTypes.BOOL, "friendly_fire"));
+            bedExplosions.put(player.getUuid(), dataContainer.get(JavaTypes.BOOL, "bed_explosions"));
+            lavaPvpInNether.put(player.getUuid(), dataContainer.get(JavaTypes.BOOL, "lava_pvp_in_nether"));
         }
     }
 
@@ -700,14 +700,17 @@ public class GameEvents {
             }
         }
 
-        DataContainer dataContainer = table.getOrCreateDataContainer(player.getUuid());
+        DataContainer dataContainer = store.getOrCreateContainer("uuid", player.getUuid());
 
-        dataContainer.put("game_titles", gameTitles.get(player.getUuid()));
-        dataContainer.put("manhunt_sounds", manhuntSounds.get(player.getUuid()));
-        dataContainer.put("night_vision", nightVision.get(player.getUuid()));
-        dataContainer.put("friendly_fire", friendlyFire.get(player.getUuid()));
-        dataContainer.put("bed_explosions", bedExplosions.get(player.getUuid()));
-        dataContainer.put("lava_pvp_in_nether", lavaPvpInNether.get(player.getUuid()));
+        dataContainer.transaction()
+                .put(JavaTypes.UUID, "uuid", player.getUuid())
+                .put(JavaTypes.BOOL, "game_titles", gameTitles.get(player.getUuid()))
+                .put(JavaTypes.BOOL, "manhunt_sounds", manhuntSounds.get(player.getUuid()))
+                .put(JavaTypes.BOOL, "night_vision", nightVision.get(player.getUuid()))
+                .put(JavaTypes.BOOL, "friendly_fire", friendlyFire.get(player.getUuid()))
+                .put(JavaTypes.BOOL, "bed_explosions", bedExplosions.get(player.getUuid()))
+                .put(JavaTypes.BOOL, "lava_pvp_in_nether", lavaPvpInNether.get(player.getUuid()))
+                .commit();
     }
 
     public static TypedActionResult<ItemStack> useItem(PlayerEntity player, World world, Hand hand) {

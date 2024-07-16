@@ -7,9 +7,8 @@ import manhunt.game.GameState;
 import manhunt.game.ManhuntGame;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import me.mrnavastar.sqlib.SQLib;
-import me.mrnavastar.sqlib.Table;
-import me.mrnavastar.sqlib.database.Database;
-import me.mrnavastar.sqlib.sql.SQLDataType;
+import me.mrnavastar.sqlib.api.DataStore;
+import me.mrnavastar.sqlib.api.database.Database;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
@@ -58,14 +57,7 @@ public class ManhuntMod implements ModInitializer {
 	public static final ManhuntConfig config = ManhuntConfig.INSTANCE;
 	public static final Path gameDir = FabricLoader.getInstance().getGameDir();
 	public static final Database database = SQLib.getDatabase();
-	public static final Table table = database.createTable(MOD_ID, "playerdata")
-			.addColumn("game_titles", SQLDataType.BOOL)
-			.addColumn("manhunt_sounds", SQLDataType.BOOL)
-			.addColumn("night_vision", SQLDataType.BOOL)
-			.addColumn("friendly_fire", SQLDataType.BOOL)
-			.addColumn("bed_explosions", SQLDataType.BOOL)
-			.addColumn("lava_pvp_in_nether", SQLDataType.BOOL)
-			.finish();
+	public static final DataStore store = database.dataStore(MOD_ID, "playerdata");
 	public static GameState state;
 	private static final Identifier overworldIdentifier = Identifier.of(MOD_ID, "overworld");
 	private static final Identifier netherIdentifier = Identifier.of(MOD_ID, "the_nether");
@@ -176,7 +168,7 @@ public class ManhuntMod implements ModInitializer {
 		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> GameEvents.playerJoin(handler));
 		ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> GameEvents.playerLeave(handler));
 		UseItemCallback.EVENT.register(GameEvents::useItem);
-		UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> GameEvents.useBlock(player, world, hand, hitResult));
+		UseBlockCallback.EVENT.register(GameEvents::useBlock);
 	}
 
 	public static void loadManhuntWorlds(MinecraftServer server, long seed) {
