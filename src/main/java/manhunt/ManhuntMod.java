@@ -14,24 +14,25 @@ import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.fabricmc.fabric.api.event.player.AttackEntityCallback;
+import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.fabric.api.event.player.UseItemCallback;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.entity.boss.dragon.EnderDragonFight;
-import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.MutableText;
+import net.minecraft.util.ActionResult;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.random.RandomSeed;
 import net.minecraft.world.World;
 import net.minecraft.world.dimension.DimensionTypes;
+import net.minecraft.world.gen.chunk.placement.StructurePlacementCalculator;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.popcraft.chunky.ChunkyProvider;
@@ -46,7 +47,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -54,106 +54,65 @@ import java.util.concurrent.TimeUnit;
 public class ManhuntMod implements ModInitializer {
 	public static final String MOD_ID = "manhunt";
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
-	public static final ManhuntConfig config = ManhuntConfig.INSTANCE;
 	public static final Path gameDir = FabricLoader.getInstance().getGameDir();
 	public static final Database database = SQLib.getDatabase();
-	public static final DataStore store = database.dataStore(MOD_ID, "playerdata");
-	public static GameState state;
+	public static final DataStore datastore = database.dataStore(MOD_ID, "playerdata");
+	public static GameState gameState;
+	public static StructurePlacementCalculator structurePlacementCalculator;
 	private static final Identifier overworldIdentifier = Identifier.of(MOD_ID, "overworld");
-	private static final Identifier netherIdentifier = Identifier.of(MOD_ID, "the_nether");
-	private static final Identifier endIdentifier = Identifier.of(MOD_ID, "the_end");
-	public static final RegistryKey<World> lobbyRegistry = RegistryKey.of(RegistryKeys.WORLD, Identifier.of(MOD_ID, "lobby"));
-	private static RuntimeWorldHandle overworldHandle;
-	private static RuntimeWorldHandle netherHandle;
-	private static RuntimeWorldHandle endHandle;
-	private static ServerWorld overworld;
-	private static ServerWorld theNether;
-	private static ServerWorld theEnd;
-	public static BlockPos worldSpawnPos;
-	public static final BlockPos lobbySpawnPos = new BlockPos(0, 64, 0);
-	public static final Vec3d lobbySpawn = new Vec3d(0.5, 64, 0.5);
+	private static final Identifier theNetherIdentifier = Identifier.of(MOD_ID, "the_nether");
+	private static final Identifier theEndIdentifier = Identifier.of(MOD_ID, "the_end");
+	public static final RegistryKey<World> lobbyWorldRegistryKey = RegistryKey.of(RegistryKeys.WORLD, Identifier.of(MOD_ID, "lobby"));
+	private static RuntimeWorldHandle overworldWorldHandle;
+	private static RuntimeWorldHandle theNetherWorldHandle;
+	private static RuntimeWorldHandle theEndWorldHandle;
+	public static ServerWorld overworld;
+	public static ServerWorld theNether;
+	public static ServerWorld theEnd;
 	private static boolean preloaded = false;
-	public static boolean chunkyLoaded = false;
-	public static boolean duration = false;
-	public static boolean paused = false;
-	public static boolean headstart = false;
-	public static int durationTime = 0;
-	public static int pauseTime = 0;
-	public static int headstartTime = 0;
-	public static int spawnRadius = 0;
-	public static List<ServerPlayerEntity> playerList = new ArrayList<>();
-	public static List<ServerPlayerEntity> allPlayers;
-	public static List<ServerPlayerEntity> allRunners;
-	public static final List<MutableText> hunterCoords = new ArrayList<>();
-	public static final List<MutableText> runnerCoords = new ArrayList<>();
-	public static final List<UUID> allReadyUps = new ArrayList<>();
-	public static final List<UUID> newPlayersList = new ArrayList<>();
-	public static final List<UUID> leftOnPause = new ArrayList<>();
-	public static final HashMap<UUID, Boolean> gameTitles = new HashMap<>();
-	public static final HashMap<UUID, Boolean> manhuntSounds = new HashMap<>();
-	public static final HashMap<UUID, Boolean> nightVision = new HashMap<>();
-	public static final HashMap<UUID, Boolean> friendlyFire = new HashMap<>();
-	public static final HashMap<UUID, Boolean> bedExplosions = new HashMap<>();
-	public static final HashMap<UUID, Boolean> lavaPvpInNether = new HashMap<>();
-	public static final HashMap<UUID, Integer> slowDownManager = new HashMap<>();
-	public static final HashMap<UUID, BlockPos> playerSpawnPos = new HashMap<>();
-	public static final HashMap<UUID, Collection<StatusEffectInstance>> playerEffects = new HashMap<>();
-	public static final HashMap<UUID, Vec3d> playerPos = new HashMap<>();
-	public static final HashMap<UUID, Float> playerYaw = new HashMap<>();
-	public static final HashMap<UUID, Float> playerPitch = new HashMap<>();
-	public static final HashMap<UUID, Integer> playerFood = new HashMap<>();
-	public static final HashMap<UUID, Float> playerSaturation = new HashMap<>();
-	public static final HashMap<UUID, Float> playerExhuastion = new HashMap<>();
-	public static final HashMap<UUID, Integer> parkourTimer = new HashMap<>();
-	public static final HashMap<UUID, Boolean> startedParkour = new HashMap<>();
-	public static final HashMap<UUID, Boolean> finishedParkour = new HashMap<>();
 
-	public static ServerWorld getOverworld() {
-		return overworld;
-	}
-
-	public static ServerWorld getTheNether() {
-		return theNether;
-	}
-
-	public static ServerWorld getTheEnd() {
-		return theEnd;
-	}
-
-	@Override
+    @Override
 	public void onInitialize() {
-		config.load();
+		ManhuntConfig.config.load();
 
-        chunkyLoaded = (FabricLoader.getInstance().isModLoaded("chunky"));
+        ManhuntGame.chunkyLoaded = (FabricLoader.getInstance().isModLoaded("chunky"));
 
-        try {
-            FileUtils.deleteDirectory(gameDir.resolve("world/dimensions/manhunt/lobby").toFile());
-        } catch (IOException e) {
-            LOGGER.error("Failed to delete lobby dimension");
-        }
-
-        Path datapackPath = gameDir.resolve("world/datapacks/manhunt.zip");
-
+		Path datapackPath = gameDir.resolve("world/datapacks/manhunt.zip");
 		try {
 			datapackPath.getParent().toFile().mkdirs();
-
 			Files.deleteIfExists(datapackPath);
 			Files.createFile(datapackPath);
 
 			IOUtils.copy(ManhuntMod.class.getResourceAsStream("/manhunt/datapack.zip"), new FileOutputStream(datapackPath.toFile()));
 		} catch (IOException e) {
-			LOGGER.error("Failed to copy datapack");
+			LOGGER.error("Failed to copy Manhunt datapack");
+		}
+
+		try {
+			FileUtils.deleteDirectory(gameDir.resolve("world/advancements").toFile());
+			FileUtils.deleteDirectory(gameDir.resolve("world/data").toFile());
+			FileUtils.deleteDirectory(gameDir.resolve("world/dimensions").toFile());
+			FileUtils.deleteDirectory(gameDir.resolve("world/entities").toFile());
+			FileUtils.deleteDirectory(gameDir.resolve("world/playerdata").toFile());
+			FileUtils.deleteDirectory(gameDir.resolve("world/poi").toFile());
+			FileUtils.deleteDirectory(gameDir.resolve("world/stats").toFile());
+			FileUtils.delete(gameDir.resolve("world/session.lock").toFile());
+		} catch (IOException e) {
+			LOGGER.error("Failed to delete world files");
 		}
 
 		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
 			CoordsCommand.register(dispatcher);
+			DurationCommand.register(dispatcher);
 			HunterCommand.register(dispatcher);
 			OneHunterCommand.register(dispatcher);
 			OneRunnerCommand.register(dispatcher);
 			PauseCommand.register(dispatcher);
 			PingCommand.register(dispatcher);
+			PreferencesCommand.register(dispatcher);
 			ResetCommand.register(dispatcher);
 			RunnerCommand.register(dispatcher);
+			SettingsComand.register(dispatcher);
 			StartCommand.register(dispatcher);
 			TrackCommand.register(dispatcher);
 			UnpauseCommand.register(dispatcher);
@@ -169,57 +128,100 @@ public class ManhuntMod implements ModInitializer {
 		ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> GameEvents.playerLeave(handler));
 		UseItemCallback.EVENT.register(GameEvents::useItem);
 		UseBlockCallback.EVENT.register(GameEvents::useBlock);
+		PlayerBlockBreakEvents.BEFORE.register((world, player, pos, state, blockEntity) -> {
+			if (ManhuntMod.gameState == GameState.PLAYING) {
+				if (GameEvents.paused) {
+					return false;
+				}
+				if (GameEvents.headStart && player.getScoreboardTeam() != null) {
+					if (player.isTeamPlayer(player.getScoreboard().getTeam("hunters"))) {
+						return false;
+					} else {
+                        return GameEvents.headStartCountdown;
+					}
+				}
+
+			}
+			return true;
+		});
+		AttackEntityCallback.EVENT.register((player, world, hand, entity, hitResult) -> {
+			if (ManhuntMod.gameState == GameState.PLAYING) {
+				if (GameEvents.paused) {
+					return ActionResult.FAIL;
+				}
+				if (GameEvents.headStart) {
+					if (player.isTeamPlayer(player.getScoreboard().getTeam("hunters"))) {
+						return ActionResult.FAIL;
+					} else {
+						if (!GameEvents.headStartCountdown) {
+							return ActionResult.FAIL;
+						}
+					}
+				}
+			}
+			return ActionResult.PASS;
+		});
 	}
 
 	public static void loadManhuntWorlds(MinecraftServer server, long seed) {
-		if (overworldHandle != null) {
-			overworldHandle.unload();
-			netherHandle.unload();
-			endHandle.unload();
+		try {
+			FileUtils.deleteDirectory(ManhuntMod.gameDir.resolve("world/dimensions/manhunt/overworld").toFile());
+			FileUtils.deleteDirectory(ManhuntMod.gameDir.resolve("world/dimensions/manhunt/the_nether").toFile());
+			FileUtils.deleteDirectory(ManhuntMod.gameDir.resolve("world/dimensions/manhunt/the_end").toFile());
+		} catch (IOException e) {
+			ManhuntMod.LOGGER.error("Failed to delete Manhunt worlds");
 		}
+
+		if (overworldWorldHandle != null) {
+			overworldWorldHandle.delete();
+			theNetherWorldHandle.delete();
+			theEndWorldHandle.delete();
+		}
+
+		ManhuntGame.worldSpawnPos = new BlockPos(0, 0, 0);
 
 		Fantasy fantasy = Fantasy.get(server);
 
 		RuntimeWorldConfig overworldConfig = new RuntimeWorldConfig()
 				.setDimensionType(DimensionTypes.OVERWORLD)
-				.setMirrorOverworldDifficulty(true)
-				.setMirrorOverworldGameRules(true)
 				.setGenerator(server.getOverworld().getChunkManager().getChunkGenerator())
+				.setMirrorOverworldGameRules(true)
+				.setMirrorOverworldDifficulty(true)
 				.setShouldTickTime(true)
 				.setTimeOfDay(0)
 				.setSeed(seed);
 
-		RuntimeWorldConfig netherConfig = new RuntimeWorldConfig()
+		RuntimeWorldConfig theNetherConfig = new RuntimeWorldConfig()
 				.setDimensionType(DimensionTypes.THE_NETHER)
-				.setMirrorOverworldDifficulty(true)
-				.setMirrorOverworldGameRules(true)
 				.setGenerator(server.getWorld(World.NETHER).getChunkManager().getChunkGenerator())
-				.setShouldTickTime(true)
-				.setTimeOfDay(0)
-				.setSeed(seed);
-
-		RuntimeWorldConfig endConfig = new RuntimeWorldConfig()
-				.setDimensionType(DimensionTypes.THE_END)
-				.setMirrorOverworldDifficulty(true)
 				.setMirrorOverworldGameRules(true)
-				.setGenerator(server.getWorld(World.END).getChunkManager().getChunkGenerator())
+				.setMirrorOverworldDifficulty(true)
 				.setShouldTickTime(true)
 				.setTimeOfDay(0)
 				.setSeed(seed);
 
-		overworldHandle = fantasy.openTemporaryWorld(overworldIdentifier, overworldConfig);
-		netherHandle = fantasy.openTemporaryWorld(netherIdentifier, netherConfig);
-		endHandle = fantasy.openTemporaryWorld(endIdentifier, endConfig);
+		RuntimeWorldConfig theEndConfig = new RuntimeWorldConfig()
+				.setDimensionType(DimensionTypes.THE_END)
+				.setGenerator(server.getWorld(World.END).getChunkManager().getChunkGenerator())
+				.setMirrorOverworldGameRules(true)
+				.setMirrorOverworldDifficulty(true)
+				.setShouldTickTime(true)
+				.setTimeOfDay(0)
+				.setSeed(seed);
 
-		overworld = overworldHandle.asWorld();
-		theNether = netherHandle.asWorld();
-		theEnd = endHandle.asWorld();
+		structurePlacementCalculator = server.getOverworld().getChunkManager().getChunkGenerator().createStructurePlacementCalculator(server.getOverworld().getRegistryManager().getWrapperOrThrow(RegistryKeys.STRUCTURE_SET), server.getOverworld().getChunkManager().getNoiseConfig(), seed);
+
+		overworldWorldHandle = fantasy.openTemporaryWorld(overworldIdentifier, overworldConfig);
+		theNetherWorldHandle = fantasy.openTemporaryWorld(theNetherIdentifier, theNetherConfig);
+		theEndWorldHandle = fantasy.openTemporaryWorld(theEndIdentifier, theEndConfig);
+
+		overworld = overworldWorldHandle.asWorld();
+		theNether = theNetherWorldHandle.asWorld();
+		theEnd = theEndWorldHandle.asWorld();
 
 		theEnd.setEnderDragonFight(new EnderDragonFight(theEnd, theEnd.getSeed(), EnderDragonFight.Data.DEFAULT));
 
-		worldSpawnPos = new BlockPos(0, 0, 0);
-
-		if (chunkyLoaded && config.isChunky()) {
+		if (ManhuntGame.chunkyLoaded && ManhuntConfig.config.isChunky()) {
 			preloaded = true;
 
 			schedulePreload(server);
@@ -228,7 +230,7 @@ public class ManhuntMod implements ModInitializer {
 
 	public static void schedulePreload(MinecraftServer server) {
 		ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
-		scheduledExecutorService.schedule(() -> startPreload(server), 2, TimeUnit.SECONDS);
+		scheduledExecutorService.schedule(() -> startPreload(server), 1, TimeUnit.SECONDS);
 	}
 
 	private static void startPreload(MinecraftServer server) {
@@ -244,14 +246,14 @@ public class ManhuntMod implements ModInitializer {
 			LOGGER.error("Failed to delete Chunky tasks");
 		}
 
-		if (config.getOverworld() != 0) {
-			chunky.startTask("manhunt:overworld", "square", 0, 0, config.getOverworld(), config.getOverworld(), "concentric");
+		if (ManhuntConfig.config.getOverworld() != 0) {
+			chunky.startTask("manhunt:overworld", "square", 0, 0, ManhuntConfig.config.getOverworld(), ManhuntConfig.config.getOverworld(), "concentric");
 		}
-		if (config.getNether() != 0) {
-			chunky.startTask("manhunt:the_nether", "square", 0, 0, config.getNether(), config.getNether(), "concentric");
+		if (ManhuntConfig.config.getTheNether() != 0) {
+			chunky.startTask("manhunt:the_nether", "square", 0, 0, ManhuntConfig.config.getTheNether(), ManhuntConfig.config.getTheNether(), "concentric");
 		}
-		if (config.getEnd() != 0) {
-			chunky.startTask("manhunt:the_end", "square", 0, 0, config.getEnd(), config.getEnd(), "concentric");
+		if (ManhuntConfig.config.getTheEnd() != 0) {
+			chunky.startTask("manhunt:the_end", "square", 0, 0, ManhuntConfig.config.getTheEnd(), ManhuntConfig.config.getTheEnd(), "concentric");
 		}
 
 		chunky.onGenerationComplete(event -> {
@@ -261,13 +263,13 @@ public class ManhuntMod implements ModInitializer {
 		});
 
 		for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
-			if (!playerSpawnPos.containsKey(player.getUuid())) {
+			if (!GameEvents.playerSpawnPos.containsKey(player.getUuid())) {
 				ManhuntGame.setPlayerSpawn(overworld, player);
 			}
 		}
 	}
 
-	public static boolean checkPermission(ServerPlayerEntity player, String key) {
+	public static boolean checkLeaderPermission(ServerPlayerEntity player, String key) {
 		return Permissions.check(player, key) || Permissions.check(player, "manhunt.leader") || player.hasPermissionLevel(1) || player.hasPermissionLevel(2) ||player.hasPermissionLevel(2) ||player.hasPermissionLevel(4);
 	}
 }

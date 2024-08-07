@@ -13,11 +13,11 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 public class EndPortalBlockMixin {
     @Redirect(method = "createTeleportTarget", at = @At(value = "FIELD", target = "Lnet/minecraft/world/World;OVERWORLD:Lnet/minecraft/registry/RegistryKey;", opcode = Opcodes.GETSTATIC))
     private RegistryKey<World> redirectOverworld() {
-        return ManhuntMod.getOverworld().getRegistryKey();
+        return ManhuntMod.overworld.getRegistryKey();
     }
 
     @Redirect(method = "createTeleportTarget", at = @At(value = "FIELD", target = "Lnet/minecraft/world/World;END:Lnet/minecraft/registry/RegistryKey;", opcode = Opcodes.GETSTATIC))
     private RegistryKey<World> redirectEnd() {
-        return ManhuntMod.getTheEnd().getRegistryKey();
+        return ManhuntMod.theEnd.getRegistryKey();
     }
 }

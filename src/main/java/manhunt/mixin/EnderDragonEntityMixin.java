@@ -1,6 +1,8 @@
 package manhunt.mixin;
 
+import manhunt.ManhuntMod;
 import manhunt.game.GameState;
+import manhunt.game.ManhuntGame;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.boss.dragon.EnderDragonEntity;
 import net.minecraft.entity.mob.MobEntity;
@@ -9,9 +11,6 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-import static manhunt.ManhuntMod.state;
-import static manhunt.game.ManhuntGame.gameOver;
 
 @Mixin(EnderDragonEntity.class)
 public abstract class EnderDragonEntityMixin extends MobEntity {
@@ -22,10 +21,10 @@ public abstract class EnderDragonEntityMixin extends MobEntity {
 
     @Inject(method = "tickMovement", at = @At("TAIL"))
     private void runnersWon(CallbackInfo ci) {
-        if (this.getHealth() == 1f && state == GameState.PLAYING) {
-            this.setHealth(0f);
+        if (this.getHealth() == 1f && ManhuntMod.gameState == GameState.PLAYING) {
+            this.setHealth(0.0F);
 
-            gameOver(this.getServer(), false);
+            ManhuntGame.end(this.getServer(), false);
         }
     }
 }

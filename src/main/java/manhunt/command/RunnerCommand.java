@@ -2,6 +2,8 @@ package manhunt.command;
 
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
+import manhunt.ManhuntMod;
+import manhunt.config.ManhuntConfig;
 import manhunt.game.GameState;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.server.command.CommandManager;
@@ -12,27 +14,42 @@ import net.minecraft.util.Formatting;
 
 import java.util.Collection;
 
-import static manhunt.ManhuntMod.*;
-
 public class RunnerCommand {
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(CommandManager.literal("runner")
-                .requires(source -> source.isExecutedByPlayer() && state == GameState.PREGAME && config.getTeamPreset() == 1)
-                .executes(context -> setRunner(context.getSource(), context.getSource().getPlayer()))
+                .requires(source -> ManhuntMod.gameState == GameState.PREGAME)
+                .executes(context -> selfRunner(context.getSource()))
                 .then(CommandManager.argument("targets", EntityArgumentType.players())
-                        .requires(source -> checkPermission(source.getPlayer(), "manhunt.runner"))
+                        .requires(source -> source.isExecutedByPlayer() &&
+                                ManhuntMod.checkLeaderPermission(source.getPlayer(), "manhunt.runner") || !source.isExecutedByPlayer())
                         .executes(context -> setRunners(context.getSource(), EntityArgumentType.getPlayers(context, "targets")))
                 )
         );
     }
 
-    private static int setRunner(ServerCommandSource source, ServerPlayerEntity player) {
-        if (!player.getScoreboard().getTeam("runners").getPlayerList().contains(player.getNameForScoreboard())) {
-            player.getScoreboard().addScoreHolderToTeam(player.getNameForScoreboard(), player.getScoreboard().getTeam("runners"));
+    private static int selfRunner(ServerCommandSource source) {
+        if (source.isExecutedByPlayer() && (ManhuntConfig.config.getRolePreset() == 1 || ManhuntMod.checkLeaderPermission(source.getPlayer(), "manhunt.runner"))) {
+            var player = source.getPlayer();
+            var server = source.getServer();
+            var scoreboard = server.getScoreboard();
+            var runnersTeam = scoreboard.getTeam("runners");
+            if (!player.isTeamPlayer(runnersTeam)) {
+                scoreboard.addScoreHolderToTeam(player.getNameForScoreboard(), runnersTeam);
 
-            player.getServer().getPlayerManager().broadcast(Text.translatable("chat.joined_team", Text.literal(player.getNameForScoreboard()).formatted(config.getRunnersColor()), Text.translatable("role.manhunt.runners").formatted(config.getRunnersColor())), false);
+                server.getPlayerManager().broadcast(Text.translatable("chat.manhunt.joined_team",
+                        Text.literal(player.getNameForScoreboard()).formatted(ManhuntConfig.config.getRunnersColor()),
+                        Text.translatable("role.manhunt.hunters").formatted(ManhuntConfig.config.getRunnersColor())), false
+                );
+            } else {
+                source.sendFeedback(() -> Text.translatable("chat.manhunt.already_team", Text.translatable("role.manhunt.hunter")).formatted(Formatting.RED), false);
+            }
         } else {
-            source.sendFeedback(() -> Text.translatable("chat.already_team", Text.translatable("role.manhunt.runner")).formatted(Formatting.RED), false);
+            source.sendFeedback(() -> Text.translatable("command.unknown.command").formatted(Formatting.RED), false);
+            source.sendFeedback(() -> Text.translatable("text.manhunt.both",
+                            Text.literal("runner").styled(style -> style.withUnderline(true)),
+                            Text.translatable("command.context.here").formatted(Formatting.RED)),
+                    false
+            );
         }
 
         return Command.SINGLE_SUCCESS;
@@ -42,7 +59,11 @@ public class RunnerCommand {
         for (ServerPlayerEntity player : players) {
             player.getScoreboard().addScoreHolderToTeam(player.getNameForScoreboard(), player.getScoreboard().getTeam("runners"));
 
-            player.getServer().getPlayerManager().broadcast(Text.translatable("chat.set_role", Text.literal(player.getNameForScoreboard()).formatted(config.getRunnersColor()), Text.translatable("role.manhunt.runner").formatted(config.getRunnersColor())), false);
+            source.getServer().getPlayerManager().broadcast(Text.translatable("chat.manhunt.set_role",
+                    Text.literal(player.getNameForScoreboard()).formatted(ManhuntConfig.config.getRunnersColor()),
+                    Text.translatable("role.manhunt.runner").formatted(ManhuntConfig.config.getRunnersColor())),
+                    false
+            );
         }
 
         return Command.SINGLE_SUCCESS;

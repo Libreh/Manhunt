@@ -1,22 +1,24 @@
 {
-	"required": true,
-	"package": "manhunt.mixin",
-	"compatibilityLevel": "JAVA_17",
-	"mixins": [
-		"AbstractFireBlockMixin",
-		"EnderDragonEntityMixin",
-		"EndGatewayBlockEntityMixin",
-		"EndPortalBlockMixin",
-		"NetherPortalBlockMixin",
-		"ExplosionMixin",
-		"LivingEntityMixin",
-		"PlayerEntityMixin",
-		"PlayerManagerMixin",
-		"ServerPlayerEntityMixin",
-		"ServerPlayNetworkHandlerMixin",
-		"WorldMixin"
-	],
-	"injectors": {
-		"defaultRequire": 1
+  "required": true,
+  "package": "manhunt.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "AbstractFireBlockMixin",
+    "ChunkGeneratorMixin",
+    "EnderDragonEntityMixin",
+    "EndGatewayBlockEntityMixin",
+    "EndPortalBlockMixin",
+    "ExplosionMixin",
+    "IServerWorld",
+    "LivingEntityMixin",
+    "NetherPortalBlockMixin",
+    "PlayerEntityMixin",
+    "PlayerManagerMixin",
+    "ServerPlayerEntityMixin",
+    "ServerPlayNetworkHandlerMixin",
+    "WorldMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
 	}
 }

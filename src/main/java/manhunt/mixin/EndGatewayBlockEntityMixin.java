@@ -13,6 +13,6 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 public class EndGatewayBlockEntityMixin {
     @Redirect(method = "getOrCreateExitPortalPos", at = @At(value = "FIELD", target = "Lnet/minecraft/world/World;END:Lnet/minecraft/registry/RegistryKey;", opcode = Opcodes.GETSTATIC))
     private RegistryKey<World> redirectEnd() {
-        return ManhuntMod.getTheEnd().getRegistryKey();
+        return ManhuntMod.theEnd.getRegistryKey();
     }
 }

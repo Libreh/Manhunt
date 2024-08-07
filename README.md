@@ -1,11 +1,25 @@
-﻿[![github](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/available/github_vector.svg)](https://github.com/Libreh/manhunt)
-![fabric](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/supported/fabric_vector.svg)
-[![fabric-api](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/requires/fabric-api_vector.svg)](https://modrinth.com/mod/fabric-api)
-[![discord](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/social/discord-singular_vector.svg)](https://discord.gg/hdWw7SQpwf)
+﻿[![Available on Github](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@2/assets/cozy/available/github_vector.svg)](https://github.com/Libreh/Manhunt)
+[![Requires Fabric API](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@2/assets/cozy/requires/fabric-api_vector.svg)](https://modrinth.com/mod/fabric-api)
+[![Chat with me on Discord](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@2/assets/cozy/social/discord-singular_vector.svg)](https://discord.gg/hdWw7SQpwf)
 
 # Manhunt
-A server-side Minecraft Manhunt mod.
+Server-side Manhunt mod based on Fabric.
 
-## Requirements
-- Fabric loader
-- Fabric API
+This means that players don't have to install the mod
+on their client for them to be able to join.
+
+```txt
+⚠️⚠️⚠️ WARNING ⚠️⚠️⚠️
+This mod **deletes the world folder** on startup!
+It is meant to be hosted on a server for games.
+Don't install this on an existing world or you will lose your data!
+
+```
+
+### Requirements:
+- [Fabric loader](https://fabricmc.net/use/installer/)
+- [Fabric API](https://modrinth.com/mod/fabric-api)
+- [SQLib](https://modrinth.com/plugin/sqlib)
+
+### Optional integration:
+- [Chunky](https://modrinth.com/plugin/chunky)
