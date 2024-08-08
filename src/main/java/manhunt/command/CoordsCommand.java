@@ -113,7 +113,6 @@ public class CoordsCommand {
                         String message = "";
 
                         for (int i = 7; i != array.length; i++) {
-                            ManhuntMod.LOGGER.info("array[" + i + "]");
                             String oldMessage = message;
                             message = oldMessage + array[i];
                         }
