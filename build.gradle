@@ -31,13 +31,15 @@ dependencies {
 	modImplementation include("eu.pb4:sgui:${project.sgui_version}")
 
 	// Fantasy
-	modImplementation include ("xyz.nucleoid:fantasy:${project.fantasy_version}")
+	modImplementation include("xyz.nucleoid:fantasy:${project.fantasy_version}")
 
 	// SQLib
 	modImplementation "maven.modrinth:sqlib:${project.sqlib_version}"
 
 	// Permissions API
-	modImplementation "me.lucko:fabric-permissions-api:${project.permissions_api_version}"
+	modImplementation include("me.lucko:fabric-permissions-api:${project.permissions_api_version}") {
+		exclude(group: "net.fabricmc.fabric-api")
+	}
 
 	// Chunky
 	modImplementation "org.popcraft:chunky-common:${project.chunky_common_version}"

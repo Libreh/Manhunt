@@ -1,6 +1,5 @@
 package manhunt.mixin;
 
-import manhunt.ManhuntMod;
 import manhunt.game.GameEvents;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
@@ -33,7 +32,6 @@ public abstract class LivingEntityMixin extends Entity {
     @Inject(method = "damage", at = @At("HEAD"), cancellable = true)
     private void cancelHeadStartHunterDamage(DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir) {
         if (checkHeadstart()) {
-            ManhuntMod.LOGGER.info("CANCELLING");
             cir.cancel();
         }
     }
@@ -42,5 +40,4 @@ public abstract class LivingEntityMixin extends Entity {
     private boolean checkHeadstart() {
         return GameEvents.headStart && this.isTeamPlayer(this.getServer().getScoreboard().getTeam("hunters"));
     }
-
 }

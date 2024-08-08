@@ -4,9 +4,7 @@
 
 # Manhunt
 Server-side Manhunt mod based on Fabric.
-
-This means that players don't have to install the mod
-on their client for them to be able to join.
+This means that the mod isn't required on the client for you to be able to join.
 
 ```txt
 ⚠️⚠️⚠️ WARNING ⚠️⚠️⚠️
@@ -16,10 +14,11 @@ Don't install this on an existing world or you will lose your data!
 
 ```
 
-### Requirements:
+### Required:
 - [Fabric loader](https://fabricmc.net/use/installer/)
 - [Fabric API](https://modrinth.com/mod/fabric-api)
 - [SQLib](https://modrinth.com/plugin/sqlib)
 
-### Optional integration:
+### Optional:
 - [Chunky](https://modrinth.com/plugin/chunky)
+- [LuckPerms](https://modrinth.com/mod/luckperms)

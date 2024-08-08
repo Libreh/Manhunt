@@ -44,6 +44,7 @@ import java.util.*;
 public class ManhuntGame {
     public static boolean chunkyLoaded = false;
     public static BlockPos worldSpawnPos;
+    public static final List<UUID> playList = new ArrayList<>();
 
     public static void start(MinecraftServer server) {
         server.setFlightEnabled(true);
@@ -98,19 +99,6 @@ public class ManhuntGame {
         var runnersTeam = scoreboard.getTeam("runners");
         runnersTeam.setCollisionRule(AbstractTeam.CollisionRule.ALWAYS);
         runnersTeam.setShowFriendlyInvisibles(false);
-
-        for (String playerName : huntersTeam.getPlayerList()) {
-            ServerPlayerEntity player = server.getPlayerManager().getPlayer(playerName);
-            if (player == null || player.isDisconnected()) {
-                scoreboard.removeScoreHolderFromTeam(playerName, huntersTeam);
-            }
-        }
-        for (String playerName : runnersTeam.getPlayerList()) {
-            ServerPlayerEntity player = server.getPlayerManager().getPlayer(playerName);
-            if (player == null || player.isDisconnected()) {
-                scoreboard.removeScoreHolderFromTeam(playerName, runnersTeam);
-            }
-        }
 
         if (ManhuntConfig.config.isTeamColor()) {
             huntersTeam.setColor(ManhuntConfig.config.getHuntersColor());
@@ -192,6 +180,7 @@ public class ManhuntGame {
 
         for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
             GameEvents.startList.add(player.getUuid());
+            playList.add(player.getUuid());
         }
 
         GameEvents.allReadyUps.clear();
@@ -293,19 +282,6 @@ public class ManhuntGame {
         runnersTeam.setCollisionRule(AbstractTeam.CollisionRule.NEVER);
         runnersTeam.setShowFriendlyInvisibles(true);
 
-        for (String playerName : huntersTeam.getPlayerList()) {
-            ServerPlayerEntity player = server.getPlayerManager().getPlayer(playerName);
-            if (player == null || player.isDisconnected()) {
-                scoreboard.removeScoreHolderFromTeam(playerName, huntersTeam);
-            }
-        }
-        for (String playerName : runnersTeam.getPlayerList()) {
-            ServerPlayerEntity player = server.getPlayerManager().getPlayer(playerName);
-            if (player == null || player.isDisconnected()) {
-                scoreboard.removeScoreHolderFromTeam(playerName, runnersTeam);
-            }
-        }
-
         if (ManhuntConfig.config.isTeamColor()) {
             huntersTeam.setColor(ManhuntConfig.config.getHuntersColor());
             runnersTeam.setColor(ManhuntConfig.config.getRunnersColor());
@@ -335,7 +311,7 @@ public class ManhuntGame {
                     ManhuntSettings.playerList = new ArrayList<>(server.getPlayerManager().getPlayerList());
                 }
 
-                ManhuntSettings.playerList.removeIf(Objects::isNull);
+                ManhuntSettings.playerList.removeIf(ServerPlayerEntity::isDisconnected);
 
                 ServerPlayerEntity runner = ManhuntSettings.playerList.getFirst();
 
@@ -373,6 +349,7 @@ public class ManhuntGame {
         GameEvents.leftOnPause.clear();
         GameEvents.playerSpawnPos.clear();
         GameEvents.headStartPos.clear();
+        playList.clear();
         DurationCommand.duration = "";
         GameEvents.timeLimit = false;
         GameEvents.headStart = false;
