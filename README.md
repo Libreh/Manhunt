@@ -5,7 +5,7 @@
 # Manhunt
 Server-side Manhunt mod based on Fabric.
 
-Players do not need any mods or resource packs to join.
+This means that the mod isn't required on the client for you to be able to join.
 
 ```txt
 ⚠️⚠️⚠️ WARNING ⚠️⚠️⚠️
