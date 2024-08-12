@@ -73,11 +73,11 @@ public class ManhuntGame {
         gameRules.get(GameRules.RANDOM_TICK_SPEED).set(3, server);
         gameRules.get(GameRules.SHOW_DEATH_MESSAGES).set(true, server);
         gameRules.get(GameRules.FALL_DAMAGE).set(true, server);
+        gameRules.get(GameRules.DO_IMMEDIATE_RESPAWN).set(false, server);
 
         if (ManhuntConfig.config.isVanilla()) {
             gameRules.get(GameRules.SPAWN_RADIUS).set(ManhuntConfig.config.getSpawnRadius(), server);
             gameRules.get(GameRules.SPECTATORS_GENERATE_CHUNKS).set(ManhuntConfig.config.isSpectatorsGenerateChunks(), server);
-            gameRules.get(GameRules.DO_IMMEDIATE_RESPAWN).set(ManhuntConfig.config.isDoImmediateRespawn(), server);
             server.setDifficulty(ManhuntConfig.config.getDifficulty(), true);
             var worldBorder = server.getOverworld().getWorldBorder();
             worldBorder.setCenter(0, 0);
@@ -196,12 +196,20 @@ public class ManhuntGame {
             server.setMotd(ManhuntMod.gameState.getColor() + "[" + ManhuntMod.gameState.getMotd() + "]§f Minecraft MANHUNT");
         }
 
-        server.getPlayerManager().broadcast(Text.translatable("commands.seed.success", Texts.bracketedCopyable(String.valueOf(ManhuntMod.overworld.getSeed())).formatted(Formatting.GREEN)), false);
+        server.getGameRules().get(GameRules.SPECTATORS_GENERATE_CHUNKS).set(true, server);
+
+        var playerManager = server.getPlayerManager();
+
+        playerManager.broadcast(Text.translatable("commands.seed.success",
+                Texts.bracketedCopyable(String.valueOf(ManhuntMod.overworld.getSeed())).formatted(Formatting.GREEN)), false
+        );
         DurationCommand.setDuration(server);
-        server.getPlayerManager().broadcast(Text.translatable("chat.manhunt.duration", Texts.bracketedCopyable(DurationCommand.duration).formatted(Formatting.GREEN)), false);
+        playerManager.broadcast(Text.translatable("chat.manhunt.duration",
+                Texts.bracketedCopyable(DurationCommand.duration).formatted(Formatting.GREEN)), false
+        );
 
         for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
-            player.changeGameMode(getGameMode(server));
+            player.changeGameMode(getGameMode());
 
             if (ManhuntConfig.config.isCustomTitles() && ManhuntSettings.customTitles.get(player.getUuid())) {
                 if (hunterWin) {
@@ -234,17 +242,9 @@ public class ManhuntGame {
                 }
                 for (ServerPlayerEntity serverPlayer : server.getPlayerManager().getPlayerList()) {
                     player.getServerWorld().spawnParticles(
-                            serverPlayer,
-                            particle,
-                            true,
-                            player.getX(),
-                            player.getY() - 0.5,
-                            player.getZ(),
-                            20,
-                            0.2,
-                            0.4,
-                            0.2,
-                            0.01
+                            serverPlayer, particle, true,
+                            player.getX(), player.getY() - 0.5, player.getZ(),
+                            20,0.2, 0.4, 0.2, 0.01
                     );
                 }
             }
@@ -388,12 +388,11 @@ public class ManhuntGame {
         }
     }
 
-    public static GameMode getGameMode(MinecraftServer server) {
+    public static GameMode getGameMode() {
         if (ManhuntMod.gameState == GameState.PLAYING) {
             return GameMode.SURVIVAL;
         } else if (ManhuntMod.gameState == GameState.POSTGAME) {
             if (ManhuntConfig.config.isSpectateOnWin()) {
-                server.getGameRules().get(GameRules.SPECTATORS_GENERATE_CHUNKS).set(true, server);
                 return GameMode.SPECTATOR;
             } else {
                 return GameMode.SURVIVAL;

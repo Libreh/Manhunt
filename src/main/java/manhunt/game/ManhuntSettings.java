@@ -2380,47 +2380,6 @@ public class ManhuntSettings {
                             }
                         })
                 );
-                slot++;
-
-                loreList = new ArrayList<>();
-                name = "do_immediate_respawn";
-                item = Items.PLAYER_HEAD;
-                boolvalue = ManhuntConfig.config.isDoImmediateRespawn();
-
-                loreList.add(Text.translatable("lore.manhunt." + name).styled(style -> style.withColor(Formatting.GRAY).withItalic(false)));
-                loreList.add(Text.translatable("lore.manhunt." + name + ".second").styled(style -> style.withColor(Formatting.GRAY).withItalic(false)));
-                if (boolvalue) {
-                    loreList.add(Text.translatable("lore.manhunt.double", Text.translatable("lore.manhunt.on").formatted(Formatting.GREEN), Text.translatable("lore.manhunt.off")).styled(style -> style.withColor(Formatting.GRAY).withItalic(false)));
-                } else {
-                    loreList.add(Text.translatable("lore.manhunt.double", Text.translatable("lore.manhunt.on"), Text.translatable("lore.manhunt.off").formatted(Formatting.RED)).styled(style -> style.withColor(Formatting.GRAY).withItalic(false)));
-                }
-                loreList.add(Text.translatable("lore.manhunt.click_drop").styled(style -> style.withColor(Formatting.AQUA).withItalic(false)));
-
-                var doImmediateRespawnBool = boolvalue;
-                vanillaIntegrationGui.setSlot(slot, new GuiElementBuilder(item)
-                        .setName(Text.translatable("setting.manhunt." + name).formatted(Formatting.WHITE))
-                        .setLore(loreList)
-                        .setCallback((index, type, action) -> {
-                            if (slowDownManager.get(player.getUuid()) < 12)
-                                slowDownManager.put(player.getUuid(), slowDownManager.get(player.getUuid()) + 1);
-                            if (ManhuntMod.checkLeaderPermission(player, "manhunt.settings")) {
-                                if (slowDownManager.get(player.getUuid()) < 6) {
-                                    if (type == ClickType.DROP) {
-                                        ManhuntConfig.config.setDoImmediateRespawn(ManhuntConfig.config.isDoImmediateRespawnDefault());
-                                    } else {
-                                        ManhuntConfig.config.setDoImmediateRespawn(!doImmediateRespawnBool);
-                                    }
-                                    ManhuntConfig.config.save();
-                                    player.networkHandler.sendPacket(new PlaySoundS2CPacket(SoundEvents.UI_BUTTON_CLICK, SoundCategory.MASTER, player.getPos().getX(), player.getPos().getY(), player.getPos().getZ(), 0.5F, 1.0F, player.getWorld().random.nextLong()));
-                                    openVanillaIntegrationGui(player, clickType, bool);
-                                } else {
-                                    player.sendMessage(Text.translatable("chat.manhunt.slow_down").formatted(Formatting.RED));
-                                }
-                            } else {
-                                player.sendMessage(Text.translatable("chat.manhunt.no_permission").formatted(Formatting.RED));
-                            }
-                        })
-                );
 
                 vanillaIntegrationGui.setSlot(8, new GuiElementBuilder(Items.STRUCTURE_VOID)
                         .setName(Text.translatable("text.manhunt.go_back").formatted(Formatting.WHITE))

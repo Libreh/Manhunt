@@ -7,22 +7,27 @@ import manhunt.game.GameEvents;
 import manhunt.game.GameState;
 import manhunt.game.ManhuntGame;
 import manhunt.game.ManhuntSettings;
+import net.minecraft.advancement.PlayerAdvancementTracker;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.LodestoneTrackerComponent;
 import net.minecraft.component.type.NbtComponent;
 import net.minecraft.enchantment.Enchantments;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityType;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtList;
+import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.Unit;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.GlobalPos;
@@ -45,6 +50,10 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity {
     public MinecraftServer server;
 
     @Shadow public abstract void attack(Entity target);
+
+    @Shadow public abstract ServerWorld getServerWorld();
+
+    @Shadow public abstract PlayerAdvancementTracker getAdvancementTracker();
 
     @Unique
     private long lastDelay = System.currentTimeMillis();
@@ -153,6 +162,23 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity {
                     ci.setReturnValue(false);
                 }
             }
+        }
+    }
+
+    @Inject(method = "updateKilledAdvancementCriterion", at = @At("TAIL"))
+    private void updateUneasyAllianceAdvancement(Entity entityKilled, int score, DamageSource damageSource, CallbackInfo ci) {
+        if (entityKilled.getType() == EntityType.GHAST && this.getServerWorld().getRegistryKey() == ManhuntMod.overworld.getRegistryKey()) {
+            this.getAdvancementTracker().grantCriterion(server.getAdvancementLoader().get(Identifier.of("minecraft:nether/uneasy_alliance")), "killed_ghast");
+        }
+    }
+
+    @Inject(method = "worldChanged", at = @At("TAIL"))
+    private void updateDimensionAdvancement(ServerWorld origin, CallbackInfo ci) {
+        RegistryKey<World> to = this.getServerWorld().getRegistryKey();
+        if (to == ManhuntMod.theNether.getRegistryKey()) {
+            this.getAdvancementTracker().grantCriterion(server.getAdvancementLoader().get(Identifier.of("minecraft:story/enter_the_nether")), "entered_nether");
+        } else if (to == ManhuntMod.theEnd.getRegistryKey()) {
+            this.getAdvancementTracker().grantCriterion(server.getAdvancementLoader().get(Identifier.of("minecraft:story/enter_the_end")), "entered_end");
         }
     }
 

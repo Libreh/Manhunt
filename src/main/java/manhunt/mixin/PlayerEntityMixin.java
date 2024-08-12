@@ -2,10 +2,12 @@ package manhunt.mixin;
 
 import com.mojang.serialization.DataResult;
 import manhunt.ManhuntMod;
+import manhunt.game.GameEvents;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.*;
@@ -34,7 +36,7 @@ public abstract class PlayerEntityMixin extends LivingEntity {
         super(entityType, world);
     }
 
-    @Inject(at = @At("HEAD"), method = "tick")
+    @Inject(method = "tick", at = @At("HEAD"))
     private void tick(CallbackInfo ci) {
         if (this.isTeamPlayer(this.getScoreboard().getTeam("runners"))) {
             DataResult<NbtElement> var10000 = World.CODEC.encodeStart(NbtOps.INSTANCE, this.getWorld().getRegistryKey());
@@ -54,7 +56,7 @@ public abstract class PlayerEntityMixin extends LivingEntity {
         }
     }
 
-    @Inject(at = @At(value = "HEAD"), method = "dropItem(Lnet/minecraft/item/ItemStack;ZZ)Lnet/minecraft/entity/ItemEntity;", cancellable = true)
+    @Inject(method = "dropItem(Lnet/minecraft/item/ItemStack;ZZ)Lnet/minecraft/entity/ItemEntity;", at = @At(value = "HEAD"), cancellable = true)
     private void dropItem(ItemStack stack, boolean throwRandomly, boolean retainOwnership, CallbackInfoReturnable<ItemEntity> ci) {
         if (stack.get(DataComponentTypes.CUSTOM_DATA) != null) {
             if (stack.get(DataComponentTypes.CUSTOM_DATA).copyNbt().getBoolean("Remove")) {
@@ -64,14 +66,21 @@ public abstract class PlayerEntityMixin extends LivingEntity {
         }
     }
 
-    @Inject(at = @At("RETURN"), method = "writeCustomDataToNbt")
+    @Inject(method = "writeCustomDataToNbt", at = @At("RETURN"))
     private void addAdditionalSaveData(NbtCompound nbt, CallbackInfo cbi) {
         nbt.putBoolean("manhuntModded", true);
         nbt.put("Positions", positions);
     }
 
-    @Inject(at = @At("RETURN"), method = "readCustomDataFromNbt")
+    @Inject(method = "readCustomDataFromNbt", at = @At("RETURN"))
     public void readAdditionalSaveData(NbtCompound nbt, CallbackInfo cbi) {
         this.positions = nbt.getList("Positions", 10);
+    }
+
+    @Inject(method = "isInvulnerableTo", at = @At("RETURN"), cancellable = true)
+    private void disableDamage(DamageSource damageSource, CallbackInfoReturnable<Boolean> cir) {
+        if (GameEvents.headStart) {
+            cir.cancel();
+        }
     }
 }

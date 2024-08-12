@@ -60,43 +60,39 @@ public class CoordsCommand {
                 for (MutableText mutableText : hunterCoords) {
                     String[] array = mutableText.getString().split(" ");
 
-                    past = new Date(Long.parseLong(array[2]));
+                    past = new Date(Long.parseLong(array[1]));
 
-                    if (array.length > 7) {
-                        String dimension = array[6];
-                        String message = "";
-
-                        for (int i = 7; i != array.length; i++) {
-                            String oldMessage = message;
-                            message = oldMessage + array[i];
+                    String message = "";
+                    for (int i = 5; i < array.length; i++) {
+                        String oldMessage;
+                        if (message.isEmpty()) {
+                            oldMessage = message;
+                        } else {
+                            oldMessage = message + " ";
                         }
-
-                        array[6] = dimension + " " + message;
+                        message = oldMessage + array[i];
                     }
 
-
+                    array[5] = message;
                     if (TimeUnit.MILLISECONDS.toHours(new Date().getTime() - past.getTime()) == 0) {
                         if (TimeUnit.MILLISECONDS.toMinutes(new Date().getTime() - past.getTime()) == 0) {
                             player.sendMessage(Text.translatable("chat.manhunt.list_coordinates",
-                                    Text.literal(team).formatted(formatting),
-                                    Text.literal(array[1]).formatted(formatting),
+                                    Text.literal(team).formatted(formatting), Text.literal(array[0]).formatted(formatting),
                                     Text.literal(" " + (TimeUnit.MILLISECONDS.toSeconds(new Date().getTime() - past.getTime())) + "s "),
-                                    Text.literal(array[3]), Text.literal(array[4]), Text.literal(array[5]), Text.literal(array[6]))
+                                    Text.literal(array[2]), Text.literal(array[3]), Text.literal(array[4]), Text.literal(array[5]))
                             );
                         } else {
                             player.sendMessage(Text.translatable("chat.manhunt.list_coordinates",
-                                    Text.literal(team).formatted(formatting),
-                                    Text.literal(array[1]).formatted(formatting),
+                                    Text.literal(team).formatted(formatting), Text.literal(array[0]).formatted(formatting),
                                     Text.literal((TimeUnit.MILLISECONDS.toMinutes(new Date().getTime() - past.getTime())) + "m "),
-                                    Text.literal(array[3]), Text.literal(array[4]), Text.literal(array[5]), Text.literal(array[6]))
+                                    Text.literal(array[2]), Text.literal(array[3]), Text.literal(array[4]), Text.literal(array[5]))
                             );
                         }
                     } else {
                         player.sendMessage(Text.translatable("chat.manhunt.list_coordinates",
-                                Text.literal(team).formatted(formatting),
-                                Text.literal(array[1]).formatted(formatting),
-                                Text.literal((TimeUnit.MILLISECONDS.toHours(new Date().getTime() - past.getTime())) + "h "),
-                                Text.literal(array[3]), Text.literal(array[4]), Text.literal(array[5]), Text.literal(array[6]))
+                                Text.literal(team).formatted(formatting), Text.literal(array[0]).formatted(formatting),
+                                Text.literal(" " + (TimeUnit.MILLISECONDS.toHours(new Date().getTime() - past.getTime())) + "h "),
+                                Text.literal(array[2]), Text.literal(array[3]), Text.literal(array[4]), Text.literal(array[5]))
                         );
                     }
                 }
@@ -105,40 +101,39 @@ public class CoordsCommand {
                 for (MutableText mutableText : runnerCoords) {
                     String[] array = mutableText.getString().split(" ");
 
-                    ManhuntMod.LOGGER.info("Length: " + array.length);
-                    past = new Date(Long.parseLong(array[2]));
+                    past = new Date(Long.parseLong(array[1]));
 
-                    if (array.length > 7) {
-                        String dimension = array[6];
-                        String message = "";
-
-                        for (int i = 7; i != array.length; i++) {
-                            String oldMessage = message;
-                            message = oldMessage + array[i];
+                    String message = "";
+                    for (int i = 5; i < array.length; i++) {
+                        String oldMessage;
+                        if (message.isEmpty()) {
+                            oldMessage = message;
+                        } else {
+                            oldMessage = message + " ";
                         }
-
-                        array[6] = dimension + " " + message;
+                        message = oldMessage + array[i];
                     }
 
+                    array[5] = message;
                     if (TimeUnit.MILLISECONDS.toHours(new Date().getTime() - past.getTime()) == 0) {
                         if (TimeUnit.MILLISECONDS.toMinutes(new Date().getTime() - past.getTime()) == 0) {
                             player.sendMessage(Text.translatable("chat.manhunt.list_coordinates",
-                                    Text.literal(team).formatted(formatting), Text.literal(array[1]).formatted(formatting),
+                                    Text.literal(team).formatted(formatting), Text.literal(array[0]).formatted(formatting),
                                     Text.literal(" " + (TimeUnit.MILLISECONDS.toSeconds(new Date().getTime() - past.getTime())) + "s "),
-                                    Text.literal(array[3]), Text.literal(array[4]), Text.literal(array[5]), Text.literal(array[6]))
+                                    Text.literal(array[2]), Text.literal(array[3]), Text.literal(array[4]), Text.literal(array[5]))
                             );
                         } else {
                             player.sendMessage(Text.translatable("chat.manhunt.list_coordinates",
-                                    Text.literal(team).formatted(formatting), Text.literal(array[1]).formatted(formatting),
-                                    Text.literal((TimeUnit.MILLISECONDS.toMinutes(new Date().getTime() - past.getTime())) + "m"),
-                                    Text.literal(array[3]), Text.literal(array[4]), Text.literal(array[5]), Text.literal(array[6]))
+                                    Text.literal(team).formatted(formatting), Text.literal(array[0]).formatted(formatting),
+                                    Text.literal((TimeUnit.MILLISECONDS.toMinutes(new Date().getTime() - past.getTime())) + "m "),
+                                    Text.literal(array[2]), Text.literal(array[3]), Text.literal(array[4]), Text.literal(array[5]))
                             );
                         }
                     } else {
                         player.sendMessage(Text.translatable("chat.manhunt.list_coordinates",
-                                Text.literal(team).formatted(formatting), Text.literal(array[1]).formatted(formatting),
+                                Text.literal(team).formatted(formatting), Text.literal(array[0]).formatted(formatting),
                                 Text.literal(" " + (TimeUnit.MILLISECONDS.toHours(new Date().getTime() - past.getTime())) + "h "),
-                                Text.literal(array[3]), Text.literal(array[4]), Text.literal(array[5]), Text.literal(array[6]))
+                                Text.literal(array[2]), Text.literal(array[3]), Text.literal(array[4]), Text.literal(array[5]))
                         );
                     }
                 }
@@ -179,8 +174,7 @@ public class CoordsCommand {
         if (isHunter) {
             for (ServerPlayerEntity serverPlayer : GameEvents.allHunters) {
                 serverPlayer.sendMessage(Text.translatable("chat.manhunt.send_coordinates",
-                                Text.literal(team).formatted(formatting),
-                                Text.literal(player.getNameForScoreboard()).formatted(formatting),
+                                Text.literal(team).formatted(formatting), Text.literal(player.getNameForScoreboard()).formatted(formatting),
                                 Text.literal(String.valueOf(player.getBlockX())),
                                 Text.literal(String.valueOf(player.getBlockY())),
                                 Text.literal(String.valueOf(player.getBlockZ())),
@@ -191,8 +185,7 @@ public class CoordsCommand {
         } else {
             for (ServerPlayerEntity serverPlayer : GameEvents.allRunners) {
                 serverPlayer.sendMessage(Text.translatable("chat.manhunt.send_coordinates",
-                                Text.literal(team).formatted(formatting),
-                                Text.literal(player.getNameForScoreboard()).formatted(formatting),
+                                Text.literal(team).formatted(formatting), Text.literal(player.getNameForScoreboard()).formatted(formatting),
                                 Text.literal(String.valueOf(player.getBlockX())),
                                 Text.literal(String.valueOf(player.getBlockY())),
                                 Text.literal(String.valueOf(player.getBlockZ())),
@@ -204,7 +197,6 @@ public class CoordsCommand {
 
         if (isHunter) {
             hunterCoords.add(Text.translatable("chat.manhunt.save_coordinates",
-                            Text.literal(team).formatted(formatting),
                             Text.literal(player.getNameForScoreboard()).formatted(formatting),
                             Text.literal(" " + new Date().getTime() + " "),
                             Text.literal(String.valueOf(player.getBlockX())),
@@ -215,7 +207,6 @@ public class CoordsCommand {
             );
         } else {
             runnerCoords.add(Text.translatable("chat.manhunt.save_coordinates",
-                            Text.literal(team).formatted(formatting),
                             Text.literal(player.getNameForScoreboard()).formatted(formatting),
                             Text.literal(" " + new Date().getTime() + " "),
                             Text.literal(String.valueOf(player.getBlockX())),

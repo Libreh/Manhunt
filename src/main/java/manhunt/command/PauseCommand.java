@@ -71,8 +71,9 @@ public class PauseCommand {
             GameEvents.playerFood.put(serverPlayer.getUuid(), serverPlayer.getHungerManager().getFoodLevel());
             GameEvents.playerSaturation.put(serverPlayer.getUuid(), serverPlayer.getHungerManager().getSaturationLevel());
             GameEvents.playerExhaustion.put(serverPlayer.getUuid(), serverPlayer.getHungerManager().getExhaustion());
-            serverPlayer.getHungerManager().setSaturationLevel(0.0F);
-            serverPlayer.getHungerManager().setExhaustion(0.0F);
+            var hungerManager = serverPlayer.getHungerManager();
+            hungerManager.setSaturationLevel(0.0F);
+            hungerManager.setExhaustion(0.0F);
             serverPlayer.clearStatusEffects();
             serverPlayer.getAttributeInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED).setBaseValue(0);
             serverPlayer.getAttributeInstance(EntityAttributes.GENERIC_JUMP_STRENGTH).setBaseValue(0);

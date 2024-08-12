@@ -46,7 +46,6 @@ public class ManhuntConfig {
     private int worldBorder = 59999968;
     private int spawnRadius = 5;
     private boolean spectatorsGenerateChunks = false;
-    private boolean doImmediateRespawn = true;
     private boolean chunky = true;
     private int overworld = 8000;
     private int theNether = 1000;
@@ -255,13 +254,6 @@ public class ManhuntConfig {
         this.spectatorsGenerateChunks = spectatorsGenerateChunks;
     }
 
-    public boolean isDoImmediateRespawn() {
-        return doImmediateRespawn;
-    }
-    public void setDoImmediateRespawn(boolean doImmediateRespawn) {
-        this.doImmediateRespawn = doImmediateRespawn;
-    }
-
     public boolean isChunky() {
         return chunky;
     }
@@ -329,7 +321,6 @@ public class ManhuntConfig {
             if ((je = vanilla.get("worldBorder")) != null) worldBorder = je.getAsInt();
             if ((je = vanilla.get("spawnRadius")) != null) this.spawnRadius = je.getAsInt();
             if ((je = vanilla.get("spectatorsGenerateChunks")) != null) this.spectatorsGenerateChunks = je.getAsBoolean();
-            if ((je = vanilla.get("doImmediateRespawn")) != null) this.doImmediateRespawn = je.getAsBoolean();
             @Nullable JsonObject chunky = modIntegrations.getAsJsonObject("chunky");
             if ((je = chunky.get("enabled")) != null) this.chunky = je.getAsBoolean();
             if ((je = chunky.get("overworld")) != null) overworld = je.getAsInt();
@@ -386,7 +377,6 @@ public class ManhuntConfig {
             vanilla.add("worldBorder", new JsonPrimitive(worldBorder));
             vanilla.add("spawnRadius", new JsonPrimitive(spawnRadius));
             vanilla.add("spectatorsGenerateChunks", new JsonPrimitive(spectatorsGenerateChunks));
-            vanilla.add("doImmediateRespawn", new JsonPrimitive(doImmediateRespawn));
             JsonObject chunky = new JsonObject();
             chunky.add("enabled", new JsonPrimitive(this.chunky));
             chunky.add("overworld", new JsonPrimitive(overworld));
@@ -436,7 +426,6 @@ public class ManhuntConfig {
     private final int worldBorderDefault = worldBorder;
     private final int spawnRadiusDefault = spawnRadius;
     private final boolean spectatorsGenerateChunksDefault = spectatorsGenerateChunks;
-    private final boolean doImmediateRespawnDefault = doImmediateRespawn;
     private final boolean chunkyDefault = chunky;
     private final int overworldDefault = overworld;
     private final int theNetherDefault = theNether;
@@ -528,9 +517,6 @@ public class ManhuntConfig {
     }
     public boolean isSpectatorsGenerateChunksDefault() {
         return spectatorsGenerateChunksDefault;
-    }
-    public boolean isDoImmediateRespawnDefault() {
-        return doImmediateRespawnDefault;
     }
     public boolean isChunkyDefault() {
         return chunkyDefault;

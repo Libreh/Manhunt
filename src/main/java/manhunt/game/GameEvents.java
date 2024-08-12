@@ -300,16 +300,6 @@ public class GameEvents {
                                     );
                                 }
                             }
-                        } else {
-                            for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
-                                player.sendMessage(Text.translatable("chat.manhunt.runner_head_start.free").formatted(Formatting.GOLD), true);
-                                player.playSoundToPlayer(
-                                        SoundEvents.BLOCK_NOTE_BLOCK_BANJO.value(),
-                                        SoundCategory.MASTER,
-                                        0.5F,
-                                        0.5F
-                                );
-                            }
                         }
                     }
                 }
@@ -405,7 +395,7 @@ public class GameEvents {
         for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
             if (joinList.contains(player.getUuid()) && !player.notInAnyWorld) {
                 joinList.remove(player.getUuid());
-                if (player.interactionManager.getGameMode() != ManhuntGame.getGameMode(server) ||
+                if (player.interactionManager.getGameMode() != ManhuntGame.getGameMode() ||
                         (player.getWorld().getRegistryKey() == World.OVERWORLD) && ManhuntMod.gameState != GameState.PREGAME ||
                         player.getWorld().getRegistryKey() != ManhuntMod.lobbyWorldRegistryKey && ManhuntMod.gameState == GameState.PREGAME ||
                         !ManhuntGame.playList.contains(player.getUuid())
@@ -415,9 +405,7 @@ public class GameEvents {
                     player.setOnFire(false);
                     player.setHealth(player.getMaxHealth());
                     player.setAir(player.getMaxAir());
-                    player.getHungerManager().setFoodLevel(20);
-                    player.getHungerManager().setSaturationLevel(5f);
-                    player.getHungerManager().setExhaustion(0f);
+                    resetHungerManager(player);
                     player.setExperienceLevel(0);
                     player.setExperiencePoints(0);
                     player.setScore(0);
@@ -427,7 +415,7 @@ public class GameEvents {
                     player.getAttributeInstance(EntityAttributes.PLAYER_BLOCK_BREAK_SPEED).setBaseValue(1.0);
 
                     player.getInventory().clear();
-                    player.changeGameMode(ManhuntGame.getGameMode(server));
+                    player.changeGameMode(ManhuntGame.getGameMode());
 
                     for (AdvancementEntry advancement : player.getServer().getAdvancementLoader().getAdvancements()) {
                         AdvancementProgress progress = player.getAdvancementTracker().getProgress(advancement);
@@ -500,7 +488,7 @@ public class GameEvents {
             }
 
             if (ManhuntMod.gameState == GameState.PREGAME) {
-                if (resetList.contains(player.getUuid()) && !player.notInAnyWorld) {
+                if (resetList.contains(player.getUuid()) && !player.notInAnyWorld && !player.isDead()) {
                     resetList.remove(player.getUuid());
                     player.teleport(
                             server.getWorld(ManhuntMod.lobbyWorldRegistryKey),
@@ -511,6 +499,7 @@ public class GameEvents {
                             180.0F,
                             0
                     );
+                    player.setSpawnPoint(ManhuntMod.lobbyWorldRegistryKey, lobbySpawnPos, 180f, true, false);
                     player.clearStatusEffects();
                     player.addStatusEffect(new StatusEffectInstance(
                             StatusEffects.SATURATION,
@@ -523,15 +512,13 @@ public class GameEvents {
                     player.setOnFire(false);
                     player.setFireTicks(0);
                     player.setHealth(20.0F);
-                    player.getHungerManager().setFoodLevel(20);
-                    player.getHungerManager().setSaturationLevel(5.0F);
-                    player.getHungerManager().setExhaustion(0.0F);
+                    resetHungerManager(player);
                     player.setExperienceLevel(0);
                     player.setExperiencePoints(0);
                     player.setScore(0);
                     player.getEnderChestInventory().clear();
                     player.getInventory().clear();
-                    player.changeGameMode(ManhuntGame.getGameMode(server));
+                    player.changeGameMode(ManhuntGame.getGameMode());
 
                     for (AdvancementEntry advancement : server.getAdvancementLoader().getAdvancements()) {
                         AdvancementProgress progress = player.getAdvancementTracker().getProgress(advancement);
@@ -740,16 +727,14 @@ public class GameEvents {
                     player.setOnFire(false);
                     player.setHealth(player.getMaxHealth());
                     player.setAir(player.getMaxAir());
-                    player.getHungerManager().setFoodLevel(20);
-                    player.getHungerManager().setSaturationLevel(5f);
-                    player.getHungerManager().setExhaustion(0f);
+                    resetHungerManager(player);
 
                     player.getAttributeInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED).setBaseValue(0.10000000149011612);
                     player.getAttributeInstance(EntityAttributes.GENERIC_JUMP_STRENGTH).setBaseValue(0.41999998688697815);
                     player.getAttributeInstance(EntityAttributes.PLAYER_BLOCK_BREAK_SPEED).setBaseValue(1.0);
 
                     player.getInventory().clear();
-                    player.changeGameMode(ManhuntGame.getGameMode(player.getServer()));
+                    player.changeGameMode(ManhuntGame.getGameMode());
 
                     Stats.MINED.forEach(stat -> player.resetStat(stat.getType().getOrCreateStat(stat.getValue())));
                     Stats.CRAFTED.forEach(stat -> player.resetStat(stat.getType().getOrCreateStat(stat.getValue())));
@@ -843,6 +828,18 @@ public class GameEvents {
                                 player.getAttributeInstance(EntityAttributes.GENERIC_JUMP_STRENGTH).setBaseValue(0.41999998688697815);
                                 player.getAttributeInstance(EntityAttributes.PLAYER_BLOCK_BREAK_SPEED).setBaseValue(1.0);
                             }
+                            player.setFireTicks(0);
+                            player.setOnFire(false);
+                            player.setHealth(20);
+                            player.setAir(player.getMaxAir());
+                            resetHungerManager(player);
+                            player.sendMessage(Text.translatable("chat.manhunt.runner_head_start.go").formatted(Formatting.GOLD), true);
+                            player.playSoundToPlayer(
+                                    SoundEvents.BLOCK_NOTE_BLOCK_BANJO.value(),
+                                    SoundCategory.MASTER,
+                                    0.5F,
+                                    0.5F
+                            );
                         }
                     }
                 }
@@ -937,9 +934,11 @@ public class GameEvents {
                             player.addStatusEffect(statusEffect);
                         }
                     }
-                    player.getHungerManager().setFoodLevel(playerFood.get(player.getUuid()));
-                    player.getHungerManager().setSaturationLevel(playerSaturation.get(player.getUuid()));
-                    player.getHungerManager().setExhaustion(playerExhaustion.get(player.getUuid()));
+                    player.setHealth(0);
+                    var hungerManager = player.getHungerManager();
+                    hungerManager.setFoodLevel(playerFood.get(player.getUuid()));
+                    hungerManager.setSaturationLevel(playerSaturation.get(player.getUuid()));
+                    hungerManager.setExhaustion(playerExhaustion.get(player.getUuid()));
 
                     UnpauseCommand.unpauseGame(server);
                 }
@@ -1361,5 +1360,12 @@ public class GameEvents {
         player.changeGameMode(GameMode.ADVENTURE);
         player.removeStatusEffect(StatusEffects.INVISIBILITY);
         player.teleport(player.getServer().getWorld(ManhuntMod.lobbyWorldRegistryKey), lobbySpawn.getX(), lobbySpawn.getY(), lobbySpawn.getZ(), PositionFlag.ROT, 180f, 0);
+    }
+
+    public static void resetHungerManager(ServerPlayerEntity player) {
+        var hungerManager = player.getHungerManager();
+        hungerManager.setFoodLevel(20);
+        hungerManager.setSaturationLevel(5f);
+        hungerManager.setExhaustion(0f);
     }
 }

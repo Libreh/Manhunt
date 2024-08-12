@@ -34,7 +34,6 @@ import net.minecraft.world.World;
 import net.minecraft.world.dimension.DimensionTypes;
 import net.minecraft.world.gen.chunk.placement.StructurePlacementCalculator;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.popcraft.chunky.ChunkyProvider;
 import org.popcraft.chunky.api.ChunkyAPI;
 import org.slf4j.Logger;
@@ -43,9 +42,7 @@ import xyz.nucleoid.fantasy.Fantasy;
 import xyz.nucleoid.fantasy.RuntimeWorldConfig;
 import xyz.nucleoid.fantasy.RuntimeWorldHandle;
 
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -59,9 +56,6 @@ public class ManhuntMod implements ModInitializer {
 	public static final DataStore datastore = database.dataStore(MOD_ID, "playerdata");
 	public static GameState gameState;
 	public static StructurePlacementCalculator structurePlacementCalculator;
-	private static final Identifier overworldIdentifier = Identifier.of(MOD_ID, "overworld");
-	private static final Identifier theNetherIdentifier = Identifier.of(MOD_ID, "the_nether");
-	private static final Identifier theEndIdentifier = Identifier.of(MOD_ID, "the_end");
 	public static final RegistryKey<World> lobbyWorldRegistryKey = RegistryKey.of(RegistryKeys.WORLD, Identifier.of(MOD_ID, "lobby"));
 	private static RuntimeWorldHandle overworldWorldHandle;
 	private static RuntimeWorldHandle theNetherWorldHandle;
@@ -77,26 +71,17 @@ public class ManhuntMod implements ModInitializer {
 
         ManhuntGame.chunkyLoaded = (FabricLoader.getInstance().isModLoaded("chunky"));
 
-		Path datapackPath = gameDir.resolve("world/datapacks/manhunt.zip");
-		try {
-			datapackPath.getParent().toFile().mkdirs();
-			Files.deleteIfExists(datapackPath);
-			Files.createFile(datapackPath);
-
-			IOUtils.copy(ManhuntMod.class.getResourceAsStream("/manhunt/datapack.zip"), new FileOutputStream(datapackPath.toFile()));
-		} catch (IOException e) {
-			LOGGER.error("Failed to copy Manhunt datapack");
-		}
+		Path worldDirectory = gameDir.resolve("world");
 
 		try {
-			FileUtils.deleteDirectory(gameDir.resolve("world/advancements").toFile());
-			FileUtils.deleteDirectory(gameDir.resolve("world/data").toFile());
-			FileUtils.deleteDirectory(gameDir.resolve("world/dimensions").toFile());
-			FileUtils.deleteDirectory(gameDir.resolve("world/entities").toFile());
-			FileUtils.deleteDirectory(gameDir.resolve("world/playerdata").toFile());
-			FileUtils.deleteDirectory(gameDir.resolve("world/poi").toFile());
-			FileUtils.deleteDirectory(gameDir.resolve("world/stats").toFile());
-			FileUtils.delete(gameDir.resolve("world/session.lock").toFile());
+			FileUtils.deleteDirectory(worldDirectory.resolve("advancements").toFile());
+			FileUtils.deleteDirectory(worldDirectory.resolve("data").toFile());
+			FileUtils.deleteDirectory(worldDirectory.resolve("DIM1").toFile());
+			FileUtils.deleteDirectory(worldDirectory.resolve("DIM-1").toFile());
+			FileUtils.deleteDirectory(worldDirectory.resolve("entities").toFile());
+			FileUtils.deleteDirectory(worldDirectory.resolve("playerdata").toFile());
+			FileUtils.deleteDirectory(worldDirectory.resolve("stats").toFile());
+			FileUtils.delete(worldDirectory.resolve("session.lock").toFile());
 		} catch (IOException e) {
 			LOGGER.error("Failed to delete world files");
 		}
@@ -113,6 +98,7 @@ public class ManhuntMod implements ModInitializer {
 			ResetCommand.register(dispatcher);
 			RunnerCommand.register(dispatcher);
 			SettingsComand.register(dispatcher);
+			SpectatorCommand.register(dispatcher);
 			StartCommand.register(dispatcher);
 			TrackCommand.register(dispatcher);
 			UnpauseCommand.register(dispatcher);
@@ -164,14 +150,6 @@ public class ManhuntMod implements ModInitializer {
 	}
 
 	public static void loadManhuntWorlds(MinecraftServer server, long seed) {
-		try {
-			FileUtils.deleteDirectory(ManhuntMod.gameDir.resolve("world/dimensions/manhunt/overworld").toFile());
-			FileUtils.deleteDirectory(ManhuntMod.gameDir.resolve("world/dimensions/manhunt/the_nether").toFile());
-			FileUtils.deleteDirectory(ManhuntMod.gameDir.resolve("world/dimensions/manhunt/the_end").toFile());
-		} catch (IOException e) {
-			ManhuntMod.LOGGER.error("Failed to delete Manhunt worlds");
-		}
-
 		if (overworldWorldHandle != null) {
 			overworldWorldHandle.delete();
 			theNetherWorldHandle.delete();
@@ -211,9 +189,9 @@ public class ManhuntMod implements ModInitializer {
 
 		structurePlacementCalculator = server.getOverworld().getChunkManager().getChunkGenerator().createStructurePlacementCalculator(server.getOverworld().getRegistryManager().getWrapperOrThrow(RegistryKeys.STRUCTURE_SET), server.getOverworld().getChunkManager().getNoiseConfig(), seed);
 
-		overworldWorldHandle = fantasy.openTemporaryWorld(overworldIdentifier, overworldConfig);
-		theNetherWorldHandle = fantasy.openTemporaryWorld(theNetherIdentifier, theNetherConfig);
-		theEndWorldHandle = fantasy.openTemporaryWorld(theEndIdentifier, theEndConfig);
+		overworldWorldHandle = fantasy.openTemporaryWorld(overworldConfig);
+		theNetherWorldHandle = fantasy.openTemporaryWorld(theNetherConfig);
+		theEndWorldHandle = fantasy.openTemporaryWorld(theEndConfig);
 
 		overworld = overworldWorldHandle.asWorld();
 		theNether = theNetherWorldHandle.asWorld();

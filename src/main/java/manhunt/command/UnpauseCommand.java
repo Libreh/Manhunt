@@ -49,9 +49,10 @@ public class UnpauseCommand {
                     serverPlayer.addStatusEffect(statusEffect);
                 }
             }
-            serverPlayer.getHungerManager().setFoodLevel(GameEvents.playerFood.get(serverPlayer.getUuid()));
-            serverPlayer.getHungerManager().setSaturationLevel(GameEvents.playerSaturation.get(serverPlayer.getUuid()));
-            serverPlayer.getHungerManager().setExhaustion(GameEvents.playerExhaustion.get(serverPlayer.getUuid()));
+            var hungerManager = serverPlayer.getHungerManager();
+            hungerManager.setFoodLevel(GameEvents.playerFood.get(serverPlayer.getUuid()));
+            hungerManager.setSaturationLevel(GameEvents.playerSaturation.get(serverPlayer.getUuid()));
+            hungerManager.setExhaustion(GameEvents.playerExhaustion.get(serverPlayer.getUuid()));
         }
     }
 }
