@@ -934,7 +934,6 @@ public class GameEvents {
                             player.addStatusEffect(statusEffect);
                         }
                     }
-                    player.setHealth(player.getMaxHealth());
                     var hungerManager = player.getHungerManager();
                     hungerManager.setFoodLevel(playerFood.get(player.getUuid()));
                     hungerManager.setSaturationLevel(playerSaturation.get(player.getUuid()));
