@@ -511,7 +511,7 @@ public class GameEvents {
                     );
                     player.setOnFire(false);
                     player.setFireTicks(0);
-                    player.setHealth(20.0F);
+                    player.setHealth(player.getMaxHealth());
                     resetHungerManager(player);
                     player.setExperienceLevel(0);
                     player.setExperiencePoints(0);
@@ -830,7 +830,7 @@ public class GameEvents {
                             }
                             player.setFireTicks(0);
                             player.setOnFire(false);
-                            player.setHealth(20);
+                            player.setHealth(player.getMaxHealth());
                             player.setAir(player.getMaxAir());
                             resetHungerManager(player);
                             player.sendMessage(Text.translatable("chat.manhunt.runner_head_start.go").formatted(Formatting.GOLD), true);
@@ -934,7 +934,7 @@ public class GameEvents {
                             player.addStatusEffect(statusEffect);
                         }
                     }
-                    player.setHealth(0);
+                    player.setHealth(player.getMaxHealth());
                     var hungerManager = player.getHungerManager();
                     hungerManager.setFoodLevel(playerFood.get(player.getUuid()));
                     hungerManager.setSaturationLevel(playerSaturation.get(player.getUuid()));
