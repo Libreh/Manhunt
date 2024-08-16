@@ -9,6 +9,7 @@ import manhunt.game.GameState;
 import manhunt.game.ManhuntGame;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import org.popcraft.chunky.ChunkyProvider;
@@ -25,15 +26,22 @@ public class StartCommand {
 
     private static int executeStart(ServerCommandSource source) {
         var server = source.getServer();
-        var scoreboard = server.getScoreboard();
+        var runnersTeam = server.getScoreboard().getTeam("runners");
 
-        if (!scoreboard.getTeam("runners").getPlayerList().isEmpty()) {
+        int runners = 0;
+        for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+            if (player.isTeamPlayer(runnersTeam)) {
+                runners++;
+                break;
+            }
+        }
+        if (runners == 0) {
             if (ManhuntGame.chunkyLoaded && ManhuntConfig.config.isChunky()) {
                 ChunkyAPI chunky = ChunkyProvider.get().getApi();
 
-                chunky.cancelTask("manhunt:overworld");
-                chunky.cancelTask("manhunt:the_nether");
-                chunky.cancelTask("manhunt:the_end");
+                chunky.cancelTask(String.valueOf(ManhuntMod.overworld.getRegistryKey()));
+                chunky.cancelTask(String.valueOf(ManhuntMod.theNether.getRegistryKey()));
+                chunky.cancelTask(String.valueOf(ManhuntMod.theEnd.getRegistryKey()));
             }
 
             GameEvents.startingTime = 120;

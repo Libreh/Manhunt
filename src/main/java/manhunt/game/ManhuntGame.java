@@ -87,9 +87,9 @@ public class ManhuntGame {
         if (chunkyLoaded && ManhuntConfig.config.isChunky()) {
             var chunky = ChunkyProvider.get().getApi();
 
-            chunky.cancelTask("manhunt:overworld");
-            chunky.cancelTask("manhunt:the_nether");
-            chunky.cancelTask("manhunt:the_end");
+            chunky.cancelTask(String.valueOf(ManhuntMod.overworld.getRegistryKey()));
+            chunky.cancelTask(String.valueOf(ManhuntMod.theNether.getRegistryKey()));
+            chunky.cancelTask(String.valueOf(ManhuntMod.theEnd.getRegistryKey()));
         }
 
         var scoreboard = server.getScoreboard();

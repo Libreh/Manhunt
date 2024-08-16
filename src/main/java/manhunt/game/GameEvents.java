@@ -466,13 +466,27 @@ public class GameEvents {
                         if (ManhuntConfig.config.getRolePreset() == 2) {
                             player.getScoreboard().addScoreHolderToTeam(player.getNameForScoreboard(), runnersTeam);
                         } else if (ManhuntConfig.config.getRolePreset() == 3) {
-                            if (runnersTeam.getPlayerList().isEmpty()) {
+                            int runners = 0;
+                            for (ServerPlayerEntity serverPlayer : server.getPlayerManager().getPlayerList()) {
+                                if (serverPlayer.isTeamPlayer(runnersTeam)) {
+                                    runners++;
+                                    break;
+                                }
+                            }
+                            if (runners == 0) {
                                 player.getScoreboard().addScoreHolderToTeam(player.getNameForScoreboard(), runnersTeam);
                             } else {
                                 player.getScoreboard().addScoreHolderToTeam(player.getNameForScoreboard(), huntersTeam);
                             }
                         } else {
-                            if (huntersTeam.getPlayerList().isEmpty()) {
+                            int hunters = 0;
+                            for (ServerPlayerEntity serverPlayer : server.getPlayerManager().getPlayerList()) {
+                                if (serverPlayer.isTeamPlayer(huntersTeam)) {
+                                    hunters++;
+                                    break;
+                                }
+                            }
+                            if (hunters == 0) {
                                 player.getScoreboard().addScoreHolderToTeam(player.getNameForScoreboard(), huntersTeam);
                             } else {
                                 player.getScoreboard().addScoreHolderToTeam(player.getNameForScoreboard(), runnersTeam);
@@ -999,6 +1013,7 @@ public class GameEvents {
             if (isRunner && runnersTeam.getPlayerList().size() == 1) {
                 starting = false;
                 startingTime = 0;
+                startReset = false;
             }
         } else if (ManhuntMod.gameState == GameState.PLAYING) {
             if (paused) {
@@ -1101,7 +1116,14 @@ public class GameEvents {
                     player.playSoundToPlayer(SoundEvents.BLOCK_STONE_PLACE, SoundCategory.BLOCKS, 0.5F,1.0F);
 
                     if (allReadyUps.size() == server.getPlayerManager().getPlayerList().size()) {
-                        if (runnersTeam.getPlayerList().isEmpty()) {
+                        int runners = 0;
+                        for (ServerPlayerEntity serverPlayer : server.getPlayerManager().getPlayerList()) {
+                            if (serverPlayer.isTeamPlayer(huntersTeam)) {
+                                runners++;
+                                break;
+                            }
+                        }
+                        if (runners == 0) {
                             server.getPlayerManager().broadcast(Text.translatable("chat.manhunt.minimum",
                                     Text.translatable("role.manhunt.runner")
                                     ).formatted(Formatting.RED),
