@@ -91,6 +91,7 @@ public class ManhuntMod implements ModInitializer {
 			CoordsCommand.register(dispatcher);
 			DurationCommand.register(dispatcher);
 			HunterCommand.register(dispatcher);
+			ListCoordsCommand.register(dispatcher);
 			OneHunterCommand.register(dispatcher);
 			OneRunnerCommand.register(dispatcher);
 			PauseCommand.register(dispatcher);
@@ -215,9 +216,9 @@ public class ManhuntMod implements ModInitializer {
 	private static void startPreload(MinecraftServer server) {
 		ChunkyAPI chunky = ChunkyProvider.get().getApi();
 
-		chunky.cancelTask(String.valueOf(ManhuntMod.overworld.getRegistryKey()));
-		chunky.cancelTask(String.valueOf(ManhuntMod.theNether.getRegistryKey()));
-		chunky.cancelTask(String.valueOf(ManhuntMod.theEnd.getRegistryKey()));
+		chunky.cancelTask(String.valueOf(ManhuntMod.overworld.getRegistryKey().getValue()));
+		chunky.cancelTask(String.valueOf(ManhuntMod.theNether.getRegistryKey().getValue()));
+		chunky.cancelTask(String.valueOf(ManhuntMod.theEnd.getRegistryKey().getValue()));
 
 		try {
 			FileUtils.deleteDirectory(gameDir.resolve("config/chunky/tasks").toFile());
@@ -226,17 +227,17 @@ public class ManhuntMod implements ModInitializer {
 		}
 
 		if (ManhuntConfig.config.getOverworld() != 0) {
-			chunky.startTask(String.valueOf(ManhuntMod.overworld.getRegistryKey()), "square", 0, 0, ManhuntConfig.config.getOverworld(), ManhuntConfig.config.getOverworld(), "concentric");
+			chunky.startTask(String.valueOf(ManhuntMod.overworld.getRegistryKey().getValue()), "square", ManhuntGame.worldSpawnPos.getX(), ManhuntGame.worldSpawnPos.getZ(), ManhuntConfig.config.getOverworld(), ManhuntConfig.config.getOverworld(), "concentric");
 		}
 		if (ManhuntConfig.config.getTheNether() != 0) {
-			chunky.startTask(String.valueOf(ManhuntMod.theNether.getRegistryKey()), "square", 0, 0, ManhuntConfig.config.getTheNether(), ManhuntConfig.config.getTheNether(), "concentric");
+			chunky.startTask(String.valueOf(ManhuntMod.theNether.getRegistryKey().getValue()), "square", ManhuntGame.worldSpawnPos.getX(), ManhuntGame.worldSpawnPos.getZ(), ManhuntConfig.config.getTheNether(), ManhuntConfig.config.getTheNether(), "concentric");
 		}
 		if (ManhuntConfig.config.getTheEnd() != 0) {
-			chunky.startTask(String.valueOf(ManhuntMod.theEnd.getRegistryKey()), "square", 0, 0, ManhuntConfig.config.getTheEnd(), ManhuntConfig.config.getTheEnd(), "concentric");
+			chunky.startTask(String.valueOf(ManhuntMod.theEnd.getRegistryKey().getValue()), "square", ManhuntGame.worldSpawnPos.getX(), ManhuntGame.worldSpawnPos.getZ(), ManhuntConfig.config.getTheEnd(), ManhuntConfig.config.getTheEnd(), "concentric");
 		}
 
 		chunky.onGenerationComplete(event -> {
-			if (event.world().equals(String.valueOf(ManhuntMod.overworld.getRegistryKey())) && !preloaded) {
+			if (event.world().equals(String.valueOf(ManhuntMod.overworld.getRegistryKey().getValue())) && !preloaded) {
 				preloaded = true;
 			}
 		});

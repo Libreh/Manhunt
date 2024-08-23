@@ -2412,9 +2412,9 @@ public class ManhuntSettings {
                         if (ManhuntGame.chunkyLoaded) {
                             ChunkyAPI chunky = ChunkyProvider.get().getApi();
 
-                            chunky.cancelTask(String.valueOf(ManhuntMod.overworld.getRegistryKey()));
-                            chunky.cancelTask(String.valueOf(ManhuntMod.theNether.getRegistryKey()));
-                            chunky.cancelTask(String.valueOf(ManhuntMod.theEnd.getRegistryKey()));
+                            chunky.cancelTask(String.valueOf(ManhuntMod.overworld.getRegistryKey().getValue()));
+                            chunky.cancelTask(String.valueOf(ManhuntMod.theNether.getRegistryKey().getValue()));
+                            chunky.cancelTask(String.valueOf(ManhuntMod.theEnd.getRegistryKey().getValue()));
                         }
                     }
                 } else {
@@ -2502,7 +2502,7 @@ public class ManhuntSettings {
                                                                 if (ManhuntGame.chunkyLoaded) {
                                                                     ChunkyAPI chunky = ChunkyProvider.get().getApi();
 
-                                                                    chunky.cancelTask(String.valueOf(ManhuntMod.overworld.getRegistryKey()));
+                                                                    chunky.cancelTask(String.valueOf(ManhuntMod.overworld.getRegistryKey().getValue()));
                                                                 }
                                                             }
                                                         })
@@ -2592,7 +2592,7 @@ public class ManhuntSettings {
                                                                 if (ManhuntGame.chunkyLoaded) {
                                                                     ChunkyAPI chunky = ChunkyProvider.get().getApi();
 
-                                                                    chunky.cancelTask(String.valueOf(ManhuntMod.theNether.getRegistryKey()));
+                                                                    chunky.cancelTask(String.valueOf(ManhuntMod.theNether.getRegistryKey().getValue()));
                                                                 }
                                                             }
                                                         })
@@ -2682,7 +2682,7 @@ public class ManhuntSettings {
                                                                 if (ManhuntGame.chunkyLoaded) {
                                                                     ChunkyAPI chunky = ChunkyProvider.get().getApi();
 
-                                                                    chunky.cancelTask(String.valueOf(ManhuntMod.theEnd.getRegistryKey()));
+                                                                    chunky.cancelTask(String.valueOf(ManhuntMod.theEnd.getRegistryKey().getValue()));
                                                                 }
                                                             }
                                                         })

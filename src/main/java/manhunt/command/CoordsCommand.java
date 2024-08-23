@@ -17,7 +17,6 @@ import net.minecraft.util.Formatting;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 public class CoordsCommand {
     public static final List<MutableText> hunterCoords = new ArrayList<>();
@@ -26,121 +25,11 @@ public class CoordsCommand {
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(CommandManager.literal("coords")
                 .requires(source -> source.isExecutedByPlayer() && ManhuntMod.gameState != GameState.PREGAME)
-                .executes(context -> listCoords(context.getSource()))
+                .executes(context -> sendCoordsMessage(context.getSource(), ""))
                 .then(CommandManager.argument("message", StringArgumentType.greedyString())
                     .executes(context -> sendCoordsMessage(context.getSource(), StringArgumentType.getString(context, "message")))
                 )
         );
-    }
-
-    private static int listCoords(ServerCommandSource source) {
-        var player = source.getPlayer();
-        boolean isHunter = player.isTeamPlayer(player.getScoreboard().getTeam("hunters"));
-
-        if (isHunter && hunterCoords.isEmpty() || !isHunter && runnerCoords.isEmpty()) {
-            player.sendMessage(Text.translatable("chat.manhunt.no_coordinates").formatted(Formatting.RED));
-        } else {
-            Date past;
-
-            Formatting formatting = Formatting.WHITE;
-
-            if (ManhuntConfig.config.isTeamColor()) {
-                if (isHunter) {
-                    formatting = ManhuntConfig.config.getHuntersColor();
-                } else {
-                    formatting = ManhuntConfig.config.getRunnersColor();
-                }
-            }
-
-            player.sendMessage(Text.translatable("chat.manhunt.team_coordinates").styled(style -> style.withBold(true)));
-
-            String team;
-            if (isHunter) {
-                team = "hunters";
-                for (MutableText mutableText : hunterCoords) {
-                    String[] array = mutableText.getString().split(" ");
-
-                    past = new Date(Long.parseLong(array[1]));
-
-                    String message = "";
-                    for (int i = 5; i < array.length; i++) {
-                        String oldMessage;
-                        if (message.isEmpty()) {
-                            oldMessage = message;
-                        } else {
-                            oldMessage = message + " ";
-                        }
-                        message = oldMessage + array[i];
-                    }
-
-                    array[5] = message;
-                    if (TimeUnit.MILLISECONDS.toHours(new Date().getTime() - past.getTime()) == 0) {
-                        if (TimeUnit.MILLISECONDS.toMinutes(new Date().getTime() - past.getTime()) == 0) {
-                            player.sendMessage(Text.translatable("chat.manhunt.list_coordinates",
-                                    Text.literal(team).formatted(formatting), Text.literal(array[0]).formatted(formatting),
-                                    Text.literal(" " + (TimeUnit.MILLISECONDS.toSeconds(new Date().getTime() - past.getTime())) + "s "),
-                                    Text.literal(array[2]), Text.literal(array[3]), Text.literal(array[4]), Text.literal(array[5]))
-                            );
-                        } else {
-                            player.sendMessage(Text.translatable("chat.manhunt.list_coordinates",
-                                    Text.literal(team).formatted(formatting), Text.literal(array[0]).formatted(formatting),
-                                    Text.literal((TimeUnit.MILLISECONDS.toMinutes(new Date().getTime() - past.getTime())) + "m "),
-                                    Text.literal(array[2]), Text.literal(array[3]), Text.literal(array[4]), Text.literal(array[5]))
-                            );
-                        }
-                    } else {
-                        player.sendMessage(Text.translatable("chat.manhunt.list_coordinates",
-                                Text.literal(team).formatted(formatting), Text.literal(array[0]).formatted(formatting),
-                                Text.literal(" " + (TimeUnit.MILLISECONDS.toHours(new Date().getTime() - past.getTime())) + "h "),
-                                Text.literal(array[2]), Text.literal(array[3]), Text.literal(array[4]), Text.literal(array[5]))
-                        );
-                    }
-                }
-            } else {
-                team = "runners";
-                for (MutableText mutableText : runnerCoords) {
-                    String[] array = mutableText.getString().split(" ");
-
-                    past = new Date(Long.parseLong(array[1]));
-
-                    String message = "";
-                    for (int i = 5; i < array.length; i++) {
-                        String oldMessage;
-                        if (message.isEmpty()) {
-                            oldMessage = message;
-                        } else {
-                            oldMessage = message + " ";
-                        }
-                        message = oldMessage + array[i];
-                    }
-
-                    array[5] = message;
-                    if (TimeUnit.MILLISECONDS.toHours(new Date().getTime() - past.getTime()) == 0) {
-                        if (TimeUnit.MILLISECONDS.toMinutes(new Date().getTime() - past.getTime()) == 0) {
-                            player.sendMessage(Text.translatable("chat.manhunt.list_coordinates",
-                                    Text.literal(team).formatted(formatting), Text.literal(array[0]).formatted(formatting),
-                                    Text.literal(" " + (TimeUnit.MILLISECONDS.toSeconds(new Date().getTime() - past.getTime())) + "s "),
-                                    Text.literal(array[2]), Text.literal(array[3]), Text.literal(array[4]), Text.literal(array[5]))
-                            );
-                        } else {
-                            player.sendMessage(Text.translatable("chat.manhunt.list_coordinates",
-                                    Text.literal(team).formatted(formatting), Text.literal(array[0]).formatted(formatting),
-                                    Text.literal((TimeUnit.MILLISECONDS.toMinutes(new Date().getTime() - past.getTime())) + "m "),
-                                    Text.literal(array[2]), Text.literal(array[3]), Text.literal(array[4]), Text.literal(array[5]))
-                            );
-                        }
-                    } else {
-                        player.sendMessage(Text.translatable("chat.manhunt.list_coordinates",
-                                Text.literal(team).formatted(formatting), Text.literal(array[0]).formatted(formatting),
-                                Text.literal(" " + (TimeUnit.MILLISECONDS.toHours(new Date().getTime() - past.getTime())) + "h "),
-                                Text.literal(array[2]), Text.literal(array[3]), Text.literal(array[4]), Text.literal(array[5]))
-                        );
-                    }
-                }
-            }
-        }
-
-        return Command.SINGLE_SUCCESS;
     }
 
     private static int sendCoordsMessage(ServerCommandSource source, String message) {
@@ -162,14 +51,14 @@ public class CoordsCommand {
         if (!isHunter) {
             team = "runners";
         }
-
-        if (player.getWorld().getRegistryKey() != ManhuntMod.overworld.getRegistryKey()) {
-            if (player.getWorld().getRegistryKey() == ManhuntMod.theNether.getRegistryKey()) {
-                message = "(nether) " + message;
-            } else if (player.getWorld().getRegistryKey() == ManhuntMod.theEnd.getRegistryKey()) {
-                message = "(end) " + message;
-            }
+        var yaw = player.getYaw();
+        var text = createYawText(yaw);
+        var biome = "unknown";
+        var biomeKey = player.getWorld().getBiome(player.getBlockPos());
+        if (biomeKey.getKey().isPresent()) {
+            biome = Text.translatable("biome.minecraft." + biomeKey.getKey().get().getValue().getPath()).getString();
         }
+        message = getDirectionFromYaw(yaw) + text[0] + text[1] + " (" + biome + ") " + message;
 
         if (isHunter) {
             for (ServerPlayerEntity serverPlayer : GameEvents.allHunters) {
@@ -218,5 +107,32 @@ public class CoordsCommand {
         }
 
         return Command.SINGLE_SUCCESS;
+    }
+
+    private static String[] createYawText(double yaw) {
+        String[][] directions = {
+                { "", "+" },
+                { "-", "+" },
+                { "-", "" },
+                { "-", "-" },
+                { "", "-" },
+                { "+", "-" },
+                { "+", "" },
+                { "+", "+" }
+        };
+
+        return directions[(int) Math.round(yaw / 45.0F) & 7];
+    }
+
+    public static String getDirectionFromYaw(double degrees) {
+        String direction;
+        String[] directions = {"S", "SW", "W", "NW", "N", "NE", "E", "SE", "S"};
+        if (degrees > 0)
+            direction = directions[(int)Math.round(degrees / 45)];
+        else {
+            int index = (int)Math.round(degrees / 45) * -1;
+            direction = directions[8 - index];
+        }
+        return direction;
     }
 }

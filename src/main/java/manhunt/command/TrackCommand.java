@@ -24,12 +24,11 @@ public class TrackCommand {
     }
 
     private static int trackPlayer(ServerCommandSource source, ServerPlayerEntity player) {
-        if (player.isTeamPlayer(source.getServer().getScoreboard().getTeam("runners"))) {
+        if (player.isTeamPlayer(source.getPlayer().getScoreboardTeam())) {
             ManhuntGame.updateCompass(source.getPlayer(), source.getPlayer().getMainHandStack(), player);
         } else {
             source.sendFeedback(() -> Text.translatable("chat.manhunt.track_team").formatted(Formatting.RED), false);
         }
-
 
         return Command.SINGLE_SUCCESS;
     }

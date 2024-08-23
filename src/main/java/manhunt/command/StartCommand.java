@@ -35,13 +35,13 @@ public class StartCommand {
                 break;
             }
         }
-        if (runners == 0) {
+        if (runners != 0) {
             if (ManhuntGame.chunkyLoaded && ManhuntConfig.config.isChunky()) {
                 ChunkyAPI chunky = ChunkyProvider.get().getApi();
 
-                chunky.cancelTask(String.valueOf(ManhuntMod.overworld.getRegistryKey()));
-                chunky.cancelTask(String.valueOf(ManhuntMod.theNether.getRegistryKey()));
-                chunky.cancelTask(String.valueOf(ManhuntMod.theEnd.getRegistryKey()));
+                chunky.cancelTask(String.valueOf(ManhuntMod.overworld.getRegistryKey().getValue()));
+                chunky.cancelTask(String.valueOf(ManhuntMod.theNether.getRegistryKey().getValue()));
+                chunky.cancelTask(String.valueOf(ManhuntMod.theEnd.getRegistryKey().getValue()));
             }
 
             GameEvents.startingTime = 120;
