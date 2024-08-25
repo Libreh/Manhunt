@@ -82,6 +82,8 @@ public class ManhuntMod implements ModInitializer {
 			FileUtils.deleteDirectory(worldDirectory.resolve("entities").toFile());
 			FileUtils.deleteDirectory(worldDirectory.resolve("playerdata").toFile());
 			FileUtils.deleteDirectory(worldDirectory.resolve("stats").toFile());
+			FileUtils.delete(worldDirectory.resolve("level.dat").toFile());
+			FileUtils.delete(worldDirectory.resolve("level.dat_old").toFile());
 			FileUtils.delete(worldDirectory.resolve("session.lock").toFile());
 		} catch (IOException e) {
 			LOGGER.error("Failed to delete world files");
