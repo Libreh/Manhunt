@@ -9,7 +9,7 @@ import net.minecraft.server.command.ServerCommandSource;
 public class PreferencesCommand {
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(CommandManager.literal("preferences")
-                        .requires(ServerCommandSource::isExecutedByPlayer)
+                .requires(ServerCommandSource::isExecutedByPlayer)
                 .executes(context -> showPreferences(context.getSource()))
         );
     }

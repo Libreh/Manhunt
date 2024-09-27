@@ -1,6 +1,6 @@
 plugins {
-	id 'fabric-loom' version '1.7-SNAPSHOT'
-	id 'maven-publish'
+    id 'fabric-loom' version '1.7-SNAPSHOT'
+    id 'maven-publish'
 }
 
 archivesBaseName = project.archives_base_name
@@ -8,61 +8,59 @@ version = project.mod_version + "+" + project.minecraft_version
 group = project.maven_group
 
 repositories {
-	mavenCentral()
-	maven { url 'https://maven.fabricmc.net/' }
-	maven { url 'https://maven.nucleoid.xyz/' }
-	maven { url "https://repo.codemc.io/repository/maven-public/" }
-	maven { url "https://api.modrinth.com/maven" }
+    mavenCentral()
+    maven { url 'https://maven.fabricmc.net/' }
+    maven { url 'https://maven.nucleoid.xyz/' }
+    maven { url "https://repo.codemc.io/repository/maven-public/" }
+    maven { url "https://api.modrinth.com/maven" }
 }
 
 dependencies {
-	// Main
-	minecraft "com.mojang:minecraft:${project.minecraft_version}"
-	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
-	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    // Main
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
-	// Fabric API
-	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+    // Fabric API
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-	// Server Translations API
-	modImplementation include("xyz.nucleoid:server-translations-api:${project.server_translations_api_version}")
+    // Server Translations API
+    modImplementation include("xyz.nucleoid:server-translations-api:${project.server_translations_api_version}")
 
-	// SGUI
-	modImplementation include("eu.pb4:sgui:${project.sgui_version}")
+    // SGUI
+    modImplementation include("eu.pb4:sgui:${project.sgui_version}")
 
-	// Fantasy
-	modImplementation include("xyz.nucleoid:fantasy:${project.fantasy_version}")
+    // Fantasy
+    modImplementation include("xyz.nucleoid:fantasy:${project.fantasy_version}")
 
-	// SQLib
-	modImplementation "maven.modrinth:sqlib:${project.sqlib_version}"
+    // SQLib
+    modImplementation "maven.modrinth:sqlib:${project.sqlib_version}"
 
-	// Permissions API
-	modImplementation include("me.lucko:fabric-permissions-api:${project.permissions_api_version}") {
-		exclude(group: "net.fabricmc.fabric-api")
-	}
+    // Permissions API
+    modImplementation include("me.lucko:fabric-permissions-api:${project.permissions_api_version}") { exclude(group: "net.fabricmc.fabric-api") }
 
-	// Chunky
-	modImplementation "org.popcraft:chunky-common:${project.chunky_common_version}"
+    // Chunky
+    modImplementation "org.popcraft:chunky-common:${project.chunky_common_version}"
 }
 
 processResources {
-	inputs.property "version", project.version
+    inputs.property "version", project.version
 
-	filesMatching("fabric.mod.json") {
-		expand "version": project.version
-	}
+    filesMatching("fabric.mod.json") {
+        expand "version": project.version
+    }
 }
 
 tasks.withType(JavaCompile).configureEach {
-	options.release = 21
-	options.encoding = "UTF-8"
+    options.release = 21
+    options.encoding = "UTF-8"
 }
 
 java {
-	sourceCompatibility = JavaVersion.VERSION_21
-	targetCompatibility = JavaVersion.VERSION_21
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
 }
 
 jar {
-	from"LICENSE"
+    from "LICENSE"
 }

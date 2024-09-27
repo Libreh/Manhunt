@@ -16,12 +16,11 @@ public class ResetCommand {
 
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(CommandManager.literal("reset")
-                .requires(source -> ManhuntMod.gameState != GameState.PREGAME && (ManhuntMod.gameState == GameState.POSTGAME &&
-                        source.isExecutedByPlayer() && ManhuntMod.checkLeaderPermission(source.getPlayer(), "manhunt.reset") || !source.isExecutedByPlayer()) ||
-                        ManhuntMod.gameState == GameState.PLAYING && source.isExecutedByPlayer() && Permissions.check(source.getPlayer(), "manhunt.force_reset"))
+                .requires(source -> ManhuntMod.gameState != GameState.PREGAME && (ManhuntMod.gameState == GameState.POSTGAME && source.isExecutedByPlayer() && ManhuntMod.checkLeaderPermission(source.getPlayer(), "manhunt" + ".reset") || !source.isExecutedByPlayer()) || ManhuntMod.gameState == GameState.PLAYING && source.isExecutedByPlayer() && Permissions.check(source.getPlayer(), "manhunt.force_reset"))
                 .executes(context -> resetCommand(context.getSource(), RandomSeed.getSeed()))
                 .then(CommandManager.argument("seed", LongArgumentType.longArg())
-                        .executes(context -> resetCommand(context.getSource(), LongArgumentType.getLong(context, "seed")))
+                        .executes(context -> resetCommand(context.getSource(), LongArgumentType.getLong(context,
+                                "seed")))
                 )
         );
     }

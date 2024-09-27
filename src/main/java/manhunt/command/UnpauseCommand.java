@@ -18,11 +18,7 @@ import net.minecraft.sound.SoundEvents;
 public class UnpauseCommand {
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(CommandManager.literal("unpause")
-                .requires(source -> ManhuntMod.gameState == GameState.PLAYING && GameEvents.paused &&
-                        (source.isExecutedByPlayer() && ManhuntMod.checkLeaderPermission(source.getPlayer(), "manhunt.unpause") || !source.isExecutedByPlayer() ||
-                        ManhuntConfig.config.isRunnersCanPause() &&
-                                source.getPlayer().isTeamPlayer(source.getPlayer().getScoreboard().getTeam("runners")))
-                )
+                .requires(source -> ManhuntMod.gameState == GameState.PLAYING && GameEvents.paused && (source.isExecutedByPlayer() && ManhuntMod.checkLeaderPermission(source.getPlayer(), "manhunt" + ".unpause") || !source.isExecutedByPlayer() || ManhuntConfig.CONFIG.isRunnersCanPause() && source.getPlayer().isTeamPlayer(source.getPlayer().getScoreboard().getTeam("runners"))))
                 .executes(context -> unpauseCommand(context.getSource()))
         );
     }
@@ -38,21 +34,22 @@ public class UnpauseCommand {
 
         server.getTickManager().setFrozen(false);
 
-        for (ServerPlayerEntity serverPlayer : server.getPlayerManager().getPlayerList()) {
-            serverPlayer.getAttributeInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED).setBaseValue(0.10000000149011612);
-            serverPlayer.getAttributeInstance(EntityAttributes.GENERIC_JUMP_STRENGTH).setBaseValue(0.41999998688697815);
-            serverPlayer.getAttributeInstance(EntityAttributes.PLAYER_BLOCK_BREAK_SPEED).setBaseValue(1.0);
-            serverPlayer.playSoundToPlayer(SoundEvents.BLOCK_ANVIL_LAND, SoundCategory.MASTER, 0.1f, 1.5f);
-            serverPlayer.clearStatusEffects();
-            if (PauseCommand.playerEffects.containsKey(serverPlayer.getUuid())) {
-                for (StatusEffectInstance statusEffect : PauseCommand.playerEffects.get(serverPlayer.getUuid())) {
-                    serverPlayer.addStatusEffect(statusEffect);
+        for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+            player.getAttributeInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED).setBaseValue(0.10000000149011612);
+            player.getAttributeInstance(EntityAttributes.GENERIC_JUMP_STRENGTH).setBaseValue(0.41999998688697815);
+            player.getAttributeInstance(EntityAttributes.PLAYER_BLOCK_BREAK_SPEED).setBaseValue(1.0);
+            player.playSoundToPlayer(SoundEvents.BLOCK_ANVIL_LAND, SoundCategory.MASTER, 0.1f, 1.5f);
+            player.clearStatusEffects();
+            if (PauseCommand.PLAYER_EFFECTS.containsKey(player.getUuid())) {
+                for (StatusEffectInstance statusEffect : PauseCommand.PLAYER_EFFECTS.get(player.getUuid())) {
+                    player.addStatusEffect(statusEffect);
                 }
             }
-            var hungerManager = serverPlayer.getHungerManager();
-            hungerManager.setFoodLevel(GameEvents.playerFood.get(serverPlayer.getUuid()));
-            hungerManager.setSaturationLevel(GameEvents.playerSaturation.get(serverPlayer.getUuid()));
-            hungerManager.setExhaustion(GameEvents.playerExhaustion.get(serverPlayer.getUuid()));
+            var hungerManager = player.getHungerManager();
+            hungerManager.setFoodLevel(GameEvents.PLAYER_FOOD.get(player.getUuid()));
+            hungerManager.setSaturationLevel(GameEvents.PLAYER_SATURATION.get(player.getUuid()));
+            hungerManager.setExhaustion(GameEvents.PLAYER_EXHAUSTION.get(player.getUuid()));
+            player.setAir(GameEvents.PLAYER_AIR.get(player.getUuid()));
         }
     }
 }

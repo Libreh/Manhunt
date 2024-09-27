@@ -1,27 +1,27 @@
 {
-	"schemaVersion": 1,
-	"id": "manhunt",
-	"version": "${version}",
-	"name": "Manhunt",
-	"description": "A server-side Minecraft Manhunt mod.",
-	"authors": [
-		"Libreh"
-	],
-	"license": "LGPLv3",
-	"icon": "assets/manhunt/icon.png",
-	"environment": "*",
-	"entrypoints": {
-		"main": [
-			"manhunt.ManhuntMod"
-		]
-	},
-	"mixins": [
-		"manhunt.mixins.json"
-	],
-	"depends": {
-		"fabricloader": ">=0.15.11",
-		"minecraft": "~1.21",
-		"java": ">=21",
-		"fabric-api": "*"
-	}
+  "schemaVersion": 1,
+  "id": "manhunt",
+  "version": "${version}",
+  "name": "Manhunt",
+  "description": "A server-side Fabric Minecraft Manhunt mod.",
+  "authors": [
+    "Libreh"
+  ],
+  "license": "LGPLv3",
+  "icon": "assets/manhunt/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "manhunt.ManhuntMod"
+    ]
+  },
+  "mixins": [
+    "manhunt.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.15.11",
+    "minecraft": "~1.21",
+    "java": ">=21",
+    "fabric-api": "*"
+  }
 }

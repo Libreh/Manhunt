@@ -1,4 +1,4 @@
-package manhunt.mixin;
+package manhunt.mixin.game;
 
 import manhunt.ManhuntMod;
 import manhunt.game.GameEvents;
@@ -19,12 +19,12 @@ public class PlayerManagerMixin {
     private void loadPlayerData(ServerPlayerEntity player, CallbackInfoReturnable<NbtCompound> ci) {
         if (ci.getReturnValue() == null) {
             NbtCompound nbt = new NbtCompound();
-            nbt.putString("Dimension", ManhuntMod.lobbyWorldRegistryKey.getValue().toString());
+            nbt.putString("Dimension", ManhuntMod.LOBBY_REGISTRY_KEY.getValue().toString());
 
             NbtList position = new NbtList();
-            position.add(NbtDouble.of(GameEvents.lobbySpawn.x));
-            position.add(NbtDouble.of(GameEvents.lobbySpawn.y));
-            position.add(NbtDouble.of(GameEvents.lobbySpawn.z));
+            position.add(NbtDouble.of(GameEvents.LOBBY_SPAWN_DOUBLE.x));
+            position.add(NbtDouble.of(GameEvents.LOBBY_SPAWN_DOUBLE.y));
+            position.add(NbtDouble.of(GameEvents.LOBBY_SPAWN_DOUBLE.z));
             nbt.put("Pos", position);
 
             NbtList rotation = new NbtList();

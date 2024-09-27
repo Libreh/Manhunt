@@ -1,4 +1,4 @@
-package manhunt.mixin;
+package manhunt.mixin.fixes;
 
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.ItemStack;
@@ -22,14 +22,23 @@ import java.util.Objects;
 
 @Mixin(Explosion.class)
 public class ExplosionMixin {
-    @Shadow @Final private double x;
-    @Shadow @Final
+    @Shadow
+    @Final
+    private double x;
+    @Shadow
+    @Final
     private double y;
-    @Shadow @Final private double z;
+    @Shadow
+    @Final
+    private double z;
 
-    @Shadow @Final private float power;
+    @Shadow
+    @Final
+    private float power;
 
-    @Shadow @Final private World world;
+    @Shadow
+    @Final
+    private World world;
 
     @Inject(method = "affectWorld", at = @At("HEAD"))
     public void playShieldSoundsFromExplosion(boolean particles, CallbackInfo ci) {
@@ -42,13 +51,16 @@ public class ExplosionMixin {
         int y2 = MathHelper.floor(this.y + maxDistance + 1.0);
         int z1 = MathHelper.floor(this.z - maxDistance - 1.0);
         int z2 = MathHelper.floor(this.z + maxDistance + 1.0);
-        List<LivingEntity> nearEntities = this.world.getEntitiesByClass(LivingEntity.class, new Box(x1, y1, z1, x2, y2, z2), Objects::nonNull);
+        List<LivingEntity> nearEntities = this.world.getEntitiesByClass(LivingEntity.class, new Box(x1, y1, z1, x2,
+                y2, z2), Objects::nonNull);
 
         for (LivingEntity nearEntity : nearEntities) {
             if (nearEntity.isAlive()) {
                 double distance = Math.sqrt(nearEntity.squaredDistanceTo(pos));
                 if (distance < maxDistance && checkShieldState(nearEntity)) {
-                    world.playSound(nearEntity.getX(), nearEntity.getY(), nearEntity.getZ(), SoundEvents.ITEM_SHIELD_BLOCK, nearEntity.getSoundCategory(), 1, 0.8F + world.random.nextFloat() * 0.4F, false);
+                    world.playSound(nearEntity.getX(), nearEntity.getY(), nearEntity.getZ(),
+                            SoundEvents.ITEM_SHIELD_BLOCK, nearEntity.getSoundCategory(), 1,
+                            0.8F + world.random.nextFloat() * 0.4F, false);
                 }
             }
         }

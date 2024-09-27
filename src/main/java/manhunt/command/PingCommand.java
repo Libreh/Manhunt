@@ -14,23 +14,21 @@ public class PingCommand {
         dispatcher.register(CommandManager.literal("ping")
                 .executes(context -> selfPing(context.getSource()))
                 .then(CommandManager.argument("player", EntityArgumentType.player())
-                        .executes(context -> playerPing(context.getSource(), EntityArgumentType.getPlayer(context, "player"))))
+                        .executes(context -> playerPing(context.getSource(), EntityArgumentType.getPlayer(context,
+                                "player")))
+                )
         );
     }
 
     private static int selfPing(ServerCommandSource source) {
         if (source.isExecutedByPlayer()) {
             source.sendFeedback(() -> Text.translatable("chat.manhunt.ping",
-                    Text.literal(String.valueOf(source.getPlayer().networkHandler.getLatency()))),
-                    false
-            );
+                    Text.literal(String.valueOf(source.getPlayer().networkHandler.getLatency()))), false);
         } else {
             source.sendFeedback(() -> Text.translatable("command.unknown.command").formatted(Formatting.RED), false);
             source.sendFeedback(() -> Text.translatable("text.manhunt.both",
-                    Text.literal("ping").styled(style -> style.withUnderline(true)),
-                    Text.translatable("command.context.here").formatted(Formatting.RED)),
-                    false
-            );
+                    Text.literal("ping").styled(style -> style.withUnderline(true)), Text.translatable("command" +
+                            ".context.here").formatted(Formatting.RED)), false);
         }
 
         return Command.SINGLE_SUCCESS;
@@ -38,9 +36,7 @@ public class PingCommand {
 
     private static int playerPing(ServerCommandSource source, ServerPlayerEntity player) {
         source.sendFeedback(() -> Text.translatable("chat.manhunt.ping",
-                Text.literal(String.valueOf(player.networkHandler.getLatency()))),
-                false
-        );
+                Text.literal(String.valueOf(player.networkHandler.getLatency()))), false);
 
         return Command.SINGLE_SUCCESS;
     }

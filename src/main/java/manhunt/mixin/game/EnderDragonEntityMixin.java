@@ -1,4 +1,4 @@
-package manhunt.mixin;
+package manhunt.mixin.game;
 
 import manhunt.ManhuntMod;
 import manhunt.game.GameState;

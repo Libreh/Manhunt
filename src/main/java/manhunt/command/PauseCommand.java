@@ -22,20 +22,15 @@ import java.util.HashMap;
 import java.util.UUID;
 
 public class PauseCommand {
-    public static final HashMap<UUID, Collection<StatusEffectInstance>> playerEffects = new HashMap<>();
-    public static final HashMap<UUID, Vec3d> playerPos = new HashMap<>();
-    public static final HashMap<UUID, Float> playerYaw = new HashMap<>();
-    public static final HashMap<UUID, Float> playerPitch = new HashMap<>();
+    public static final HashMap<UUID, Collection<StatusEffectInstance>> PLAYER_EFFECTS = new HashMap<>();
+    public static final HashMap<UUID, Vec3d> PLAYER_POS = new HashMap<>();
+    public static final HashMap<UUID, Float> PLAYER_YAW = new HashMap<>();
+    public static final HashMap<UUID, Float> PLAYER_PITCH = new HashMap<>();
 
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(CommandManager.literal("pause")
-                .requires(source -> ManhuntMod.gameState == GameState.PLAYING && !GameEvents.paused &&
-                        (source.isExecutedByPlayer() && ManhuntMod.checkLeaderPermission(source.getPlayer(), "manhunt.pause") || !source.isExecutedByPlayer() ||
-                        ManhuntConfig.config.isRunnersCanPause() &&
-                                source.getPlayer().isTeamPlayer(source.getPlayer().getScoreboard().getTeam("runners")))
-                )
-                .executes(context -> pauseCommand(context.getSource()))
-        );
+                .requires(source -> ManhuntMod.gameState == GameState.PLAYING && !GameEvents.paused && (source.isExecutedByPlayer() && ManhuntMod.checkLeaderPermission(source.getPlayer(), "manhunt" + ".pause") || !source.isExecutedByPlayer() || ManhuntConfig.CONFIG.isRunnersCanPause() && source.getPlayer().isTeamPlayer(source.getPlayer().getScoreboard().getTeam("runners"))))
+                .executes(context -> pauseCommand(context.getSource())));
     }
 
     private static int pauseCommand(ServerCommandSource source) {
@@ -47,53 +42,42 @@ public class PauseCommand {
     public static void pauseGame(MinecraftServer server) {
         GameEvents.paused = true;
 
-        if (ManhuntConfig.config.getLeavePauseTime() != 0) {
-            GameEvents.pauseTimeLeft = ManhuntConfig.config.getLeavePauseTime() * 60 * 20;
+        if (ManhuntConfig.CONFIG.getLeavePauseTime() != 0) {
+            GameEvents.pauseTimeLeft = ManhuntConfig.CONFIG.getLeavePauseTime() * 60 * 20;
         }
 
         server.getTickManager().setFrozen(true);
 
-        playerEffects.clear();
-        playerPos.clear();
-        playerYaw.clear();
-        playerPitch.clear();
-        GameEvents.playerFood.clear();
-        GameEvents.playerSaturation.clear();
+        PLAYER_EFFECTS.clear();
+        PLAYER_POS.clear();
+        PLAYER_YAW.clear();
+        PLAYER_PITCH.clear();
+        GameEvents.PLAYER_FOOD.clear();
+        GameEvents.PLAYER_SATURATION.clear();
 
-        for (ServerPlayerEntity serverPlayer : server.getPlayerManager().getPlayerList()) {
-            serverPlayer.playSoundToPlayer(SoundEvents.BLOCK_ANVIL_LAND, SoundCategory.MASTER, 0.1f, 0.5f);
-            if (!serverPlayer.getStatusEffects().isEmpty()) {
-                playerEffects.put(serverPlayer.getUuid(), serverPlayer.getStatusEffects());
+        for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+            player.playSoundToPlayer(SoundEvents.BLOCK_ANVIL_LAND, SoundCategory.MASTER, 0.1f, 0.5f);
+            if (!player.getStatusEffects().isEmpty()) {
+                PLAYER_EFFECTS.put(player.getUuid(), player.getStatusEffects());
             }
-            playerPos.put(serverPlayer.getUuid(), serverPlayer.getPos());
-            playerYaw.put(serverPlayer.getUuid(), serverPlayer.getYaw());
-            playerPitch.put(serverPlayer.getUuid(), serverPlayer.getPitch());
-            GameEvents.playerFood.put(serverPlayer.getUuid(), serverPlayer.getHungerManager().getFoodLevel());
-            GameEvents.playerSaturation.put(serverPlayer.getUuid(), serverPlayer.getHungerManager().getSaturationLevel());
-            GameEvents.playerExhaustion.put(serverPlayer.getUuid(), serverPlayer.getHungerManager().getExhaustion());
-            var hungerManager = serverPlayer.getHungerManager();
+            PLAYER_POS.put(player.getUuid(), player.getPos());
+            PLAYER_YAW.put(player.getUuid(), player.getYaw());
+            PLAYER_PITCH.put(player.getUuid(), player.getPitch());
+            GameEvents.PLAYER_FOOD.put(player.getUuid(), player.getHungerManager().getFoodLevel());
+            GameEvents.PLAYER_SATURATION.put(player.getUuid(), player.getHungerManager().getSaturationLevel());
+            GameEvents.PLAYER_EXHAUSTION.put(player.getUuid(), player.getHungerManager().getExhaustion());
+            GameEvents.PLAYER_AIR.put(player.getUuid(), player.getAir());
+            var hungerManager = player.getHungerManager();
             hungerManager.setSaturationLevel(0.0F);
             hungerManager.setExhaustion(0.0F);
-            serverPlayer.clearStatusEffects();
-            serverPlayer.getAttributeInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED).setBaseValue(0);
-            serverPlayer.getAttributeInstance(EntityAttributes.GENERIC_JUMP_STRENGTH).setBaseValue(0);
-            serverPlayer.getAttributeInstance(EntityAttributes.PLAYER_BLOCK_BREAK_SPEED).setBaseValue(0);
-            serverPlayer.addStatusEffect(new StatusEffectInstance(
-                    StatusEffects.DARKNESS,
-                    StatusEffectInstance.INFINITE,
-                    255,
-                    false,
-                    false,
-                    false)
-            );
-            serverPlayer.addStatusEffect(new StatusEffectInstance(
-                        StatusEffects.RESISTANCE,
-                        StatusEffectInstance.INFINITE,
-                        255,
-                    false,
-                    false,
-                    false)
-            );
+            player.clearStatusEffects();
+            player.getAttributeInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED).setBaseValue(0);
+            player.getAttributeInstance(EntityAttributes.GENERIC_JUMP_STRENGTH).setBaseValue(0);
+            player.getAttributeInstance(EntityAttributes.PLAYER_BLOCK_BREAK_SPEED).setBaseValue(0);
+            player.addStatusEffect(new StatusEffectInstance(StatusEffects.DARKNESS, StatusEffectInstance.INFINITE,
+                    255, false, false, false));
+            player.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE, StatusEffectInstance.INFINITE,
+                    255, false, false, false));
         }
     }
 }

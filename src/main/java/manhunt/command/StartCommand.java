@@ -15,11 +15,12 @@ import net.minecraft.util.Formatting;
 import org.popcraft.chunky.ChunkyProvider;
 import org.popcraft.chunky.api.ChunkyAPI;
 
+import static manhunt.ManhuntMod.*;
+
 public class StartCommand {
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(CommandManager.literal("start")
-                .requires(source -> ManhuntMod.gameState == GameState.PREGAME && GameEvents.startReset && source.isExecutedByPlayer() &&
-                        ManhuntMod.checkLeaderPermission(source.getPlayer(), "manhunt.start") || !source.isExecutedByPlayer())
+                .requires(source -> ManhuntMod.gameState == GameState.PREGAME && GameEvents.startReset && source.isExecutedByPlayer() && ManhuntMod.checkLeaderPermission(source.getPlayer(), "manhunt.start") || !source.isExecutedByPlayer())
                 .executes(context -> executeStart(context.getSource()))
         );
     }
@@ -36,18 +37,19 @@ public class StartCommand {
             }
         }
         if (runners != 0) {
-            if (ManhuntGame.chunkyLoaded && ManhuntConfig.config.isChunky()) {
+            if (ManhuntGame.chunkyLoaded && ManhuntConfig.CONFIG.isChunky()) {
                 ChunkyAPI chunky = ChunkyProvider.get().getApi();
 
-                chunky.cancelTask(String.valueOf(ManhuntMod.overworld.getRegistryKey().getValue()));
-                chunky.cancelTask(String.valueOf(ManhuntMod.theNether.getRegistryKey().getValue()));
-                chunky.cancelTask(String.valueOf(ManhuntMod.theEnd.getRegistryKey().getValue()));
+                chunky.cancelTask(String.valueOf(overworld.getRegistryKey().getValue()));
+                chunky.cancelTask(String.valueOf(theNether.getRegistryKey().getValue()));
+                chunky.cancelTask(String.valueOf(theEnd.getRegistryKey().getValue()));
             }
 
             GameEvents.startingTime = 120;
             GameEvents.starting = true;
         } else {
-            source.sendFeedback(() -> Text.translatable("chat.manhunt.minimum", Text.translatable("role.manhunt.runner")).formatted(Formatting.RED), false);
+            source.sendFeedback(() -> Text.translatable("chat.manhunt.minimum", Text.translatable("role.manhunt" +
+                    ".runner")).formatted(Formatting.RED), false);
         }
 
         return Command.SINGLE_SUCCESS;

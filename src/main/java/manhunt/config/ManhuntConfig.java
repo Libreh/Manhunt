@@ -10,7 +10,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.*;
 
 public class ManhuntConfig {
-    public static final ManhuntConfig config = new ManhuntConfig();
+    public static final ManhuntConfig CONFIG = new ManhuntConfig();
     private final File confFile = new File("./config/manhunt.json");
     private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
@@ -22,6 +22,8 @@ public class ManhuntConfig {
     private boolean teamColor = true;
     private Formatting huntersColor = Formatting.RED;
     private Formatting runnersColor = Formatting.GREEN;
+    private boolean waitForRunner = true;
+    private int hunterReleaseTime = 20;
     private int runnerHeadStart = 1;
     private boolean runnersGlow = false;
     private boolean huntOnDeath = true;
@@ -32,7 +34,7 @@ public class ManhuntConfig {
     private boolean customTitles = true;
     private boolean customSounds = true;
     private boolean customParticles = true;
-    private boolean automaticCompass = true;
+    private int trackerType = 1;
     private boolean nightVision = true;
     private int friendlyFire = 2;
     private boolean runnerPreferences = true;
@@ -42,9 +44,9 @@ public class ManhuntConfig {
     private String startSubtitle = "Good luck and have fun";
     private String pausedTitle = "Paused";
     private boolean vanilla = true;
-    private Difficulty difficulty = Difficulty.EASY;
+    private Difficulty difficulty = Difficulty.NORMAL;
     private int worldBorder = 59999968;
-    private int spawnRadius = 5;
+    private int spawnRadius = 10;
     private boolean spectatorsGenerateChunks = false;
     private boolean chunky = true;
     private int overworld = 8000;
@@ -54,6 +56,7 @@ public class ManhuntConfig {
     public boolean isSetMotd() {
         return setMotd;
     }
+
     public void setSetMotd(boolean setMotd) {
         this.setMotd = setMotd;
     }
@@ -61,6 +64,7 @@ public class ManhuntConfig {
     public int getRolePreset() {
         return rolePreset;
     }
+
     public void setRolePreset(int rolePreset) {
         this.rolePreset = rolePreset;
     }
@@ -68,6 +72,7 @@ public class ManhuntConfig {
     public boolean isTeamColor() {
         return teamColor;
     }
+
     public void setTeamColor(boolean teamColor) {
         this.teamColor = teamColor;
     }
@@ -75,6 +80,7 @@ public class ManhuntConfig {
     public Formatting getHuntersColor() {
         return huntersColor;
     }
+
     public void setHuntersColor(Formatting huntersColor) {
         this.huntersColor = huntersColor;
     }
@@ -82,13 +88,31 @@ public class ManhuntConfig {
     public Formatting getRunnersColor() {
         return runnersColor;
     }
+
     public void setRunnersColor(Formatting runnersColor) {
         this.runnersColor = runnersColor;
+    }
+
+    public boolean isWaitForRunner() {
+        return waitForRunner;
+    }
+
+    public void setWaitForRunner(boolean waitForRunner) {
+        this.waitForRunner = waitForRunner;
+    }
+
+    public int getHunterReleaseTime() {
+        return hunterReleaseTime;
+    }
+
+    public void setHunterReleaseTime(int hunterReleaseTime) {
+        this.hunterReleaseTime = hunterReleaseTime;
     }
 
     public int getRunnerHeadStart() {
         return runnerHeadStart;
     }
+
     public void setRunnerHeadStart(int runnerHeadStart) {
         this.runnerHeadStart = runnerHeadStart;
     }
@@ -96,6 +120,7 @@ public class ManhuntConfig {
     public boolean isRunnersGlow() {
         return runnersGlow;
     }
+
     public void setRunnersGlow(boolean runnersGlow) {
         this.runnersGlow = runnersGlow;
     }
@@ -103,6 +128,7 @@ public class ManhuntConfig {
     public boolean isHuntOnDeath() {
         return huntOnDeath;
     }
+
     public void setHuntOnDeath(boolean huntOnDeath) {
         this.huntOnDeath = huntOnDeath;
     }
@@ -110,6 +136,7 @@ public class ManhuntConfig {
     public boolean isRunnersCanPause() {
         return runnersCanPause;
     }
+
     public void setRunnersCanPause(boolean runnersCanPause) {
         this.runnersCanPause = runnersCanPause;
     }
@@ -117,6 +144,7 @@ public class ManhuntConfig {
     public int getLeavePauseTime() {
         return leavePauseTime;
     }
+
     public void setLeavePauseTime(int leavePauseTime) {
         this.leavePauseTime = leavePauseTime;
     }
@@ -124,6 +152,7 @@ public class ManhuntConfig {
     public int getTimeLimit() {
         return timeLimit;
     }
+
     public void setTimeLimit(int timeLimit) {
         this.timeLimit = timeLimit;
     }
@@ -131,6 +160,7 @@ public class ManhuntConfig {
     public boolean isSpectateOnWin() {
         return spectateOnWin;
     }
+
     public void setSpectateOnWin(boolean spectateOnWin) {
         this.spectateOnWin = spectateOnWin;
     }
@@ -138,6 +168,7 @@ public class ManhuntConfig {
     public boolean isCustomTitles() {
         return customTitles;
     }
+
     public void setCustomTitles(boolean customTitles) {
         this.customTitles = customTitles;
     }
@@ -145,20 +176,23 @@ public class ManhuntConfig {
     public boolean isCustomSounds() {
         return customSounds;
     }
+
     public void setCustomSounds(boolean customSounds) {
         this.customSounds = customSounds;
     }
 
-    public boolean isAutomaticCompass() {
-        return automaticCompass;
+    public int getTrackerType() {
+        return trackerType;
     }
-    public void setAutomaticCompass(boolean automaticCompass) {
-        this.automaticCompass = automaticCompass;
+
+    public void setTrackerType(int trackerType) {
+        this.trackerType = trackerType;
     }
 
     public boolean isNightVision() {
         return nightVision;
     }
+
     public void setNightVision(boolean nightVision) {
         this.nightVision = nightVision;
     }
@@ -166,6 +200,7 @@ public class ManhuntConfig {
     public int getFriendlyFire() {
         return friendlyFire;
     }
+
     public void setFriendlyFire(int friendlyFire) {
         this.friendlyFire = friendlyFire;
     }
@@ -173,6 +208,7 @@ public class ManhuntConfig {
     public boolean isCustomParticles() {
         return customParticles;
     }
+
     public void setCustomParticles(boolean customParticles) {
         this.customParticles = customParticles;
     }
@@ -180,6 +216,7 @@ public class ManhuntConfig {
     public boolean isRunnerPreferences() {
         return runnerPreferences;
     }
+
     public void setRunnerPreferences(boolean runnerPreferences) {
         this.runnerPreferences = runnerPreferences;
     }
@@ -187,6 +224,7 @@ public class ManhuntConfig {
     public boolean isBedExplosions() {
         return bedExplosions;
     }
+
     public void setBedExplosions(boolean bedExplosions) {
         this.bedExplosions = bedExplosions;
     }
@@ -194,6 +232,7 @@ public class ManhuntConfig {
     public boolean isLavaPvpInNether() {
         return lavaPvpInNether;
     }
+
     public void setLavaPvpInNether(boolean lavaPvpInNether) {
         this.lavaPvpInNether = lavaPvpInNether;
     }
@@ -201,6 +240,7 @@ public class ManhuntConfig {
     public String getStartTitle() {
         return startTitle;
     }
+
     public void setStartTitle(String startTitle) {
         this.startTitle = startTitle;
     }
@@ -208,6 +248,7 @@ public class ManhuntConfig {
     public String getStartSubtitle() {
         return startSubtitle;
     }
+
     public void setStartSubtitle(String startSubtitle) {
         this.startSubtitle = startSubtitle;
     }
@@ -215,6 +256,7 @@ public class ManhuntConfig {
     public String getPausedTitle() {
         return pausedTitle;
     }
+
     public void setPausedTitle(String pausedTitle) {
         this.pausedTitle = pausedTitle;
     }
@@ -222,6 +264,7 @@ public class ManhuntConfig {
     public boolean isVanilla() {
         return vanilla;
     }
+
     public void setVanilla(boolean vanilla) {
         this.vanilla = vanilla;
     }
@@ -229,6 +272,7 @@ public class ManhuntConfig {
     public Difficulty getDifficulty() {
         return difficulty;
     }
+
     public void setDifficulty(Difficulty difficulty) {
         this.difficulty = difficulty;
     }
@@ -236,6 +280,7 @@ public class ManhuntConfig {
     public int getWorldBorder() {
         return worldBorder;
     }
+
     public void setWorldBorder(int worldBorder) {
         this.worldBorder = worldBorder;
     }
@@ -243,6 +288,7 @@ public class ManhuntConfig {
     public int getSpawnRadius() {
         return spawnRadius;
     }
+
     public void setSpawnRadius(int spawnRadius) {
         this.spawnRadius = spawnRadius;
     }
@@ -250,6 +296,7 @@ public class ManhuntConfig {
     public boolean isSpectatorsGenerateChunks() {
         return spectatorsGenerateChunks;
     }
+
     public void setSpectatorsGenerateChunks(boolean spectatorsGenerateChunks) {
         this.spectatorsGenerateChunks = spectatorsGenerateChunks;
     }
@@ -257,6 +304,7 @@ public class ManhuntConfig {
     public boolean isChunky() {
         return chunky;
     }
+
     public void setChunky(boolean chunky) {
         this.chunky = chunky;
     }
@@ -264,6 +312,7 @@ public class ManhuntConfig {
     public int getTheNether() {
         return theNether;
     }
+
     public void setTheNether(int theNether) {
         this.theNether = theNether;
     }
@@ -271,6 +320,7 @@ public class ManhuntConfig {
     public int getOverworld() {
         return overworld;
     }
+
     public void setOverworld(int overworld) {
         this.overworld = overworld;
     }
@@ -278,6 +328,7 @@ public class ManhuntConfig {
     public int getTheEnd() {
         return theEnd;
     }
+
     public void setTheEnd(int theEnd) {
         this.theEnd = theEnd;
     }
@@ -294,6 +345,9 @@ public class ManhuntConfig {
             if ((je = manhuntSettings.get("teamColor")) != null) teamColor = je.getAsBoolean();
             if ((je = manhuntSettings.get("huntersColor")) != null) huntersColor = Formatting.byName(je.getAsString());
             if ((je = manhuntSettings.get("runnersColor")) != null) runnersColor = Formatting.byName(je.getAsString());
+            if ((je = manhuntSettings.get("waitForRunner")) != null) waitForRunner = je.getAsBoolean();
+            if ((je = manhuntSettings.get("hunterReleaseTime")) != null) hunterReleaseTime = je.getAsInt();
+            if ((je = manhuntSettings.get("runnerHeadStart")) != null) runnerHeadStart = je.getAsInt();
             if ((je = manhuntSettings.get("timeLimit")) != null) timeLimit = je.getAsInt();
             if ((je = manhuntSettings.get("runnersGlow")) != null) runnersGlow = je.getAsBoolean();
             if ((je = manhuntSettings.get("huntOnDeath")) != null) huntOnDeath = je.getAsBoolean();
@@ -304,7 +358,7 @@ public class ManhuntConfig {
             if ((je = globalPreferences.get("customTitles")) != null) customTitles = je.getAsBoolean();
             if ((je = globalPreferences.get("customSounds")) != null) customSounds = je.getAsBoolean();
             if ((je = globalPreferences.get("customParticles")) != null) customParticles = je.getAsBoolean();
-            if ((je = globalPreferences.get("automaticCompass")) != null) automaticCompass = je.getAsBoolean();
+            if ((je = globalPreferences.get("trackerType")) != null) trackerType = je.getAsInt();
             if ((je = globalPreferences.get("nightVision")) != null) nightVision = je.getAsBoolean();
             if ((je = globalPreferences.get("friendlyFire")) != null) friendlyFire = je.getAsInt();
             if ((je = globalPreferences.get("bedExplosions")) != null) bedExplosions = je.getAsBoolean();
@@ -320,7 +374,8 @@ public class ManhuntConfig {
             if ((je = vanilla.get("difficulty")) != null) this.difficulty = Difficulty.byName(je.getAsString());
             if ((je = vanilla.get("worldBorder")) != null) worldBorder = je.getAsInt();
             if ((je = vanilla.get("spawnRadius")) != null) this.spawnRadius = je.getAsInt();
-            if ((je = vanilla.get("spectatorsGenerateChunks")) != null) this.spectatorsGenerateChunks = je.getAsBoolean();
+            if ((je = vanilla.get("spectatorsGenerateChunks")) != null)
+                this.spectatorsGenerateChunks = je.getAsBoolean();
             @Nullable JsonObject chunky = modIntegrations.getAsJsonObject("chunky");
             if ((je = chunky.get("enabled")) != null) this.chunky = je.getAsBoolean();
             if ((je = chunky.get("overworld")) != null) overworld = je.getAsInt();
@@ -329,7 +384,8 @@ public class ManhuntConfig {
         } catch (FileNotFoundException ex) {
             try {
                 FileUtils.delete(confFile);
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
             save();
         }
         save();
@@ -349,10 +405,12 @@ public class ManhuntConfig {
             manhuntSettings.add("teamColor", new JsonPrimitive(teamColor));
             manhuntSettings.add("huntersColor", new JsonPrimitive(huntersColor.getName()));
             manhuntSettings.add("runnersColor", new JsonPrimitive(runnersColor.getName()));
+            manhuntSettings.add("waitForRunner", new JsonPrimitive(waitForRunner));
+            manhuntSettings.add("hunterReleaseTime", new JsonPrimitive(hunterReleaseTime));
             manhuntSettings.add("runnerHeadStart", new JsonPrimitive(runnerHeadStart));
             manhuntSettings.add("runnersGlow", new JsonPrimitive(runnersGlow));
             manhuntSettings.add("huntOnDeath", new JsonPrimitive(huntOnDeath));
-            manhuntSettings.add("runnersCanPause", new JsonPrimitive(runnersCanPauseDefault));
+            manhuntSettings.add("runnersCanPause", new JsonPrimitive(runnersCanPause));
             manhuntSettings.add("leavePauseTime", new JsonPrimitive(leavePauseTime));
             manhuntSettings.add("timeLimit", new JsonPrimitive(timeLimit));
             manhuntSettings.add("spectateOnWin", new JsonPrimitive(spectateOnWin));
@@ -360,7 +418,7 @@ public class ManhuntConfig {
             globalPreferences.add("customTitles", new JsonPrimitive(customTitles));
             globalPreferences.add("customSounds", new JsonPrimitive(customSounds));
             globalPreferences.add("customParticles", new JsonPrimitive(customParticles));
-            globalPreferences.add("automaticCompass", new JsonPrimitive(automaticCompass));
+            globalPreferences.add("trackerType", new JsonPrimitive(trackerType));
             globalPreferences.add("nightVision", new JsonPrimitive(nightVision));
             globalPreferences.add("friendlyFire", new JsonPrimitive(friendlyFire));
             globalPreferences.add("runnerPreferences", new JsonPrimitive(runnerPreferences));
@@ -402,6 +460,8 @@ public class ManhuntConfig {
     private final boolean teamColorDefault = teamColor;
     private final Formatting huntersColorDefault = huntersColor;
     private final Formatting runnersColorDefault = runnersColor;
+    private final boolean waitForRunnerDefault = waitForRunner;
+    private final int hunterReleaseTimeDefault = hunterReleaseTime;
     private final int runnerHeadStartDefault = runnerHeadStart;
     private final boolean runnersGlowDefault = runnersGlow;
     private final boolean huntOnDeathDefault = huntOnDeath;
@@ -413,7 +473,7 @@ public class ManhuntConfig {
     private final boolean customSoundsDefault = customSounds;
     private final boolean customParticlesDefault = customParticles;
     private final boolean nightVisionDefault = nightVision;
-    private final boolean automaticCompassDefault = automaticCompass;
+    private final int trackerTypeDefault = trackerType;
     private final int friendlyFireDefault = friendlyFire;
     private final boolean runnerPreferencesDefault = runnerPreferences;
     private final boolean bedExplosionsDefault = bedExplosions;
@@ -434,99 +494,139 @@ public class ManhuntConfig {
     public boolean isSetMotdDefault() {
         return setMotdDefault;
     }
+
     public int getRolePresetDefault() {
         return rolePresetDefault;
     }
+
     public boolean isTeamColorDefault() {
         return teamColorDefault;
     }
+
     public Formatting getHuntersColorDefault() {
         return huntersColorDefault;
     }
+
     public Formatting getRunnersColorDefault() {
         return runnersColorDefault;
     }
+
+    public boolean isWaitForRunnerDefault() {
+        return waitForRunnerDefault;
+    }
+
+    public int getHunterReleaseTimeDefault() {
+        return hunterReleaseTimeDefault;
+    }
+
     public int getRunnerHeadStartDefault() {
         return runnerHeadStartDefault;
     }
+
     public boolean isRunnersGlowDefault() {
         return runnersGlowDefault;
     }
+
     public boolean isHuntOnDeathDefault() {
         return huntOnDeathDefault;
     }
+
     public boolean isRunnersCanPauseDefault() {
         return runnersCanPauseDefault;
     }
+
     public int getLeavePauseTimeDefault() {
         return leavePauseTimeDefault;
     }
+
     public int getTimeLimitDefault() {
         return timeLimitDefault;
     }
+
     public boolean isSpectateOnWinDefault() {
         return spectateOnWinDefault;
     }
+
     public boolean isCustomTitlesDefault() {
         return customTitlesDefault;
     }
+
     public boolean isCustomSoundsDefault() {
         return customSoundsDefault;
     }
+
     public boolean isCustomParticlesDefault() {
         return customParticlesDefault;
     }
+
     public boolean isNightVisionDefault() {
         return nightVisionDefault;
     }
-    public boolean isAutomaticCompassDefault() {
-        return automaticCompassDefault;
+
+    public int getTrackerTypeDefault() {
+        return trackerTypeDefault;
     }
+
     public int getFriendlyFireDefault() {
         return friendlyFireDefault;
     }
+
     public boolean isRunnerPreferencesDefault() {
         return runnerPreferencesDefault;
     }
+
     public boolean isBedExplosionsDefault() {
         return bedExplosionsDefault;
     }
+
     public boolean isLavaPvpInNetherDefault() {
         return lavaPvpInNetherDefault;
     }
+
     public String getStartTitleDefault() {
         return startTitleDefault;
     }
+
     public String getStartSubtitleDefault() {
         return startSubtitleDefault;
     }
+
     public String getPausedTitleDefault() {
         return pausedTitleDefault;
     }
+
     public boolean isVanillaDefault() {
         return vanillaDefault;
     }
+
     public Difficulty getDifficultyDefault() {
         return difficultyDefault;
     }
+
     public int getWorldBorderDefault() {
         return worldBorderDefault;
     }
+
     public int getSpawnRadiusDefault() {
         return spawnRadiusDefault;
     }
+
     public boolean isSpectatorsGenerateChunksDefault() {
         return spectatorsGenerateChunksDefault;
     }
+
     public boolean isChunkyDefault() {
         return chunkyDefault;
     }
+
     public int getOverworldDefault() {
         return overworldDefault;
     }
+
     public int getTheNetherDefault() {
         return theNetherDefault;
     }
+
     public int getTheEndDefault() {
         return theEndDefault;
     }

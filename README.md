@@ -1,10 +1,10 @@
-﻿[![Available on Github](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@2/assets/cozy/available/github_vector.svg)](https://github.com/Libreh/Manhunt)
+﻿# Manhunt (for Fabric)
+
 [![Requires Fabric API](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@2/assets/cozy/requires/fabric-api_vector.svg)](https://modrinth.com/mod/fabric-api)
+[![Available on Github](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@2/assets/cozy/available/github_vector.svg)](https://github.com/Libreh/Manhunt)
 [![Chat with me on Discord](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@2/assets/cozy/social/discord-singular_vector.svg)](https://discord.gg/hdWw7SQpwf)
 
-# Manhunt
-Server-side Manhunt mod based on Fabric.
-
+A server-side Fabric Minecraft Manhunt mod.
 This means that the mod isn't required on the client for you to be able to join.
 
 ```txt
@@ -15,11 +15,13 @@ Don't install this on an existing world or you will lose your data!
 
 ```
 
-### Required:
+### Requires:
+
 - [Fabric loader](https://fabricmc.net/use/installer/)
 - [Fabric API](https://modrinth.com/mod/fabric-api)
 - [SQLib](https://modrinth.com/plugin/sqlib)
 
-### Optional:
+### Integrates with:
+
 - [Chunky](https://modrinth.com/plugin/chunky)
 - [LuckPerms](https://modrinth.com/mod/luckperms)

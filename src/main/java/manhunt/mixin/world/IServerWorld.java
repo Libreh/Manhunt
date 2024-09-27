@@ -1,4 +1,4 @@
-package manhunt.mixin;
+package manhunt.mixin.world;
 
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.world.level.ServerWorldProperties;

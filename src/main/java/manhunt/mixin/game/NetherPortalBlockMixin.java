@@ -1,4 +1,4 @@
-package manhunt.mixin;
+package manhunt.mixin.game;
 
 import manhunt.ManhuntMod;
 import net.minecraft.block.NetherPortalBlock;
@@ -11,12 +11,14 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 
 @Mixin(NetherPortalBlock.class)
 public class NetherPortalBlockMixin {
-    @Redirect(method = "createTeleportTarget", at = @At(value = "FIELD", target = "Lnet/minecraft/world/World;OVERWORLD:Lnet/minecraft/registry/RegistryKey;", opcode = Opcodes.GETSTATIC))
+    @Redirect(method = "createTeleportTarget", at = @At(value = "FIELD", target = "Lnet/minecraft/world/World;" +
+            "OVERWORLD:Lnet/minecraft/registry/RegistryKey;", opcode = Opcodes.GETSTATIC))
     private RegistryKey<World> redirectOverworld() {
         return ManhuntMod.overworld.getRegistryKey();
     }
 
-    @Redirect(method = "createTeleportTarget", at = @At(value = "FIELD", target = "Lnet/minecraft/world/World;NETHER:Lnet/minecraft/registry/RegistryKey;", opcode = Opcodes.GETSTATIC))
+    @Redirect(method = "createTeleportTarget", at = @At(value = "FIELD", target = "Lnet/minecraft/world/World;" +
+            "NETHER:Lnet/minecraft/registry/RegistryKey;", opcode = Opcodes.GETSTATIC))
     private RegistryKey<World> redirectNether() {
         return ManhuntMod.theNether.getRegistryKey();
     }

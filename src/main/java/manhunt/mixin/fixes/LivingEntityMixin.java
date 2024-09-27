@@ -1,4 +1,4 @@
-package manhunt.mixin;
+package manhunt.mixin.fixes;
 
 import manhunt.game.GameEvents;
 import net.minecraft.entity.Entity;
@@ -22,8 +22,10 @@ public abstract class LivingEntityMixin extends Entity {
         super(type, world);
     }
 
-    @Inject(method = "damage", at = @At("RETURN"), cancellable = true)
-    private void resetInvulnerabilityTicksWhenNoDamage(DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir) {
+    @Inject(method = "damage", at = @At("RETURN"))
+    private void resetInvulnerabilityTicksWhenNoDamage(
+            DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir
+    ) {
         if (!cir.getReturnValueZ() && lastDamageTaken <= 0) {
             this.timeUntilRegen = 0;
         }
@@ -31,13 +33,13 @@ public abstract class LivingEntityMixin extends Entity {
 
     @Inject(method = "damage", at = @At("HEAD"), cancellable = true)
     private void cancelHeadStartHunterDamage(DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir) {
-        if (checkHeadstart()) {
+        if (checkHeadStart()) {
             cir.cancel();
         }
     }
 
     @Unique
-    private boolean checkHeadstart() {
+    private boolean checkHeadStart() {
         return GameEvents.headStart && this.isTeamPlayer(this.getServer().getScoreboard().getTeam("hunters"));
     }
 }

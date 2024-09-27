@@ -26,18 +26,18 @@ public class ListCoordsCommand {
         var player = source.getPlayer();
         boolean isHunter = player.isTeamPlayer(player.getScoreboard().getTeam("hunters"));
 
-        if (isHunter && CoordsCommand.hunterCoords.isEmpty() || !isHunter && CoordsCommand.runnerCoords.isEmpty()) {
+        if (isHunter && CoordsCommand.HUNTER_COORDS.isEmpty() || !isHunter && CoordsCommand.RUNNER_COORDS.isEmpty()) {
             player.sendMessage(Text.translatable("chat.manhunt.no_coordinates").formatted(Formatting.RED));
         } else {
             Date past;
 
             Formatting formatting = Formatting.WHITE;
 
-            if (ManhuntConfig.config.isTeamColor()) {
+            if (ManhuntConfig.CONFIG.isTeamColor()) {
                 if (isHunter) {
-                    formatting = ManhuntConfig.config.getHuntersColor();
+                    formatting = ManhuntConfig.CONFIG.getHuntersColor();
                 } else {
-                    formatting = ManhuntConfig.config.getRunnersColor();
+                    formatting = ManhuntConfig.CONFIG.getRunnersColor();
                 }
             }
 
@@ -46,7 +46,7 @@ public class ListCoordsCommand {
             String team;
             if (isHunter) {
                 team = "hunters";
-                for (MutableText mutableText : CoordsCommand.hunterCoords) {
+                for (MutableText mutableText : CoordsCommand.HUNTER_COORDS) {
                     String[] array = mutableText.getString().split(" ");
 
                     past = new Date(Long.parseLong(array[1]));
@@ -66,28 +66,25 @@ public class ListCoordsCommand {
                     if (TimeUnit.MILLISECONDS.toHours(new Date().getTime() - past.getTime()) == 0) {
                         if (TimeUnit.MILLISECONDS.toMinutes(new Date().getTime() - past.getTime()) == 0) {
                             player.sendMessage(Text.translatable("chat.manhunt.list_coordinates",
-                                    Text.literal(team).formatted(formatting), Text.literal(array[0]).formatted(formatting),
-                                    Text.literal(" " + (TimeUnit.MILLISECONDS.toSeconds(new Date().getTime() - past.getTime())) + "s "),
-                                    Text.literal(array[2]), Text.literal(array[3]), Text.literal(array[4]), Text.literal(array[5]))
-                            );
+                                    Text.literal(team).formatted(formatting),
+                                    Text.literal(array[0]).formatted(formatting),
+                                    Text.literal(" " + (TimeUnit.MILLISECONDS.toSeconds(new Date().getTime() - past.getTime())) + "s "), Text.literal(array[2]), Text.literal(array[3]), Text.literal(array[4]), Text.literal(array[5])));
                         } else {
                             player.sendMessage(Text.translatable("chat.manhunt.list_coordinates",
-                                    Text.literal(team).formatted(formatting), Text.literal(array[0]).formatted(formatting),
-                                    Text.literal(" " + (TimeUnit.MILLISECONDS.toMinutes(new Date().getTime() - past.getTime())) + "m "),
-                                    Text.literal(array[2]), Text.literal(array[3]), Text.literal(array[4]), Text.literal(array[5]))
-                            );
+                                    Text.literal(team).formatted(formatting),
+                                    Text.literal(array[0]).formatted(formatting),
+                                    Text.literal(" " + (TimeUnit.MILLISECONDS.toMinutes(new Date().getTime() - past.getTime())) + "m "), Text.literal(array[2]), Text.literal(array[3]), Text.literal(array[4]), Text.literal(array[5])));
                         }
                     } else {
                         player.sendMessage(Text.translatable("chat.manhunt.list_coordinates",
-                                Text.literal(team).formatted(formatting), Text.literal(array[0]).formatted(formatting),
-                                Text.literal(" " + (TimeUnit.MILLISECONDS.toHours(new Date().getTime() - past.getTime())) + "h "),
-                                Text.literal(array[2]), Text.literal(array[3]), Text.literal(array[4]), Text.literal(array[5]))
-                        );
+                                Text.literal(team).formatted(formatting),
+                                Text.literal(array[0]).formatted(formatting),
+                                Text.literal(" " + (TimeUnit.MILLISECONDS.toHours(new Date().getTime() - past.getTime())) + "h "), Text.literal(array[2]), Text.literal(array[3]), Text.literal(array[4]), Text.literal(array[5])));
                     }
                 }
             } else {
                 team = "runners";
-                for (MutableText mutableText : CoordsCommand.runnerCoords) {
+                for (MutableText mutableText : CoordsCommand.RUNNER_COORDS) {
                     String[] array = mutableText.getString().split(" ");
 
                     past = new Date(Long.parseLong(array[1]));
@@ -107,23 +104,20 @@ public class ListCoordsCommand {
                     if (TimeUnit.MILLISECONDS.toHours(new Date().getTime() - past.getTime()) == 0) {
                         if (TimeUnit.MILLISECONDS.toMinutes(new Date().getTime() - past.getTime()) == 0) {
                             player.sendMessage(Text.translatable("chat.manhunt.list_coordinates",
-                                    Text.literal(team).formatted(formatting), Text.literal(array[0]).formatted(formatting),
-                                    Text.literal(" " + (TimeUnit.MILLISECONDS.toSeconds(new Date().getTime() - past.getTime())) + "s "),
-                                    Text.literal(array[2]), Text.literal(array[3]), Text.literal(array[4]), Text.literal(array[5]))
-                            );
+                                    Text.literal(team).formatted(formatting),
+                                    Text.literal(array[0]).formatted(formatting),
+                                    Text.literal(" " + (TimeUnit.MILLISECONDS.toSeconds(new Date().getTime() - past.getTime())) + "s "), Text.literal(array[2]), Text.literal(array[3]), Text.literal(array[4]), Text.literal(array[5])));
                         } else {
                             player.sendMessage(Text.translatable("chat.manhunt.list_coordinates",
-                                    Text.literal(team).formatted(formatting), Text.literal(array[0]).formatted(formatting),
-                                    Text.literal(" " + (TimeUnit.MILLISECONDS.toMinutes(new Date().getTime() - past.getTime())) + "m "),
-                                    Text.literal(array[2]), Text.literal(array[3]), Text.literal(array[4]), Text.literal(array[5]))
-                            );
+                                    Text.literal(team).formatted(formatting),
+                                    Text.literal(array[0]).formatted(formatting),
+                                    Text.literal(" " + (TimeUnit.MILLISECONDS.toMinutes(new Date().getTime() - past.getTime())) + "m "), Text.literal(array[2]), Text.literal(array[3]), Text.literal(array[4]), Text.literal(array[5])));
                         }
                     } else {
                         player.sendMessage(Text.translatable("chat.manhunt.list_coordinates",
-                                Text.literal(team).formatted(formatting), Text.literal(array[0]).formatted(formatting),
-                                Text.literal(" " + (TimeUnit.MILLISECONDS.toHours(new Date().getTime() - past.getTime())) + "h "),
-                                Text.literal(array[2]), Text.literal(array[3]), Text.literal(array[4]), Text.literal(array[5]))
-                        );
+                                Text.literal(team).formatted(formatting),
+                                Text.literal(array[0]).formatted(formatting),
+                                Text.literal(" " + (TimeUnit.MILLISECONDS.toHours(new Date().getTime() - past.getTime())) + "h "), Text.literal(array[2]), Text.literal(array[3]), Text.literal(array[4]), Text.literal(array[5])));
                     }
                 }
             }

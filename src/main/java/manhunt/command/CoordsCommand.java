@@ -19,15 +19,16 @@ import java.util.Date;
 import java.util.List;
 
 public class CoordsCommand {
-    public static final List<MutableText> hunterCoords = new ArrayList<>();
-    public static final List<MutableText> runnerCoords = new ArrayList<>();
+    public static final List<MutableText> HUNTER_COORDS = new ArrayList<>();
+    public static final List<MutableText> RUNNER_COORDS = new ArrayList<>();
 
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(CommandManager.literal("coords")
                 .requires(source -> source.isExecutedByPlayer() && ManhuntMod.gameState != GameState.PREGAME)
                 .executes(context -> sendCoordsMessage(context.getSource(), ""))
                 .then(CommandManager.argument("message", StringArgumentType.greedyString())
-                    .executes(context -> sendCoordsMessage(context.getSource(), StringArgumentType.getString(context, "message")))
+                        .executes(context -> sendCoordsMessage(context.getSource(),
+                                StringArgumentType.getString(context, "message")))
                 )
         );
     }
@@ -39,11 +40,11 @@ public class CoordsCommand {
         boolean isHunter = player.isTeamPlayer(scoreboard.getTeam("hunters"));
 
         Formatting formatting = Formatting.WHITE;
-        if (ManhuntConfig.config.isTeamColor()) {
+        if (ManhuntConfig.CONFIG.isTeamColor()) {
             if (isHunter) {
-                formatting = ManhuntConfig.config.getHuntersColor();
+                formatting = ManhuntConfig.CONFIG.getHuntersColor();
             } else {
-                formatting = ManhuntConfig.config.getRunnersColor();
+                formatting = ManhuntConfig.CONFIG.getRunnersColor();
             }
         }
 
@@ -63,63 +64,43 @@ public class CoordsCommand {
         if (isHunter) {
             for (ServerPlayerEntity serverPlayer : GameEvents.allHunters) {
                 serverPlayer.sendMessage(Text.translatable("chat.manhunt.send_coordinates",
-                                Text.literal(team).formatted(formatting), Text.literal(player.getNameForScoreboard()).formatted(formatting),
-                                Text.literal(String.valueOf(player.getBlockX())),
-                                Text.literal(String.valueOf(player.getBlockY())),
-                                Text.literal(String.valueOf(player.getBlockZ())),
-                                Text.literal(message)
-                        )
-                );
+                        Text.literal(team).formatted(formatting),
+                        Text.literal(player.getNameForScoreboard()).formatted(formatting),
+                        Text.literal(String.valueOf(player.getBlockX())),
+                        Text.literal(String.valueOf(player.getBlockY())),
+                        Text.literal(String.valueOf(player.getBlockZ())), Text.literal(message)));
             }
         } else {
             for (ServerPlayerEntity serverPlayer : GameEvents.allRunners) {
                 serverPlayer.sendMessage(Text.translatable("chat.manhunt.send_coordinates",
-                                Text.literal(team).formatted(formatting), Text.literal(player.getNameForScoreboard()).formatted(formatting),
-                                Text.literal(String.valueOf(player.getBlockX())),
-                                Text.literal(String.valueOf(player.getBlockY())),
-                                Text.literal(String.valueOf(player.getBlockZ())),
-                                Text.literal(message)
-                        )
-                );
+                        Text.literal(team).formatted(formatting),
+                        Text.literal(player.getNameForScoreboard()).formatted(formatting),
+                        Text.literal(String.valueOf(player.getBlockX())),
+                        Text.literal(String.valueOf(player.getBlockY())),
+                        Text.literal(String.valueOf(player.getBlockZ())), Text.literal(message)));
             }
         }
 
         if (isHunter) {
-            hunterCoords.add(Text.translatable("chat.manhunt.save_coordinates",
-                            Text.literal(player.getNameForScoreboard()).formatted(formatting),
-                            Text.literal(" " + new Date().getTime() + " "),
-                            Text.literal(String.valueOf(player.getBlockX())),
-                            Text.literal(String.valueOf(player.getBlockY())),
-                            Text.literal(String.valueOf(player.getBlockZ())),
-                            Text.literal(message)
-                    )
-            );
+            HUNTER_COORDS.add(Text.translatable("chat.manhunt.save_coordinates",
+                    Text.literal(player.getNameForScoreboard()).formatted(formatting),
+                    Text.literal(" " + new Date().getTime() + " "), Text.literal(String.valueOf(player.getBlockX())),
+                    Text.literal(String.valueOf(player.getBlockY())),
+                    Text.literal(String.valueOf(player.getBlockZ())), Text.literal(message)));
         } else {
-            runnerCoords.add(Text.translatable("chat.manhunt.save_coordinates",
-                            Text.literal(player.getNameForScoreboard()).formatted(formatting),
-                            Text.literal(" " + new Date().getTime() + " "),
-                            Text.literal(String.valueOf(player.getBlockX())),
-                            Text.literal(String.valueOf(player.getBlockY())),
-                            Text.literal(String.valueOf(player.getBlockZ())),
-                            Text.literal(message)
-                    )
-            );
+            RUNNER_COORDS.add(Text.translatable("chat.manhunt.save_coordinates",
+                    Text.literal(player.getNameForScoreboard()).formatted(formatting),
+                    Text.literal(" " + new Date().getTime() + " "), Text.literal(String.valueOf(player.getBlockX())),
+                    Text.literal(String.valueOf(player.getBlockY())),
+                    Text.literal(String.valueOf(player.getBlockZ())), Text.literal(message)));
         }
 
         return Command.SINGLE_SUCCESS;
     }
 
     private static String[] createYawText(double yaw) {
-        String[][] directions = {
-                { "", "+" },
-                { "-", "+" },
-                { "-", "" },
-                { "-", "-" },
-                { "", "-" },
-                { "+", "-" },
-                { "+", "" },
-                { "+", "+" }
-        };
+        String[][] directions = {{"", "+"}, {"-", "+"}, {"-", ""}, {"-", "-"}, {"", "-"}, {"+", "-"}, {"+", ""}, {"+"
+                , "+"}};
 
         return directions[(int) Math.round(yaw / 45.0F) & 7];
     }
@@ -127,10 +108,9 @@ public class CoordsCommand {
     public static String getDirectionFromYaw(double degrees) {
         String direction;
         String[] directions = {"S", "SW", "W", "NW", "N", "NE", "E", "SE", "S"};
-        if (degrees > 0)
-            direction = directions[(int)Math.round(degrees / 45)];
+        if (degrees > 0) direction = directions[(int) Math.round(degrees / 45)];
         else {
-            int index = (int)Math.round(degrees / 45) * -1;
+            int index = (int) Math.round(degrees / 45) * -1;
             direction = directions[8 - index];
         }
         return direction;

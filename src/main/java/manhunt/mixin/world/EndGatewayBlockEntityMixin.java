@@ -1,4 +1,4 @@
-package manhunt.mixin;
+package manhunt.mixin.world;
 
 import manhunt.ManhuntMod;
 import net.minecraft.block.entity.EndGatewayBlockEntity;
@@ -11,7 +11,8 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 
 @Mixin(EndGatewayBlockEntity.class)
 public class EndGatewayBlockEntityMixin {
-    @Redirect(method = "getOrCreateExitPortalPos", at = @At(value = "FIELD", target = "Lnet/minecraft/world/World;END:Lnet/minecraft/registry/RegistryKey;", opcode = Opcodes.GETSTATIC))
+    @Redirect(method = "getOrCreateExitPortalPos", at = @At(value = "FIELD", target =
+            "Lnet/minecraft/world/World;" + "END:Lnet/minecraft/registry/RegistryKey;", opcode = Opcodes.GETSTATIC))
     private RegistryKey<World> redirectEnd() {
         return ManhuntMod.theEnd.getRegistryKey();
     }

@@ -1,4 +1,4 @@
-package manhunt.mixin;
+package manhunt.mixin.world;
 
 import manhunt.ManhuntMod;
 import net.minecraft.block.AbstractFireBlock;
@@ -11,12 +11,14 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 
 @Mixin(AbstractFireBlock.class)
 public class AbstractFireBlockMixin {
-    @Redirect(method = "isOverworldOrNether", at = @At(value = "FIELD", target = "Lnet/minecraft/world/World;OVERWORLD:Lnet/minecraft/registry/RegistryKey;", opcode = Opcodes.GETSTATIC))
+    @Redirect(method = "isOverworldOrNether", at = @At(value = "FIELD", target = "Lnet/minecraft/world/World;" +
+            "OVERWORLD:Lnet/minecraft/registry/RegistryKey;", opcode = Opcodes.GETSTATIC))
     private static RegistryKey<World> redirectOverworld() {
         return ManhuntMod.overworld.getRegistryKey();
     }
 
-    @Redirect(method = "isOverworldOrNether", at = @At(value = "FIELD", target = "Lnet/minecraft/world/World;NETHER:Lnet/minecraft/registry/RegistryKey;", opcode = Opcodes.GETSTATIC))
+    @Redirect(method = "isOverworldOrNether", at = @At(value = "FIELD", target = "Lnet/minecraft/world/World;" +
+            "NETHER:Lnet/minecraft/registry/RegistryKey;", opcode = Opcodes.GETSTATIC))
     private static RegistryKey<World> redirectNether() {
         return ManhuntMod.theNether.getRegistryKey();
     }
