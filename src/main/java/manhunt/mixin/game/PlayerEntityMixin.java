@@ -2,7 +2,8 @@ package manhunt.mixin.game;
 
 import com.mojang.serialization.DataResult;
 import manhunt.ManhuntMod;
-import manhunt.game.GameEvents;
+import manhunt.event.OnGameTick;
+import manhunt.game.ManhuntGame;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.ItemEntity;
@@ -32,7 +33,7 @@ public abstract class PlayerEntityMixin extends LivingEntity {
     public abstract String getNameForScoreboard();
 
     @Unique
-    private int count;
+    private int tickCount;
     @Unique
     NbtList positions = new NbtList();
 
@@ -42,12 +43,8 @@ public abstract class PlayerEntityMixin extends LivingEntity {
 
     @Inject(method = "tick", at = @At("HEAD"))
     private void tick(CallbackInfo ci) {
-        if (GameEvents.POSITIONS_LIST.contains(this.getUuid())) {
-            GameEvents.POSITIONS_LIST.remove(this.getUuid());
-            positions = new NbtList();
-        }
-        count++;
-        if (count == 10) {
+        tickCount++;
+        if (tickCount == 10) {
             if (this.isTeamPlayer(this.getScoreboard().getTeam("runners"))) {
                 DataResult<NbtElement> var10000 = World.CODEC.encodeStart(NbtOps.INSTANCE,
                         this.getWorld().getRegistryKey());
@@ -65,7 +62,7 @@ public abstract class PlayerEntityMixin extends LivingEntity {
                     positions.add(nbtCompound);
                 });
             }
-            count = 0;
+            tickCount = 0;
         }
     }
 
@@ -73,16 +70,20 @@ public abstract class PlayerEntityMixin extends LivingEntity {
             "HEAD"), cancellable = true)
     private void dropItem(ItemStack stack, boolean throwRandomly, boolean retainOwnership,
                           CallbackInfoReturnable<ItemEntity> ci) {
-        if (stack.get(DataComponentTypes.CUSTOM_DATA) != null) {
-            if (stack.get(DataComponentTypes.CUSTOM_DATA).copyNbt().getBoolean("Remove")) {
-                ci.setReturnValue(null);
-                ci.cancel();
-            }
+        var customData = stack.get(DataComponentTypes.CUSTOM_DATA);
+        if (customData != null && customData.copyNbt().getBoolean("Remove")) {
+            ci.setReturnValue(null);
+            ci.cancel();
         }
     }
 
     @Inject(method = "writeCustomDataToNbt", at = @At("RETURN"))
     private void addAdditionalSaveData(NbtCompound nbt, CallbackInfo cbi) {
+        if (ManhuntGame.POSITIONS_LIST.contains(this.getUuid())) {
+            ManhuntGame.POSITIONS_LIST.remove(this.getUuid());
+            positions = new NbtList();
+            nbt.remove("Positions");
+        }
         nbt.putBoolean("manhuntModded", true);
         nbt.put("Positions", positions);
     }
@@ -94,7 +95,7 @@ public abstract class PlayerEntityMixin extends LivingEntity {
 
     @Inject(method = "isInvulnerableTo", at = @At("RETURN"), cancellable = true)
     private void disableDamage(DamageSource damageSource, CallbackInfoReturnable<Boolean> cir) {
-        if (GameEvents.headStart) {
+        if (OnGameTick.headStart) {
             cir.cancel();
         }
     }

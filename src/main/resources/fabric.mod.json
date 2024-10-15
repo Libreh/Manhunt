@@ -7,6 +7,9 @@
   "authors": [
     "Libreh"
   ],
+  "contact": {
+    "sources": "https://github.com/Libreh/Manhunt"
+  },
   "license": "LGPLv3",
   "icon": "assets/manhunt/icon.png",
   "environment": "*",
@@ -20,7 +23,7 @@
   ],
   "depends": {
     "fabricloader": ">=0.15.11",
-    "minecraft": "~1.21",
+    "minecraft": "~1.21.1",
     "java": ">=21",
     "fabric-api": "*"
   }

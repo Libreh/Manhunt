@@ -1,8 +1,13 @@
 package manhunt;
 
-import manhunt.command.*;
+import manhunt.command.game.*;
+import manhunt.command.lobby.*;
+import manhunt.command.role.*;
 import manhunt.config.ManhuntConfig;
-import manhunt.game.GameEvents;
+import manhunt.event.OnGameTick;
+import manhunt.event.OnPlayerInteract;
+import manhunt.event.OnPlayerState;
+import manhunt.event.OnServerStart;
 import manhunt.game.GameState;
 import manhunt.game.ManhuntGame;
 import me.lucko.fabric.api.permissions.v0.Permissions;
@@ -34,26 +39,29 @@ import net.minecraft.world.World;
 import net.minecraft.world.dimension.DimensionTypes;
 import net.minecraft.world.gen.chunk.placement.StructurePlacementCalculator;
 import org.apache.commons.io.FileUtils;
-import org.popcraft.chunky.ChunkyProvider;
-import org.popcraft.chunky.api.ChunkyAPI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xyz.nucleoid.fantasy.Fantasy;
 import xyz.nucleoid.fantasy.RuntimeWorldConfig;
 import xyz.nucleoid.fantasy.RuntimeWorldHandle;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 public class ManhuntMod implements ModInitializer {
     public static final String MOD_ID = "manhunt";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
     public static final Path GAME_DIR = FabricLoader.getInstance().getGameDir();
     public static final Database DATABASE = SQLib.getDatabase();
-    public static final DataStore DATA_STORE = DATABASE.dataStore(MOD_ID, "playerdata");
+    public static final DataStore SETTINGS = DATABASE.dataStore(MOD_ID, "settings");
+    //public static final DataStore STATISTICS = DATABASE.dataStore(MOD_ID, "statistics");
     public static GameState gameState;
     public static StructurePlacementCalculator structurePlacementCalculator;
     public static final RegistryKey<World> LOBBY_REGISTRY_KEY = RegistryKey.of(RegistryKeys.WORLD,
@@ -61,22 +69,49 @@ public class ManhuntMod implements ModInitializer {
     private static RuntimeWorldHandle overworldWorldHandle;
     private static RuntimeWorldHandle theNetherWorldHandle;
     private static RuntimeWorldHandle theEndWorldHandle;
-    public static ServerWorld overworld;
-    public static ServerWorld theNether;
-    public static ServerWorld theEnd;
-    private static boolean preloaded = false;
+    private static ServerWorld overworld;
+    private static ServerWorld theNether;
+    private static ServerWorld theEnd;
 
+    public static ServerWorld getOverworld() {
+        return overworld;
+    }
+
+    private static void setOverworld(ServerWorld overworld) {
+        ManhuntMod.overworld = overworld;
+    }
+
+    public static ServerWorld getTheNether() {
+        return theNether;
+    }
+
+    private static void setTheNether(ServerWorld theNether) {
+        ManhuntMod.theNether = theNether;
+    }
+
+    public static ServerWorld getTheEnd() {
+        return theEnd;
+    }
+
+    private static void setTheEnd(ServerWorld theEnd) {
+        ManhuntMod.theEnd = theEnd;
+    }
 
     @Override
     public void onInitialize() {
         ManhuntConfig.CONFIG.load();
-
         ManhuntGame.chunkyLoaded = (FabricLoader.getInstance().isModLoaded("chunky"));
 
         try {
             FileUtils.deleteDirectory(GAME_DIR.resolve("world").toFile());
         } catch (IOException e) {
             ManhuntMod.LOGGER.error("Failed to delete world files");
+        }
+
+        try {
+            unzip("/manhunt/lobby_world.zip", GAME_DIR.resolve("world").toString());
+        } catch (IOException e) {
+            ManhuntMod.LOGGER.error("Failed to copy world files");
         }
 
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
@@ -89,10 +124,10 @@ public class ManhuntMod implements ModInitializer {
             OneRunnerCommand.register(dispatcher);
             PauseCommand.register(dispatcher);
             PingCommand.register(dispatcher);
-            PreferencesCommand.register(dispatcher);
+            SettingsGuiCommand.register(dispatcher);
             ResetCommand.register(dispatcher);
             RunnerCommand.register(dispatcher);
-            SettingsComand.register(dispatcher);
+            ConfigGuiCommand.register(dispatcher);
             SpectatorCommand.register(dispatcher);
             StartCommand.register(dispatcher);
             TrackCommand.register(dispatcher);
@@ -100,24 +135,23 @@ public class ManhuntMod implements ModInitializer {
         });
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             loadManhuntWorlds(server, RandomSeed.getSeed());
-
-            GameEvents.serverStart(server);
+            OnServerStart.onServerStart(server);
         });
-        ServerTickEvents.START_SERVER_TICK.register(GameEvents::serverTick);
-        ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> GameEvents.playerRespawn(newPlayer));
-        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> GameEvents.playerJoin(handler));
-        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> GameEvents.playerLeave(handler));
-        UseItemCallback.EVENT.register(GameEvents::useItem);
-        UseBlockCallback.EVENT.register(GameEvents::useBlock);
+        ServerTickEvents.START_SERVER_TICK.register(OnGameTick::onGameTick);
+        ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> OnPlayerState.playerRespawn(newPlayer));
+        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> OnPlayerState.playerJoin(handler));
+        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> OnPlayerState.playerLeave(handler));
+        UseItemCallback.EVENT.register(OnPlayerInteract::useItem);
+        UseBlockCallback.EVENT.register(OnPlayerInteract::useBlock);
         PlayerBlockBreakEvents.BEFORE.register((world, player, pos, state, blockEntity) -> {
             if (ManhuntMod.gameState == GameState.PLAYING) {
-                if (GameEvents.paused) {
+                if (OnGameTick.paused) {
                     return false;
                 } else {
-                    if (GameEvents.waitForRunner && !GameEvents.runnerHasStarted) {
+                    if (OnGameTick.waitForRunner && !OnGameTick.runnerHasStarted) {
                         return false;
                     } else
-                        return !GameEvents.headStart || !player.isTeamPlayer(player.getScoreboard().getTeam("hunters"));
+                        return !OnGameTick.headStart || !player.isTeamPlayer(player.getScoreboard().getTeam("hunters"));
                 }
             }
 
@@ -125,16 +159,17 @@ public class ManhuntMod implements ModInitializer {
         });
         AttackEntityCallback.EVENT.register((player, world, hand, entity, hitResult) -> {
             if (ManhuntMod.gameState == GameState.PLAYING) {
-                if (GameEvents.paused) {
+                if (OnGameTick.paused) {
                     return ActionResult.FAIL;
                 } else {
-                    if (GameEvents.waitForRunner && !GameEvents.runnerHasStarted) {
+                    if (OnGameTick.waitForRunner && !OnGameTick.runnerHasStarted) {
                         return ActionResult.FAIL;
-                    } else if (GameEvents.headStart && player.isTeamPlayer(player.getScoreboard().getTeam("hunters"))) {
+                    } else if (OnGameTick.headStart && player.isTeamPlayer(player.getScoreboard().getTeam("hunters"))) {
                         return ActionResult.FAIL;
                     }
                 }
             }
+
             return ActionResult.PASS;
         });
     }
@@ -145,20 +180,15 @@ public class ManhuntMod implements ModInitializer {
             theNetherWorldHandle.delete();
             theEndWorldHandle.delete();
         }
-
         ManhuntGame.worldSpawnPos = new BlockPos(0, 0, 0);
 
         Fantasy fantasy = Fantasy.get(server);
-
         RuntimeWorldConfig overworldConfig =
                 new RuntimeWorldConfig().setDimensionType(DimensionTypes.OVERWORLD).setGenerator(server.getOverworld().getChunkManager().getChunkGenerator()).setMirrorOverworldGameRules(true).setMirrorOverworldDifficulty(true).setShouldTickTime(true).setTimeOfDay(0).setSeed(seed);
-
         RuntimeWorldConfig theNetherConfig =
                 new RuntimeWorldConfig().setDimensionType(DimensionTypes.THE_NETHER).setGenerator(server.getWorld(World.NETHER).getChunkManager().getChunkGenerator()).setMirrorOverworldGameRules(true).setMirrorOverworldDifficulty(true).setShouldTickTime(true).setTimeOfDay(0).setSeed(seed);
-
         RuntimeWorldConfig theEndConfig =
                 new RuntimeWorldConfig().setDimensionType(DimensionTypes.THE_END).setGenerator(server.getWorld(World.END).getChunkManager().getChunkGenerator()).setMirrorOverworldGameRules(true).setMirrorOverworldDifficulty(true).setShouldTickTime(true).setTimeOfDay(0).setSeed(seed);
-
         structurePlacementCalculator =
                 server.getOverworld().getChunkManager().getChunkGenerator().createStructurePlacementCalculator(server.getOverworld().getRegistryManager().getWrapperOrThrow(RegistryKeys.STRUCTURE_SET), server.getOverworld().getChunkManager().getNoiseConfig(), seed);
 
@@ -166,15 +196,14 @@ public class ManhuntMod implements ModInitializer {
         theNetherWorldHandle = fantasy.openTemporaryWorld(theNetherConfig);
         theEndWorldHandle = fantasy.openTemporaryWorld(theEndConfig);
 
-        overworld = overworldWorldHandle.asWorld();
-        theNether = theNetherWorldHandle.asWorld();
-        theEnd = theEndWorldHandle.asWorld();
+        setOverworld(overworldWorldHandle.asWorld());
+        setTheNether(theNetherWorldHandle.asWorld());
+        setTheEnd(theEndWorldHandle.asWorld());
 
-        theEnd.setEnderDragonFight(new EnderDragonFight(theEnd, theEnd.getSeed(), EnderDragonFight.Data.DEFAULT));
+        getTheEnd().setEnderDragonFight(new EnderDragonFight(getTheEnd(), getTheEnd().getSeed(),
+                EnderDragonFight.Data.DEFAULT));
 
         if (ManhuntGame.chunkyLoaded && ManhuntConfig.CONFIG.isChunky()) {
-            preloaded = true;
-
             schedulePreload(server);
         }
 
@@ -191,11 +220,8 @@ public class ManhuntMod implements ModInitializer {
     }
 
     private static void startPreload(MinecraftServer server) {
-        ChunkyAPI chunky = ChunkyProvider.get().getApi();
-
-        chunky.cancelTask(String.valueOf(ManhuntMod.overworld.getRegistryKey().getValue()));
-        chunky.cancelTask(String.valueOf(ManhuntMod.theNether.getRegistryKey().getValue()));
-        chunky.cancelTask(String.valueOf(ManhuntMod.theEnd.getRegistryKey().getValue()));
+        server.getCommandManager().executeWithPrefix(server.getCommandSource().withSilent(), "chunky cancel");
+        server.getCommandManager().executeWithPrefix(server.getCommandSource().withSilent(), "chunky confirm");
 
         try {
             FileUtils.deleteDirectory(GAME_DIR.resolve("config/chunky/tasks").toFile());
@@ -204,35 +230,47 @@ public class ManhuntMod implements ModInitializer {
         }
 
         if (ManhuntConfig.CONFIG.getOverworld() != 0) {
-            chunky.startTask(String.valueOf(ManhuntMod.overworld.getRegistryKey().getValue()), "square",
-                    ManhuntGame.worldSpawnPos.getX(), ManhuntGame.worldSpawnPos.getZ(),
-                    ManhuntConfig.CONFIG.getOverworld(), ManhuntConfig.CONFIG.getOverworld(), "concentric");
+            server.getCommandManager().executeWithPrefix(server.getCommandSource().withSilent(),
+                    "chunky start " + getOverworld().getRegistryKey().getValue() + " square " + ManhuntGame.worldSpawnPos.getX() + " " + ManhuntGame.worldSpawnPos.getZ() + " " + ManhuntConfig.CONFIG.getOverworld() + " " + ManhuntConfig.CONFIG.getOverworld());
         }
         if (ManhuntConfig.CONFIG.getTheNether() != 0) {
-            chunky.startTask(String.valueOf(ManhuntMod.theNether.getRegistryKey().getValue()), "square",
-                    ManhuntGame.worldSpawnPos.getX(), ManhuntGame.worldSpawnPos.getZ(),
-                    ManhuntConfig.CONFIG.getTheNether(), ManhuntConfig.CONFIG.getTheNether(), "concentric");
+            server.getCommandManager().executeWithPrefix(server.getCommandSource().withSilent(),
+                    "chunky start " + getTheNether().getRegistryKey().getValue() + " square " + ManhuntGame.worldSpawnPos.getX() + " " + ManhuntGame.worldSpawnPos.getZ() + " " + ManhuntConfig.CONFIG.getTheNether() + " " + ManhuntConfig.CONFIG.getTheNether());
         }
         if (ManhuntConfig.CONFIG.getTheEnd() != 0) {
-            chunky.startTask(String.valueOf(ManhuntMod.theEnd.getRegistryKey().getValue()), "square",
-                    ManhuntGame.worldSpawnPos.getX(), ManhuntGame.worldSpawnPos.getZ(),
-                    ManhuntConfig.CONFIG.getTheEnd(), ManhuntConfig.CONFIG.getTheEnd(), "concentric");
+            server.getCommandManager().executeWithPrefix(server.getCommandSource().withSilent(),
+                    "chunky start " + getTheEnd().getRegistryKey().getValue() + " square " + ManhuntGame.worldSpawnPos.getX() + " " + ManhuntGame.worldSpawnPos.getZ() + " " + ManhuntConfig.CONFIG.getTheEnd() + " " + ManhuntConfig.CONFIG.getTheEnd());
         }
 
-        chunky.onGenerationComplete(event -> {
-            if (event.world().equals(String.valueOf(ManhuntMod.overworld.getRegistryKey().getValue())) && !preloaded) {
-                preloaded = true;
-            }
-        });
-
         for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
-            if (!GameEvents.PLAYER_SPAWN_POS.containsKey(player.getUuid())) {
-                ManhuntGame.setPlayerSpawn(overworld, player);
+            if (!OnGameTick.PLAYER_SPAWN_POS.containsKey(player.getUuid())) {
+                ManhuntGame.setPlayerSpawn(getOverworld(), player);
             }
         }
     }
 
     public static boolean checkLeaderPermission(ServerPlayerEntity player, String key) {
         return Permissions.check(player, key) || Permissions.check(player, "manhunt.leader") || player.hasPermissionLevel(1) || player.hasPermissionLevel(2) || player.hasPermissionLevel(2) || player.hasPermissionLevel(4);
+    }
+
+    public static void unzip(String zipFile, String destFolder) throws IOException {
+        try (ZipInputStream zis = new ZipInputStream(ManhuntMod.class.getResourceAsStream(zipFile))) {
+            ZipEntry entry;
+            byte[] buffer = new byte[1024];
+            while ((entry = zis.getNextEntry()) != null) {
+                File newFile = new File(destFolder + File.separator + entry.getName());
+                if (entry.isDirectory()) {
+                    newFile.mkdirs();
+                } else {
+                    new File(newFile.getParent()).mkdirs();
+                    try (FileOutputStream fos = new FileOutputStream(newFile)) {
+                        int length;
+                        while ((length = zis.read(buffer)) > 0) {
+                            fos.write(buffer, 0, length);
+                        }
+                    }
+                }
+            }
+        }
     }
 }

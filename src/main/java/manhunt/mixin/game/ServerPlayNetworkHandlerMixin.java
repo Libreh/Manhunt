@@ -13,7 +13,10 @@ public abstract class ServerPlayNetworkHandlerMixin {
     @Inject(method = "onClickSlot", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/network" +
             "/ServerPlayerEntity;updateLastActionTime()V", shift = At.Shift.AFTER), cancellable = true)
     private void handleGuiClicks(ClickSlotC2SPacket packet, CallbackInfo ci) {
-        if (packet.getStack().get(DataComponentTypes.CUSTOM_DATA) != null && packet.getStack().get(DataComponentTypes.CUSTOM_DATA).copyNbt().getBoolean("Remove")) {
+        var stack = packet.getStack();
+        var customData = stack.get(DataComponentTypes.CUSTOM_DATA);
+        if (customData != null && customData.copyNbt().getBoolean("Remove") && !customData.copyNbt().getBoolean(
+                "Tracker")) {
             ci.cancel();
         }
     }

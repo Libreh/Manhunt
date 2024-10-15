@@ -38,9 +38,6 @@ dependencies {
 
     // Permissions API
     modImplementation include("me.lucko:fabric-permissions-api:${project.permissions_api_version}") { exclude(group: "net.fabricmc.fabric-api") }
-
-    // Chunky
-    modImplementation "org.popcraft:chunky-common:${project.chunky_common_version}"
 }
 
 processResources {

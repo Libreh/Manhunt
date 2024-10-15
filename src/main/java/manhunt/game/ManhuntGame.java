@@ -1,10 +1,15 @@
 package manhunt.game;
 
 import manhunt.ManhuntMod;
-import manhunt.command.CoordsCommand;
-import manhunt.command.DurationCommand;
-import manhunt.command.PauseCommand;
+import manhunt.command.game.CoordsCommand;
+import manhunt.command.game.DurationCommand;
+import manhunt.command.game.PauseCommand;
 import manhunt.config.ManhuntConfig;
+import manhunt.config.gui.GameOptionsGui;
+import manhunt.config.gui.SettingsGui;
+import manhunt.event.OnGameTick;
+import manhunt.event.OnPlayerInteract;
+import manhunt.event.OnPlayerState;
 import manhunt.mixin.world.IServerWorld;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -37,14 +42,14 @@ import net.minecraft.world.GameMode;
 import net.minecraft.world.GameRules;
 import net.minecraft.world.Heightmap;
 import org.jetbrains.annotations.Nullable;
-import org.popcraft.chunky.ChunkyProvider;
 
 import java.util.*;
 
-import static manhunt.ManhuntMod.*;
+import static manhunt.ManhuntMod.getOverworld;
 
 public class ManhuntGame {
     public static final List<UUID> PLAY_LIST = new ArrayList<>();
+    public static final List<UUID> POSITIONS_LIST = new ArrayList<>();
     public static boolean chunkyLoaded;
     public static BlockPos worldSpawnPos;
 
@@ -83,11 +88,8 @@ public class ManhuntGame {
         }
 
         if (chunkyLoaded && ManhuntConfig.CONFIG.isChunky()) {
-            var chunky = ChunkyProvider.get().getApi();
-
-            chunky.cancelTask(String.valueOf(overworld.getRegistryKey().getValue()));
-            chunky.cancelTask(String.valueOf(theNether.getRegistryKey().getValue()));
-            chunky.cancelTask(String.valueOf(theEnd.getRegistryKey().getValue()));
+            server.getCommandManager().executeWithPrefix(server.getCommandSource(), "chunky cancel");
+            server.getCommandManager().executeWithPrefix(server.getCommandSource(), "chunky confirm");
         }
 
         var scoreboard = server.getScoreboard();
@@ -112,46 +114,46 @@ public class ManhuntGame {
         }
 
         if (ManhuntConfig.CONFIG.isWaitForRunner()) {
-            GameEvents.waitForRunner = true;
+            OnGameTick.waitForRunner = true;
         }
 
         if (ManhuntConfig.CONFIG.getHunterReleaseTime() != 0) {
-            GameEvents.hunterReleaseTime = ManhuntConfig.CONFIG.getHunterReleaseTime() * 20;
+            OnGameTick.hunterReleaseTime = ManhuntConfig.CONFIG.getHunterReleaseTime() * 20;
         }
 
         if (ManhuntConfig.CONFIG.getRunnerHeadStart() != 0) {
-            GameEvents.headStart = true;
-            GameEvents.headStartTime = ManhuntConfig.CONFIG.getRunnerHeadStart() * 20;
+            OnGameTick.headStart = true;
+            OnGameTick.headStartTime = ManhuntConfig.CONFIG.getRunnerHeadStart() * 20;
         }
 
         if (ManhuntConfig.CONFIG.getTimeLimit() != 0) {
-            GameEvents.timeLimit = true;
-            GameEvents.timeLimitLeft = ManhuntConfig.CONFIG.getTimeLimit() * 60 * 20;
+            OnGameTick.timeLimit = true;
+            OnGameTick.timeLimitLeft = ManhuntConfig.CONFIG.getTimeLimit() * 60 * 20;
         }
 
         if (ManhuntConfig.CONFIG.isRunnerPreferences() && runnersTeam.getPlayerList().size() == 1) {
             String playerName = runnersTeam.getPlayerList().iterator().next();
 
-            ManhuntConfig.CONFIG.setBedExplosions(ManhuntSettings.BED_EXPLOSIONS.get(server.getPlayerManager().getPlayer(playerName).getUuid()));
-            ManhuntConfig.CONFIG.setLavaPvpInNether(ManhuntSettings.LAVA_PVP_IN_NETHER.get(server.getPlayerManager().getPlayer(playerName).getUuid()));
+            ManhuntConfig.CONFIG.setBedExplosions(SettingsGui.BED_EXPLOSIONS.get(server.getPlayerManager().getPlayer(playerName).getUuid()));
+            ManhuntConfig.CONFIG.setLavaPvpInNether(SettingsGui.LAVA_PVP_IN_NETHER.get(server.getPlayerManager().getPlayer(playerName).getUuid()));
         }
 
         PauseCommand.PLAYER_EFFECTS.clear();
         PauseCommand.PLAYER_POS.clear();
         PauseCommand.PLAYER_YAW.clear();
         PauseCommand.PLAYER_PITCH.clear();
-        GameEvents.PLAYER_FOOD.clear();
-        GameEvents.PLAYER_SATURATION.clear();
+        OnPlayerState.PLAYER_FOOD.clear();
+        OnPlayerState.PLAYER_SATURATION.clear();
 
         if (ManhuntConfig.CONFIG.isRunnersGlow()) {
             for (ServerPlayerEntity serverPlayer : server.getPlayerManager().getPlayerList()) {
                 if (serverPlayer.isTeamPlayer(runnersTeam))
                     serverPlayer.addStatusEffect(new StatusEffectInstance(StatusEffects.GLOWING,
-                            StatusEffectInstance.INFINITE, 255, false, false));
+                            StatusEffectInstance.INFINITE, 255, false, false, true));
             }
         }
 
-        if (GameEvents.waitForRunner || GameEvents.runnerHasStarted) {
+        if (OnGameTick.waitForRunner || OnGameTick.runnerHasStarted) {
             for (ServerPlayerEntity serverPlayer : server.getPlayerManager().getPlayerList()) {
                 if (serverPlayer.isTeamPlayer(huntersTeam)) {
                     serverPlayer.getAttributeInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED).setBaseValue(0);
@@ -166,15 +168,15 @@ public class ManhuntGame {
         }
 
         for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
-            GameEvents.START_LIST.add(player.getUuid());
+            OnGameTick.START_LIST.add(player.getUuid());
             PLAY_LIST.add(player.getUuid());
-            GameEvents.POSITIONS_LIST.add(player.getUuid());
+            POSITIONS_LIST.add(player.getUuid());
         }
 
-        GameEvents.READY_LIST.clear();
-        GameEvents.PARKOUR_TIMER.clear();
-        GameEvents.STARTED_PARKOUR.clear();
-        GameEvents.FINISHED_PARKOUR.clear();
+        OnPlayerInteract.READY_LIST.clear();
+        OnGameTick.PARKOUR_TIMER.clear();
+        OnGameTick.STARTED_PARKOUR.clear();
+        OnGameTick.FINISHED_PARKOUR.clear();
     }
 
     public static void end(MinecraftServer server, boolean hunterWin) {
@@ -189,7 +191,7 @@ public class ManhuntGame {
         var playerManager = server.getPlayerManager();
 
         playerManager.broadcast(Text.translatable("commands.seed.success",
-                Texts.bracketedCopyable(String.valueOf(overworld.getSeed())).formatted(Formatting.GREEN)), false);
+                Texts.bracketedCopyable(String.valueOf(getOverworld().getSeed())).formatted(Formatting.GREEN)), false);
         DurationCommand.setDuration(server);
         playerManager.broadcast(Text.translatable("chat.manhunt.duration",
                 Texts.bracketedCopyable(DurationCommand.duration).formatted(Formatting.GREEN)), false);
@@ -199,7 +201,7 @@ public class ManhuntGame {
                 player.changeGameMode(getGameMode());
             }
 
-            if (ManhuntConfig.CONFIG.isCustomTitles() && ManhuntSettings.CUSTOM_TITLES.get(player.getUuid())) {
+            if (ManhuntConfig.CONFIG.isCustomTitles() && SettingsGui.CUSTOM_TITLES.get(player.getUuid())) {
                 if (hunterWin) {
                     player.networkHandler.sendPacket(new TitleS2CPacket(Text.translatable("title.manhunt.hunters_won").formatted(ManhuntConfig.CONFIG.getHuntersColor())));
                 } else {
@@ -208,12 +210,12 @@ public class ManhuntGame {
                 player.networkHandler.sendPacket(new SubtitleS2CPacket(Text.translatable("title.manhunt.gg").formatted(Formatting.AQUA)));
             }
 
-            if (ManhuntConfig.CONFIG.isCustomSounds() && ManhuntSettings.CUSTOM_SOUNDS.get(player.getUuid())) {
+            if (ManhuntConfig.CONFIG.isCustomSounds() && SettingsGui.CUSTOM_SOUNDS.get(player.getUuid())) {
                 player.playSoundToPlayer(SoundEvents.BLOCK_NOTE_BLOCK_IRON_XYLOPHONE.value(), SoundCategory.MASTER,
                         1.0F, 0.5F);
             }
 
-            if (ManhuntConfig.CONFIG.isCustomParticles() && ManhuntSettings.CUSTOM_PARTICLES.get(player.getUuid())) {
+            if (ManhuntConfig.CONFIG.isCustomParticles() && SettingsGui.CUSTOM_PARTICLES.get(player.getUuid())) {
                 SimpleParticleType particle = ParticleTypes.TRIAL_SPAWNER_DETECTION;
                 if (!hunterWin) {
                     particle = ParticleTypes.TRIAL_SPAWNER_DETECTION_OMINOUS;
@@ -273,8 +275,8 @@ public class ManhuntGame {
         worldBorder.setSize(59999968);
 
         for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
-            GameEvents.RESET_LIST.add(player.getUuid());
-            GameEvents.POSITIONS_LIST.add(player.getUuid());
+            OnGameTick.RESET_LIST.add(player.getUuid());
+            POSITIONS_LIST.add(player.getUuid());
         }
 
         var rolePreset = ManhuntConfig.CONFIG.getRolePreset();
@@ -298,39 +300,39 @@ public class ManhuntGame {
                     scoreboard.addScoreHolderToTeam(serverPlayer.getNameForScoreboard(), scoreboard.getTeam("runners"));
                 }
             } else if (rolePreset == 4) {
-                if (ManhuntSettings.playerList == null || ManhuntSettings.playerList.isEmpty()) {
-                    ManhuntSettings.playerList = new ArrayList<>(server.getPlayerManager().getPlayerList());
+                if (GameOptionsGui.playerList == null || GameOptionsGui.playerList.isEmpty()) {
+                    GameOptionsGui.playerList = new ArrayList<>(server.getPlayerManager().getPlayerList());
                 }
-                ManhuntSettings.playerList.removeIf(ServerPlayerEntity::isDisconnected);
-                Collections.shuffle(ManhuntSettings.playerList);
+                GameOptionsGui.playerList.removeIf(ServerPlayerEntity::isDisconnected);
+                Collections.shuffle(GameOptionsGui.playerList);
 
                 for (ServerPlayerEntity serverPlayer : server.getPlayerManager().getPlayerList()) {
                     serverPlayer.getScoreboard().addScoreHolderToTeam(serverPlayer.getNameForScoreboard(),
                             server.getScoreboard().getTeam("hunters"));
                 }
 
-                ServerPlayerEntity runner = ManhuntSettings.playerList.getFirst();
+                ServerPlayerEntity runner = GameOptionsGui.playerList.getFirst();
                 scoreboard.addScoreHolderToTeam(runner.getNameForScoreboard(), scoreboard.getTeam("runners"));
-                ManhuntSettings.playerList.remove(runner);
+                GameOptionsGui.playerList.remove(runner);
             } else if (rolePreset == 5) {
-                if (ManhuntSettings.playerList == null || ManhuntSettings.playerList.isEmpty()) {
-                    ManhuntSettings.playerList = new ArrayList<>(server.getPlayerManager().getPlayerList());
-                    ManhuntSettings.mainRunnerTries = 3;
+                if (GameOptionsGui.playerList == null || GameOptionsGui.playerList.isEmpty()) {
+                    GameOptionsGui.playerList = new ArrayList<>(server.getPlayerManager().getPlayerList());
+                    GameOptionsGui.mainRunnerTries = 3;
                 }
-                ManhuntSettings.playerList.removeIf(Objects::isNull);
-                Collections.shuffle(ManhuntSettings.playerList);
+                GameOptionsGui.playerList.removeIf(ServerPlayerEntity::isDisconnected);
+                Collections.shuffle(GameOptionsGui.playerList);
 
                 for (ServerPlayerEntity serverPlayer : server.getPlayerManager().getPlayerList()) {
                     scoreboard.addScoreHolderToTeam(serverPlayer.getNameForScoreboard(), scoreboard.getTeam("hunters"));
                 }
 
-                ServerPlayerEntity runner = ManhuntSettings.playerList.getFirst();
-                if (ManhuntSettings.mainRunnerTries != 0) {
-                    runner = server.getPlayerManager().getPlayer(ManhuntSettings.mainRunnerUUID);
-                    ManhuntSettings.mainRunnerTries--;
+                ServerPlayerEntity runner = GameOptionsGui.playerList.getFirst();
+                if (GameOptionsGui.mainRunnerTries != 0) {
+                    runner = server.getPlayerManager().getPlayer(GameOptionsGui.mainRunnerUUID);
+                    GameOptionsGui.mainRunnerTries--;
                 }
                 scoreboard.addScoreHolderToTeam(runner.getNameForScoreboard(), scoreboard.getTeam("runners"));
-                ManhuntSettings.playerList.remove(runner);
+                GameOptionsGui.playerList.remove(runner);
             } else if (rolePreset == 6) {
                 List<ServerPlayerEntity> players = new ArrayList<>(server.getPlayerManager().getPlayerList());
                 Collections.shuffle(players);
@@ -346,20 +348,20 @@ public class ManhuntGame {
 
         CoordsCommand.HUNTER_COORDS.clear();
         CoordsCommand.RUNNER_COORDS.clear();
-        GameEvents.LEFT_ON_PAUSE.clear();
-        GameEvents.PLAYER_SPAWN_POS.clear();
-        GameEvents.HEAD_START_POS.clear();
+        OnGameTick.LEFT_ON_PAUSE.clear();
+        OnGameTick.PLAYER_SPAWN_POS.clear();
+        OnGameTick.HEAD_START_POS.clear();
         PLAY_LIST.clear();
         DurationCommand.duration = "";
-        GameEvents.waitForRunner = false;
-        GameEvents.hunterRelease = false;
-        GameEvents.headStart = false;
-        GameEvents.timeLimit = false;
-        GameEvents.paused = false;
-        GameEvents.hunterReleaseTime = 0;
-        GameEvents.headStartTime = 0;
-        GameEvents.runnerHasStarted = false;
-        GameEvents.startReset = false;
+        OnGameTick.waitForRunner = false;
+        OnGameTick.hunterRelease = false;
+        OnGameTick.headStart = false;
+        OnGameTick.timeLimit = false;
+        OnGameTick.paused = false;
+        OnGameTick.hunterReleaseTime = 0;
+        OnGameTick.headStartTime = 0;
+        OnGameTick.runnerHasStarted = false;
+        OnGameTick.startReset = false;
     }
 
     public static void updateCompass(ServerPlayerEntity player, ItemStack stack, ServerPlayerEntity trackedPlayer) {
@@ -436,7 +438,7 @@ public class ManhuntGame {
             int s = q / (i * 2 + 1);
             var blockPos2 = findOverworldSpawn(world, blockPos.getX() + r - i, blockPos.getZ() + s - i);
             if (blockPos2 == null) continue;
-            GameEvents.PLAYER_SPAWN_POS.put(player.getUuid(), blockPos2);
+            OnGameTick.PLAYER_SPAWN_POS.put(player.getUuid(), blockPos2);
             break;
         }
     }
@@ -444,7 +446,7 @@ public class ManhuntGame {
     @Nullable
     private static BlockPos findOverworldSpawn(ServerWorld world, int x, int z) {
         int i;
-        boolean bl = world.getDimension().hasCeiling();
+        var bl = world.getDimension().hasCeiling();
         var worldChunk = world.getChunk(ChunkSectionPos.getSectionCoord(x), ChunkSectionPos.getSectionCoord(z));
         i = bl ? world.getChunkManager().getChunkGenerator().getSpawnHeight(world) :
                 worldChunk.sampleHeightmap(Heightmap.Type.MOTION_BLOCKING, x & 0xF, z & 0xF);
