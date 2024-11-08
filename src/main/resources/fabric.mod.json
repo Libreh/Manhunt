@@ -3,7 +3,7 @@
   "id": "manhunt",
   "version": "${version}",
   "name": "Manhunt",
-  "description": "A server-side Fabric Minecraft Manhunt mod.",
+  "description": "Server-side Manhunt mod based on Fabric.",
   "authors": [
     "Libreh"
   ],
@@ -15,15 +15,15 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "manhunt.ManhuntMod"
+      "libreh.manhunt.ManhuntMod"
     ]
   },
   "mixins": [
     "manhunt.mixins.json"
   ],
   "depends": {
-    "fabricloader": ">=0.15.11",
-    "minecraft": "~1.21.1",
+    "fabricloader": ">=0.16.7",
+    "minecraft": "~1.21.3",
     "java": ">=21",
     "fabric-api": "*"
   }

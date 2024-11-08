@@ -1,11 +1,8 @@
 {
   "required": true,
-  "package": "manhunt.mixin",
+  "package": "libreh.manhunt.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "fixes.shield.ShieldBlockSoundMixin",
-    "fixes.shield.ShieldExplosionSoundMixin",
-    "fixes.shield.ShieldStunMixin",
     "game.BedBlockMixin",
     "game.CancelDamageMixin",
     "game.PlayerEntityMixin",
