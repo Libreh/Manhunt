@@ -1,7 +1,12 @@
 plugins {
-    id 'fabric-loom' version '1.8-SNAPSHOT'
+    id 'fabric-loom' version '1.9-SNAPSHOT'
     id 'maven-publish'
 }
+
+loom {
+    accessWidenerPath = file("src/main/resources/manhunt.accesswidener")
+}
+
 
 archivesBaseName = project.archives_base_name
 version = project.mod_version + "+" + project.minecraft_version
@@ -9,48 +14,27 @@ group = project.maven_group
 
 repositories {
     mavenCentral()
-    maven { url 'https://maven.fabricmc.net/' }
     maven { url 'https://maven.nucleoid.xyz/' }
-    maven { url "https://repo.codemc.io/repository/maven-public/" }
-    maven { url "https://api.modrinth.com/maven" }
+    maven { url 'https://jitpack.io' }
 }
 
 dependencies {
-    // Main
+    // To change the versions see the gradle.properties file
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
     mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
-    // Fabric API
+    // Fabric API. This is technically optional, but you probably want it anyway.
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-    // Server Translations API
-    modImplementation include("xyz.nucleoid:server-translations-api:${project.server_translations_api_version}")
-
-    // SGUI
+    modImplementation include("eu.pb4:player-data-api:${project.player_data_api_version}")
     modImplementation include("eu.pb4:sgui:${project.sgui_version}")
-
-    // Fantasy
-    modImplementation include("xyz.nucleoid:fantasy:${project.fantasy_version}")
-
-    // SQLib
-    modImplementation "maven.modrinth:sqlib:${project.sqlib_version}"
-
-    // Permissions API
+    modImplementation include("xyz.nucleoid:server-translations-api:${project.server_translations_api_version}")
     modImplementation include("me.lucko:fabric-permissions-api:${project.permissions_api_version}") { exclude(group: "net.fabricmc.fabric-api") }
-}
-
-processResources {
-    inputs.property "version", project.version
-
-    filesMatching("fabric.mod.json") {
-        expand "version": project.version
-    }
 }
 
 tasks.withType(JavaCompile).configureEach {
     options.release = 21
-    options.encoding = "UTF-8"
 }
 
 java {

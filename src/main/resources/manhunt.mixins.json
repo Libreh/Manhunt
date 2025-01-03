@@ -1,24 +1,21 @@
 {
   "required": true,
-  "package": "libreh.manhunt.mixin",
+  "package": "me.libreh.manhunt.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "fixes.shield.ShieldBlockSoundMixin",
+    "fixes.shield.ShieldStunMixin",
     "game.BedBlockMixin",
     "game.CancelDamageMixin",
-    "game.PlayerEntityMixin",
     "game.PlayerManagerMixin",
     "game.RunnersWinMixin",
     "game.ServerPlayerEntityMixin",
     "game.ServerPlayNetworkHandlerMixin",
-    "game.TrackerAnimationMixin",
-    "world.EndPortalBlockMixin",
-    "world.getStructurePlacementCalculator",
-    "world.IServerWorld",
-    "world.LightNetherPortalMixin",
+    "world.LevelPropertiesAccessor",
     "world.MinecraftServerSkipStartRegionMixin",
     "world.MinecraftServerUnsafeSkipCloseMixin",
-    "world.NetherPortalBlockMixin",
-    "world.RedirectEndGateway"
+    "world.ServerChunkLoadingManagerAccessor",
+    "world.ServerChunkManagerAccessor"
   ],
   "injectors": {
     "defaultRequire": 1
