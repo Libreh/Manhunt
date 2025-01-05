@@ -1,6 +1,6 @@
 package me.libreh.manhunt.event;
 
-import me.libreh.manhunt.command.game.pause.PauseCommand;
+import me.libreh.manhunt.commands.PauseCommands;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 
@@ -37,7 +37,7 @@ public class PlayerState {
             } else {
                 if (runner && RUNNERS_TEAM.getPlayerList().size() == 1) {
                     PAUSE_LEAVE_LIST.add(playerUuid);
-                    PauseCommand.pauseGame(5);
+                    PauseCommands.pauseGame(5);
                 }
             }
         }

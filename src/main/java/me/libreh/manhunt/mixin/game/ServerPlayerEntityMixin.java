@@ -1,7 +1,8 @@
 package me.libreh.manhunt.mixin.game;
 
 import com.mojang.authlib.GameProfile;
-import me.libreh.manhunt.config.PreferencesData;
+import me.libreh.manhunt.config.Config;
+import me.libreh.manhunt.config.PlayerData;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.damage.DamageSource;
@@ -20,7 +21,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import static me.libreh.manhunt.config.ManhuntConfig.CONFIG;
 import static me.libreh.manhunt.utils.Constants.*;
 import static me.libreh.manhunt.utils.Fields.*;
 import static me.libreh.manhunt.utils.Methods.*;
@@ -95,13 +95,13 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity {
             ci.setReturnValue(false);
         } else if (isPlaying()) {
             if (this.isTeamPlayer(attacker.getScoreboardTeam())) {
-                if (!CONFIG.getFriendlyFire().equals("always")) {
-                    if (CONFIG.getFriendlyFire().equals(PER_PLAYER)) {
-                        if (!PreferencesData.get(player).friendlyFire || !PreferencesData.get(attacker).friendlyFire) {
+                if (!Config.getConfig().globalPreferences.friendlyFire.equals("always")) {
+                    if (Config.getConfig().globalPreferences.friendlyFire.equals(PER_PLAYER)) {
+                        if (!PlayerData.get(player).friendlyFire || !PlayerData.get(attacker).friendlyFire) {
                             ci.setReturnValue(false);
                             attacker.sendMessage(Text.translatable("chat.manhunt.friendly_fire.per_player").formatted(Formatting.RED), false);
                         }
-                    } else if (CONFIG.getFriendlyFire().equals("never")) {
+                    } else if (Config.getConfig().globalPreferences.friendlyFire.equals("never")) {
                         attacker.sendMessage(Text.translatable("chat.manhunt.friendly_fire").formatted(Formatting.RED), false);
                         ci.setReturnValue(false);
                     }

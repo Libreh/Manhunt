@@ -27,7 +27,7 @@
   "config.manhunt.announce_duration": "Announce Duration",
   "config.manhunt.apply_preferences": "Apply Preferences",
   "config.manhunt.vanilla": "Vanilla",
-  "config.manhunt.world_border": "World Border",
+  "config.manhunt.border_size": "Border Size",
   "config.manhunt.spawn_radius": "Spawn Radius",
   "config.manhunt.spectators_generate_chunks": "Spectators Generate Chunks",
   "text.manhunt.go_back": "Go back",

@@ -1,6 +1,6 @@
 package me.libreh.manhunt.event;
 
-import me.libreh.manhunt.config.ManhuntConfig;
+import me.libreh.manhunt.config.Config;
 import me.libreh.manhunt.game.GameState;
 import net.minecraft.scoreboard.AbstractTeam;
 import net.minecraft.server.MinecraftServer;
@@ -41,9 +41,9 @@ public class ServerStart {
         HUNTERS_TEAM.setShowFriendlyInvisibles(true);
         HUNTERS_TEAM.getPlayerList().clear();
 
-        if (ManhuntConfig.CONFIG.isTeamColor()) {
-            RUNNERS_TEAM.setColor(ManhuntConfig.CONFIG.getRunnersColor());
-            HUNTERS_TEAM.setColor(ManhuntConfig.CONFIG.getHuntersColor());
+        if (Config.getConfig().gameOptions.teamColor.enabled) {
+            RUNNERS_TEAM.setColor(Config.getConfig().gameOptions.teamColor.runnersColor);
+            HUNTERS_TEAM.setColor(Config.getConfig().gameOptions.teamColor.huntersColor);
 
         } else {
             RUNNERS_TEAM.setColor(Formatting.RESET);

@@ -4,7 +4,7 @@ import eu.pb4.sgui.api.ClickType;
 import eu.pb4.sgui.api.elements.GuiElementBuilder;
 import eu.pb4.sgui.api.gui.AnvilInputGui;
 import eu.pb4.sgui.api.gui.SimpleGui;
-import me.libreh.manhunt.config.ManhuntConfig;
+import me.libreh.manhunt.config.Config;
 import net.minecraft.item.Item;
 import net.minecraft.item.Items;
 import net.minecraft.screen.ScreenHandlerType;
@@ -25,7 +25,7 @@ public class ModIntegrationsGui {
 
         modIntegrationsGui.setTitle(Text.translatable("config.manhunt.mod_integrations"));
 
-        ManhuntConfig.CONFIG.save();
+        Config.saveConfig();
         ConfigGui.playUISound(player);
 
         List<Text> loreList;
@@ -37,7 +37,7 @@ public class ModIntegrationsGui {
         loreList = new ArrayList<>();
         name = "vanilla";
         item = Items.GRASS_BLOCK;
-        boolvalue = ManhuntConfig.CONFIG.isVanilla();
+        boolvalue = Config.getConfig().modIntegrations.vanillaIntegration.enabled;
 
         loreList.add(Text.empty());
         if (boolvalue) {
@@ -53,23 +53,28 @@ public class ModIntegrationsGui {
         }
         loreList.add(Text.empty());
         loreList.add(Text.translatable("lore.manhunt.click_drop").styled(style -> style
-                .withColor(Formatting.AQUA).withItalic(false)));
+                .withColor(Formatting.AQUA).withItalic(false))
+        );
         loreList.add(Text.translatable("lore.manhunt.click_shift").styled(style -> style
-                .withColor(Formatting.LIGHT_PURPLE).withItalic(false)));
+                .withColor(Formatting.LIGHT_PURPLE).withItalic(false))
+        );
 
         var vanillaBool = boolvalue;
         modIntegrationsGui.setSlot(slot, new GuiElementBuilder(item)
                 .setName(Text.translatable("config.manhunt." + name).formatted(Formatting.WHITE))
                 .setLore(loreList)
                 .setCallback((index, type, action) ->
-                        openVanillaIntegrationGui(player, type, vanillaBool)));
+                        openVanillaIntegrationGui(player, type, vanillaBool)
+                )
+        );
 
         modIntegrationsGui.setSlot(8, new GuiElementBuilder(Items.STRUCTURE_VOID)
                 .setName(Text.translatable("text.manhunt.go_back").formatted(Formatting.WHITE))
                 .setCallback(() -> {
                     ConfigGui.playUISound(player);
                     ConfigGui.openConfigGui(player);
-                }));
+                })
+        );
 
         modIntegrationsGui.open();
     }
@@ -79,9 +84,9 @@ public class ModIntegrationsGui {
             if (!clickType.shift) {
                 if (hasPermission(player, "manhunt.config")) {
                     if (clickType == ClickType.DROP) {
-                        ManhuntConfig.CONFIG.setVanilla(ManhuntConfig.vanillaDefault);
+                        Config.getConfig().modIntegrations.vanillaIntegration.enabled = Config.getConfig().vanillaDefault;
                     } else {
-                        ManhuntConfig.CONFIG.setVanilla(!vanilla);
+                        Config.getConfig().modIntegrations.vanillaIntegration.enabled = !vanilla;
                     }
                     openModIntegrationsGui(player);
                 } else {
@@ -92,7 +97,7 @@ public class ModIntegrationsGui {
 
                 vanillaIntegrationGui.setTitle(Text.translatable("config.manhunt.vanilla"));
 
-                ManhuntConfig.CONFIG.save();
+                Config.saveConfig();
                 ConfigGui.playUISound(player);
 
                 List<Text> loreList;
@@ -105,7 +110,7 @@ public class ModIntegrationsGui {
                 loreList = new ArrayList<>();
                 name = "options.difficulty";
                 item = Items.CREEPER_HEAD;
-                Difficulty difficulty = ManhuntConfig.CONFIG.getDifficulty();
+                Difficulty difficulty = Config.getConfig().modIntegrations.vanillaIntegration.difficulty;
 
                 loreList.add(Text.empty());
                 if (difficulty == Difficulty.EASY) {
@@ -138,14 +143,14 @@ public class ModIntegrationsGui {
                             if (hasPermission(player, "manhunt.config")) {
                                 if (SPAM_PREVENTION.get(player.getUuid()) < 6) {
                                     if (type == ClickType.DROP) {
-                                        ManhuntConfig.CONFIG.setDifficulty(ManhuntConfig.difficultyDefault);
+                                        Config.getConfig().modIntegrations.vanillaIntegration.difficulty = Config.getConfig().difficultyDefault;
                                     } else {
                                         if (difficulty == Difficulty.EASY) {
-                                            ManhuntConfig.CONFIG.setDifficulty(Difficulty.NORMAL);
+                                            Config.getConfig().modIntegrations.vanillaIntegration.difficulty = Difficulty.NORMAL;
                                         } else if (difficulty == Difficulty.NORMAL) {
-                                            ManhuntConfig.CONFIG.setDifficulty(Difficulty.HARD);
+                                            Config.getConfig().modIntegrations.vanillaIntegration.difficulty = Difficulty.HARD;
                                         } else {
-                                            ManhuntConfig.CONFIG.setDifficulty(Difficulty.EASY);
+                                            Config.getConfig().modIntegrations.vanillaIntegration.difficulty = Difficulty.EASY;
                                         }
                                     }
 
@@ -160,9 +165,9 @@ public class ModIntegrationsGui {
                 slot++;
 
                 loreList = new ArrayList<>();
-                name = "world_border";
+                name = "border_size";
                 item = Items.PRISMARINE_WALL;
-                intvalue = ManhuntConfig.CONFIG.getWorldBorder();
+                intvalue = Config.getConfig().modIntegrations.vanillaIntegration.borderSize;
 
                 loreList.add(Text.empty());
                 if (intvalue == 0) {
@@ -211,15 +216,15 @@ public class ModIntegrationsGui {
                                 if (SPAM_PREVENTION.get(player.getUuid()) < 6) {
                                     if (!type.shift) {
                                         if (type == ClickType.DROP) {
-                                            ManhuntConfig.CONFIG.setWorldBorder(ManhuntConfig.worldBorderDefault);
+                                            Config.getConfig().modIntegrations.vanillaIntegration.borderSize = Config.getConfig().borderSizeDefault;
                                         } else {
                                             if (worldBorder != 5632 && worldBorder != 11776) {
-                                                ManhuntConfig.CONFIG.setWorldBorder(5632);
+                                                Config.getConfig().modIntegrations.vanillaIntegration.borderSize = 5632;
                                             } else {
                                                 if (worldBorder == 5632) {
-                                                    ManhuntConfig.CONFIG.setWorldBorder(11776);
+                                                    Config.getConfig().modIntegrations.vanillaIntegration.borderSize = 11776;
                                                 } else {
-                                                    ManhuntConfig.CONFIG.setWorldBorder(59999968);
+                                                    Config.getConfig().modIntegrations.vanillaIntegration.borderSize = 59999968;
                                                 }
                                             }
                                         }
@@ -239,13 +244,12 @@ public class ModIntegrationsGui {
                                                                 player.sendMessage(Text.translatable("chat.manhunt.invalid_input")
                                                                         .formatted(Formatting.RED));
                                                             }
-
-                                                            ManhuntConfig.CONFIG.setWorldBorder(value);
+                                                            Config.getConfig().modIntegrations.vanillaIntegration.borderSize = value;
                                                             openVanillaIntegrationGui(player, clickType, vanilla);
-                                                        }));
+                                                        })
+                                                );
                                             }
                                         };
-
                                         worldBorderGui.setTitle(Text.translatable("text.manhunt.enter_value"));
                                         worldBorderGui.setDefaultInputValue("");
                                         worldBorderGui.open();
@@ -256,13 +260,14 @@ public class ModIntegrationsGui {
                             } else {
                                 player.sendMessage(Text.translatable("chat.manhunt.no_permission").formatted(Formatting.RED));
                             }
-                        }));
+                        })
+                );
                 slot++;
 
                 loreList = new ArrayList<>();
                 name = "spawn_radius";
                 item = Items.BEDROCK;
-                intvalue = ManhuntConfig.CONFIG.getSpawnRadius();
+                intvalue = Config.getConfig().modIntegrations.vanillaIntegration.spawnRadius;
 
                 loreList.add(Text.empty());
                 if (intvalue != 0 && intvalue != 5 && intvalue != 10) {
@@ -292,9 +297,11 @@ public class ModIntegrationsGui {
                 }
                 loreList.add(Text.empty());
                 loreList.add(Text.translatable("lore.manhunt.click_drop").styled(style -> style
-                        .withColor(Formatting.AQUA).withItalic(false)));
+                        .withColor(Formatting.AQUA).withItalic(false))
+                );
                 loreList.add(Text.translatable("lore.manhunt.click_shift").styled(style -> style
-                        .withColor(Formatting.LIGHT_PURPLE).withItalic(false)));
+                        .withColor(Formatting.LIGHT_PURPLE).withItalic(false))
+                );
 
                 int spawnRadiusInt = intvalue;
                 vanillaIntegrationGui.setSlot(slot, new GuiElementBuilder(item)
@@ -304,15 +311,15 @@ public class ModIntegrationsGui {
                                 if (SPAM_PREVENTION.get(player.getUuid()) < 6) {
                                     if (!type.shift) {
                                         if (type == ClickType.DROP) {
-                                            ManhuntConfig.CONFIG.setSpawnRadius(ManhuntConfig.spawnRadiusDefault);
+                                            Config.getConfig().modIntegrations.vanillaIntegration.spawnRadius = Config.getConfig().spawnRadiusDefault;
                                         } else {
                                             if (spawnRadiusInt != 0 && spawnRadiusInt != 5) {
-                                                ManhuntConfig.CONFIG.setSpawnRadius(0);
+                                                Config.getConfig().modIntegrations.vanillaIntegration.spawnRadius = 0;
                                             } else {
                                                 if (spawnRadiusInt == 0) {
-                                                    ManhuntConfig.CONFIG.setSpawnRadius(5);
+                                                    Config.getConfig().modIntegrations.vanillaIntegration.spawnRadius = 5;
                                                 } else {
-                                                    ManhuntConfig.CONFIG.setSpawnRadius(10);
+                                                    Config.getConfig().modIntegrations.vanillaIntegration.spawnRadius = 10;
                                                 }
                                             }
                                         }
@@ -329,12 +336,13 @@ public class ModIntegrationsGui {
                                                                 value = Integer.parseInt(input);
                                                             } catch (NumberFormatException e) {
                                                                 player.sendMessage(Text.translatable("chat.manhunt.invalid_input")
-                                                                        .formatted(Formatting.RED));
+                                                                        .formatted(Formatting.RED)
+                                                                );
                                                             }
-
-                                                            ManhuntConfig.CONFIG.setSpawnRadius(value);
+                                                            Config.getConfig().modIntegrations.vanillaIntegration.spawnRadius = value;
                                                             openVanillaIntegrationGui(player, clickType, vanilla);
-                                                        }));
+                                                        })
+                                                );
                                             }
                                         };
 
@@ -348,13 +356,14 @@ public class ModIntegrationsGui {
                             } else {
                                 player.sendMessage(Text.translatable("chat.manhunt.no_permission").formatted(Formatting.RED));
                             }
-                        }));
+                        })
+                );
                 slot++;
 
                 loreList = new ArrayList<>();
                 name = "spectators_generate_chunks";
                 item = Items.SNOW_BLOCK;
-                boolvalue = ManhuntConfig.CONFIG.isSpectatorsGenerateChunks();
+                boolvalue = Config.getConfig().modIntegrations.vanillaIntegration.spectatorsGenerateChunks;
 
                 loreList.add(Text.empty());
                 if (boolvalue) {
@@ -370,7 +379,8 @@ public class ModIntegrationsGui {
                 }
                 loreList.add(Text.empty());
                 loreList.add(Text.translatable("lore.manhunt.click_drop").styled(style -> style
-                        .withColor(Formatting.AQUA).withItalic(false)));
+                        .withColor(Formatting.AQUA).withItalic(false))
+                );
 
                 var spectatorsGenerateChunks = boolvalue;
                 vanillaIntegrationGui.setSlot(slot, new GuiElementBuilder(item)
@@ -382,11 +392,10 @@ public class ModIntegrationsGui {
                             if (hasPermission(player, "manhunt.config")) {
                                 if (SPAM_PREVENTION.get(player.getUuid()) < 6) {
                                     if (type == ClickType.DROP) {
-                                        ManhuntConfig.CONFIG.setSpectatorsGenerateChunks(ManhuntConfig.spectatorsGenerateChunksDefault);
+                                        Config.getConfig().modIntegrations.vanillaIntegration.spectatorsGenerateChunks = Config.getConfig().spectatorsGenerateChunksDefault;
                                     } else {
-                                        ManhuntConfig.CONFIG.setSpectatorsGenerateChunks(!spectatorsGenerateChunks);
+                                        Config.getConfig().modIntegrations.vanillaIntegration.spectatorsGenerateChunks = !spectatorsGenerateChunks;
                                     }
-
                                     openVanillaIntegrationGui(player, clickType, vanilla);
                                 } else {
                                     player.sendMessage(Text.translatable("chat.manhunt.slow_down").formatted(Formatting.RED));
@@ -394,11 +403,13 @@ public class ModIntegrationsGui {
                             } else {
                                 player.sendMessage(Text.translatable("chat.manhunt.no_permission").formatted(Formatting.RED));
                             }
-                        }));
+                        })
+                );
 
                 vanillaIntegrationGui.setSlot(8, new GuiElementBuilder(Items.STRUCTURE_VOID)
                         .setName(Text.translatable("text.manhunt.go_back").formatted(Formatting.WHITE))
-                        .setCallback(() -> openModIntegrationsGui(player)));
+                        .setCallback(() -> openModIntegrationsGui(player))
+                );
 
                 vanillaIntegrationGui.open();
             }

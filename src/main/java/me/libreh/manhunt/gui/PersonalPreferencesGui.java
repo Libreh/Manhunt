@@ -2,7 +2,7 @@ package me.libreh.manhunt.gui;
 
 import eu.pb4.sgui.api.elements.GuiElementBuilder;
 import eu.pb4.sgui.api.gui.SimpleGui;
-import me.libreh.manhunt.config.PreferencesData;
+import me.libreh.manhunt.config.PlayerData;
 import net.minecraft.item.Item;
 import net.minecraft.item.Items;
 import net.minecraft.screen.ScreenHandlerType;
@@ -23,9 +23,9 @@ public class PersonalPreferencesGui {
 
         ConfigGui.playUISound(player);
 
-        PreferencesData data = PreferencesData.get(player);
+        PlayerData data = PlayerData.get(player);
 
-        PreferencesData.STORAGE.save(player, data);
+        PlayerData.STORAGE.save(player, data);
 
         List<Text> loreList;
         String name;

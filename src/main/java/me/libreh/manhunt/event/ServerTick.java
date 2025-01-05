@@ -1,8 +1,9 @@
 package me.libreh.manhunt.event;
 
-import me.libreh.manhunt.command.ResetCommand;
-import me.libreh.manhunt.command.game.pause.UnpauseCommand;
-import me.libreh.manhunt.config.PreferencesData;
+import me.libreh.manhunt.commands.GeneralCommands;
+import me.libreh.manhunt.commands.PauseCommands;
+import me.libreh.manhunt.config.Config;
+import me.libreh.manhunt.config.PlayerData;
 import me.libreh.manhunt.game.GameState;
 import me.libreh.manhunt.world.ServerWorldController;
 import me.lucko.fabric.api.permissions.v0.Permissions;
@@ -29,7 +30,6 @@ import net.minecraft.util.math.random.Random;
 import java.util.Set;
 import java.util.concurrent.Future;
 
-import static me.libreh.manhunt.config.ManhuntConfig.CONFIG;
 import static me.libreh.manhunt.utils.Constants.*;
 import static me.libreh.manhunt.utils.Fields.*;
 import static me.libreh.manhunt.utils.Methods.*;
@@ -39,7 +39,7 @@ public class ServerTick {
         if (firstReset) {
             firstReset = false;
 
-            ServerWorldController.resetWorlds(ResetCommand.seed);
+            ServerWorldController.resetWorlds(GeneralCommands.seed);
         }
 
         if (gameState == GameState.PRELOADING) {
@@ -93,7 +93,7 @@ public class ServerTick {
                     pauseTicks -= 20;
 
                     if (pauseTicks <= 0) {
-                        UnpauseCommand.unpauseGame();
+                        PauseCommands.unpauseGame();
 
                         for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
                             player.networkHandler.sendPacket(new ClearTitleS2CPacket(false));
@@ -129,7 +129,7 @@ public class ServerTick {
                         }
                     }
                 } else {
-                    if (CONFIG.getTimeLimitMin() != 0) {
+                    if (Config.getConfig().gameOptions.timeLimit != 0) {
                         timeLimitTicks -= 20;
 
                         int hours = (int) Math.floor((double) timeLimitTicks % (20 * 60 * 60 * 24) / (20 * 60 * 60));
@@ -159,7 +159,7 @@ public class ServerTick {
                             secondsString = String.valueOf(seconds);
                         }
 
-                        if (headStartTicks == 0 && CONFIG.getTimeLimitMin() != 0) {
+                        if (headStartTicks == 0 && Config.getConfig().gameOptions.timeLimit != 0) {
                             for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
                                 player.sendMessage(Text.translatable("chat.manhunt.time.triple",
                                         hoursString, minutesString, secondsString).styled(style -> style.withBold(true)), true);
@@ -232,7 +232,7 @@ public class ServerTick {
 
         for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
             var playerUuid = player.getUuid();
-            var data = PreferencesData.get(player);
+            var data = PlayerData.get(player);
 
             if (JOIN_LIST.contains(playerUuid) && !player.notInAnyWorld) {
                 JOIN_LIST.remove(playerUuid);
@@ -242,7 +242,7 @@ public class ServerTick {
                 if (isPlaying()) {
                     if (isPaused) {
                         if (isRunner(player) && RUNNERS_TEAM.getPlayerList().size() == 1) {
-                            UnpauseCommand.unpauseGame();
+                            PauseCommands.unpauseGame();
                         } else if (!PAUSE_LEAVE_LIST.contains(playerUuid)) {
                             player.playSoundToPlayer(SoundEvents.BLOCK_ANVIL_LAND, SoundCategory.MASTER, 0.1f, 0.5F);
 
@@ -298,7 +298,7 @@ public class ServerTick {
                     removeDuplicateItems(player, Items.PLAYER_HEAD, 0);
                 }
 
-                if (CONFIG.getPresetMode().equals("free_select")) {
+                if (Config.getConfig().gameOptions.presetMode.equals("free_select")) {
                     if (!hasItem(player, Items.RECOVERY_COMPASS)) {
                         var nbt = new NbtCompound();
                         nbt.putBoolean("Remove", true);
@@ -441,10 +441,10 @@ public class ServerTick {
                     updateGameMode(player);
 
 
-                    if (CONFIG.getCustomSounds().equals("always") || data.customSounds) {
+                    if (Config.getConfig().globalPreferences.customSounds.equals("always") || data.customSounds) {
                         player.playSoundToPlayer(SoundEvents.BLOCK_NOTE_BLOCK_HARP.value(), SoundCategory.MASTER, 0.5F, 2.0F);
                     }
-                    if (CONFIG.getCustomTitles().equals("always") || data.customTitles) {
+                    if (Config.getConfig().globalPreferences.customTitles.equals("always") || data.customTitles) {
                         player.networkHandler.sendPacket(new TitleS2CPacket(Text.translatable("title.manhunt.start")));
                         player.networkHandler.sendPacket(new SubtitleS2CPacket(Text.translatable("title.manhunt.glhf").formatted(Formatting.GRAY)));
                     }

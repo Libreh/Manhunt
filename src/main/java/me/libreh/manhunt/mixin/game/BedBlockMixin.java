@@ -1,6 +1,7 @@
 package me.libreh.manhunt.mixin.game;
 
-import me.libreh.manhunt.config.PreferencesData;
+import me.libreh.manhunt.config.Config;
+import me.libreh.manhunt.config.PlayerData;
 import net.minecraft.block.BedBlock;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
@@ -16,14 +17,12 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import static me.libreh.manhunt.config.ManhuntConfig.CONFIG;
-
 @Mixin(BedBlock.class)
 public class BedBlockMixin {
     @Inject(method = "onUse", at = @At("HEAD"), cancellable = true)
     protected void disableBedExplosions(BlockState state, World world, BlockPos pos, PlayerEntity player,
                                         BlockHitResult hit, CallbackInfoReturnable<ActionResult> cir) {
-        if (CONFIG.getBedExplosionsPvP().equals("off") || !PreferencesData.get(player).bedExplosionsPvP) {
+        if (Config.getConfig().globalPreferences.bedExplosionsPvP.equals("off") || !PlayerData.get(player).bedExplosionsPvP) {
             if (world.getRegistryKey() != World.OVERWORLD) {
                 for (ServerPlayerEntity serverPlayer : player.getServer().getPlayerManager().getPlayerList()) {
                     if (player.distanceTo(serverPlayer) <= 9.0F && !player.isTeamPlayer(serverPlayer.getScoreboardTeam())) {

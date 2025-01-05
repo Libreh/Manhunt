@@ -1,7 +1,8 @@
 package me.libreh.manhunt.event;
 
-import me.libreh.manhunt.command.StartCommand;
-import me.libreh.manhunt.config.PreferencesData;
+import me.libreh.manhunt.commands.GeneralCommands;
+import me.libreh.manhunt.config.Config;
+import me.libreh.manhunt.config.PlayerData;
 import me.libreh.manhunt.gui.ConfigGui;
 import me.libreh.manhunt.gui.PreferencesGui;
 import net.minecraft.component.DataComponentTypes;
@@ -21,7 +22,6 @@ import net.minecraft.util.Unit;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.world.World;
 
-import static me.libreh.manhunt.config.ManhuntConfig.CONFIG;
 import static me.libreh.manhunt.utils.Constants.READY_LIST;
 import static me.libreh.manhunt.utils.Constants.SPAM_PREVENTION;
 import static me.libreh.manhunt.utils.Fields.*;
@@ -44,8 +44,8 @@ public class PlayerInterfact {
                         makeHunter(player);
 
                         SERVER.getPlayerManager().broadcast(Text.translatable("chat.manhunt.joined_team",
-                                Text.literal(player.getNameForScoreboard()).formatted(CONFIG.getHuntersColor()),
-                                Text.translatable("role.manhunt.hunters").formatted(CONFIG.getHuntersColor())),
+                                Text.literal(player.getNameForScoreboard()).formatted(Config.getConfig().gameOptions.teamColor.huntersColor),
+                                Text.translatable("role.manhunt.hunters").formatted(Config.getConfig().gameOptions.teamColor.huntersColor)),
                                 false);
 
                         player.playSoundToPlayer(SoundEvents.ITEM_LODESTONE_COMPASS_LOCK, SoundCategory.PLAYERS, 0.5F, 1.0F);
@@ -93,7 +93,7 @@ public class PlayerInterfact {
                             SERVER.getPlayerManager().broadcast(Text.translatable("chat.manhunt.minimum",
                                     Text.translatable("role.manhunt.runner")).formatted(Formatting.RED), false);
                         } else {
-                            StartCommand.executeStart();
+                            GeneralCommands.executeStart();
                         }
                     }
                 } else {
@@ -129,8 +129,8 @@ public class PlayerInterfact {
                     if (!isRunner(player)) {
                         makeRunner(player);
                         SERVER.getPlayerManager().broadcast(Text.translatable("chat.manhunt.joined_team",
-                                Text.literal(player.getNameForScoreboard()).formatted(CONFIG.getRunnersColor()),
-                                Text.translatable("role.manhunt.runners").formatted(CONFIG.getRunnersColor())),
+                                Text.literal(player.getNameForScoreboard()).formatted(Config.getConfig().gameOptions.teamColor.runnersColor),
+                                Text.translatable("role.manhunt.runners").formatted(Config.getConfig().gameOptions.teamColor.runnersColor)),
                                 false);
                         player.playSoundToPlayer(SoundEvents.ENTITY_ENDER_EYE_LAUNCH, SoundCategory.PLAYERS, 0.5F, 1.0F);
                     } else {
@@ -155,7 +155,7 @@ public class PlayerInterfact {
                 }
             }
 
-            if (CONFIG.getNetherLavaPvP().equals("off") || !PreferencesData.get(player).netherLavaPvP) {
+            if (Config.getConfig().globalPreferences.netherLavaPvP.equals("off") || !PlayerData.get(player).netherLavaPvP) {
                 if (world.getRegistryKey() == World.NETHER && stack.getItem() == Items.LAVA_BUCKET) {
                     for (ServerPlayerEntity serverPlayer : SERVER.getPlayerManager().getPlayerList()) {
                         if (player.distanceTo(serverPlayer) <= 9.0f && !player.isTeamPlayer(serverPlayer.getScoreboardTeam())) {
@@ -177,13 +177,13 @@ public class PlayerInterfact {
                 if (isPaused) {
                     return ActionResult.FAIL;
                 } else {
-                    if (CONFIG.getHeadStartSec() != 0 && headStartTicks != 0 && isHunter(player)) {
+                    if (Config.getConfig().gameOptions.headStart != 0 && headStartTicks != 0 && isHunter(player)) {
                         return ActionResult.FAIL;
                     }
                 }
             }
 
-            if (CONFIG.getBedExplosionsPvP().equals("off") || !PreferencesData.get(player).bedExplosionsPvP) {
+            if (Config.getConfig().globalPreferences.bedExplosionsPvP.equals("off") || !PlayerData.get(player).bedExplosionsPvP) {
                 if (world.getRegistryKey() != World.OVERWORLD) {
                     if (player.getStackInHand(hand).getItem().getTranslationKey().contains("_bed")) {
                         for (ServerPlayerEntity serverPlayer : player.getServer().getPlayerManager().getPlayerList()) {

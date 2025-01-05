@@ -39,7 +39,7 @@ Manhunt commands (requires permission):
 - `/unpause` unfreezes everything, and unblinds players
 
 ## Credits
-Parts of this mod are inspired by and use code by:
+Parts of this mod are inspired by:
 - [Ivan-Khar/manhunt-fabricated](https://github.com/Ivan-Khar/manhunt-fabricated)
 - [anhgelus/manhunt-mod](https://github.com/anhgelus/manhunt-mod)
 - [horrific-tweaks/bingo](https://gitlab.com/horrific-tweaks/bingo) 

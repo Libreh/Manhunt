@@ -1,22 +1,9 @@
 package me.libreh.manhunt;
 
 import eu.pb4.playerdata.api.PlayerDataApi;
-import me.libreh.manhunt.command.ManhuntCommand;
-import me.libreh.manhunt.command.ResetCommand;
-import me.libreh.manhunt.command.StartCommand;
-import me.libreh.manhunt.command.game.DurationCommand;
-import me.libreh.manhunt.command.game.FeedCommand;
-import me.libreh.manhunt.command.game.coords.CoordsCommand;
-import me.libreh.manhunt.command.game.coords.ListCoordsCommand;
-import me.libreh.manhunt.command.game.pause.PauseCommand;
-import me.libreh.manhunt.command.game.pause.UnpauseCommand;
-import me.libreh.manhunt.command.gui.ConfigCommand;
-import me.libreh.manhunt.command.gui.PreferencesCommand;
-import me.libreh.manhunt.command.role.HunterCommand;
-import me.libreh.manhunt.command.role.OneHunterCommand;
-import me.libreh.manhunt.command.role.OneRunnerCommand;
-import me.libreh.manhunt.command.role.RunnerCommand;
-import me.libreh.manhunt.config.PreferencesData;
+import me.libreh.manhunt.commands.*;
+import me.libreh.manhunt.config.Config;
+import me.libreh.manhunt.config.PlayerData;
 import me.libreh.manhunt.event.PlayerInterfact;
 import me.libreh.manhunt.event.PlayerState;
 import me.libreh.manhunt.event.ServerStart;
@@ -35,7 +22,6 @@ import net.minecraft.util.ActionResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static me.libreh.manhunt.config.ManhuntConfig.CONFIG;
 import static me.libreh.manhunt.utils.Fields.*;
 import static me.libreh.manhunt.utils.Methods.*;
 
@@ -45,26 +31,28 @@ public class Manhunt implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        CONFIG.load();
-        PlayerDataApi.register(PreferencesData.STORAGE);
+        Config.loadConfig();
+        PlayerDataApi.register(PlayerData.STORAGE);
 
         deleteWorld();
         unzip();
 
         CommandRegistrationCallback.EVENT.register((dispatcher, access, environment) -> {
-            CoordsCommand.register(dispatcher); ListCoordsCommand.register(dispatcher);
-            PauseCommand.register(dispatcher); UnpauseCommand.register(dispatcher);
-            DurationCommand.register(dispatcher); FeedCommand.register(dispatcher);
+            CoordsCommands.coordsCommand(dispatcher); CoordsCommands.listCoordsCommands(dispatcher);
+            PauseCommands.pauseCommand(dispatcher); PauseCommands.unpauseCommand(dispatcher);
+            GeneralCommands.durationCommand(dispatcher); GeneralCommands.feedCommand(dispatcher);
 
-            ConfigCommand.register(dispatcher); PreferencesCommand.register(dispatcher);
+            GuiCommands.configCommand(dispatcher);
+            GuiCommands.preferencesCommand(dispatcher);
 
-            HunterCommand.register(dispatcher);
-            OneHunterCommand.register(dispatcher); OneRunnerCommand.register(dispatcher);
-            RunnerCommand.register(dispatcher);
+            RoleCommands.hunterCommand(dispatcher);
+            RoleCommands.oneHunterCommand(dispatcher);
+            RoleCommands.oneRunnerCommand(dispatcher);
+            RoleCommands.runnerCommand(dispatcher);
 
-            ManhuntCommand.register(dispatcher);
-            ResetCommand.register(dispatcher);
-            StartCommand.register(dispatcher);
+            GeneralCommands.manhuntCommand(dispatcher);
+            GeneralCommands.resetCommand(dispatcher);
+            GeneralCommands.startCommand(dispatcher);
         });
 
         ServerLifecycleEvents.SERVER_STARTED.register(minecraftServer -> {

@@ -6,8 +6,8 @@ import eu.pb4.playerdata.api.storage.PlayerDataStorage;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
 
-public class PreferencesData {
-    public static final PlayerDataStorage<PreferencesData> STORAGE = new JsonDataStorage<>("preferences", PreferencesData.class);
+public class PlayerData {
+    public static final PlayerDataStorage<PlayerData> STORAGE = new JsonDataStorage<>("preferences", PlayerData.class);
     public boolean customSounds = true;
     public boolean customTitles = true;
     public boolean friendlyFire = true;
@@ -16,14 +16,14 @@ public class PreferencesData {
     public boolean announceSeed = true;
     public boolean announceDuration = true;
 
-    public static PreferencesData get(PlayerEntity player) {
+    public static PlayerData get(PlayerEntity player) {
         if (!(player instanceof ServerPlayerEntity serverPlayer)) {
-            return new PreferencesData();
+            return new PlayerData();
         }
 
         var data = PlayerDataApi.getCustomDataFor(serverPlayer, STORAGE);
         if (data == null) {
-            data = new PreferencesData();
+            data = new PlayerData();
             PlayerDataApi.setCustomDataFor(serverPlayer, STORAGE, data);
         }
 

@@ -1,7 +1,8 @@
 package me.libreh.manhunt.utils;
 
 import me.libreh.manhunt.Manhunt;
-import me.libreh.manhunt.config.PreferencesData;
+import me.libreh.manhunt.config.Config;
+import me.libreh.manhunt.config.PlayerData;
 import me.libreh.manhunt.game.GameState;
 import me.libreh.manhunt.game.ManhuntGame;
 import me.lucko.fabric.api.permissions.v0.Permissions;
@@ -41,7 +42,6 @@ import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import static me.libreh.manhunt.config.ManhuntConfig.CONFIG;
 import static me.libreh.manhunt.utils.Constants.*;
 import static me.libreh.manhunt.utils.Fields.*;
 
@@ -79,7 +79,7 @@ public class Methods {
     }
 
     public static boolean isHeadstart() {
-        return CONFIG.getHeadStartSec() != 0 && headStartTicks >= 20;
+        return Config.getConfig().gameOptions.headStart != 0 && headStartTicks >= 20;
     }
 
     public static boolean hasPermission(PlayerEntity player, String key) {
@@ -378,8 +378,8 @@ public class Methods {
     }
 
     public static void joinPresetMode(ServerPlayerEntity player) {
-        if (!CONFIG.getPresetMode().equals("free_select") && !CONFIG.getPresetMode().equals("no_selection")) {
-            switch (CONFIG.getPresetMode()) {
+        if (!Config.getConfig().gameOptions.presetMode.equals("free_select") && !Config.getConfig().gameOptions.presetMode.equals("no_selection")) {
+            switch (Config.getConfig().gameOptions.presetMode) {
                 case "equal_split" -> {
                     int hunters = 0;
                     int runners = 0;
@@ -434,8 +434,8 @@ public class Methods {
     }
 
     public static void resetPresetMode() {
-        if (!CONFIG.getPresetMode().equals("free_select") && !CONFIG.getPresetMode().equals("no_selection")) {
-            switch (CONFIG.getPresetMode()) {
+        if (!Config.getConfig().gameOptions.presetMode.equals("free_select") && !Config.getConfig().gameOptions.presetMode.equals("no_selection")) {
+            switch (Config.getConfig().gameOptions.presetMode) {
                 case "equal_split" -> equalSplit();
                 case "speedrun_showdown" -> speedrunShowdown();
                 case "runner_cycle" -> runnerCycle();
@@ -508,12 +508,12 @@ public class Methods {
         changeState(GameState.POSTGAME);
 
         for (ServerPlayerEntity player : SERVER.getPlayerManager().getPlayerList()) {
-            var data = PreferencesData.get(player);
+            var data = PlayerData.get(player);
 
-            if (CONFIG.getCustomSounds().equals("always") || data.customSounds) {
+            if (Config.getConfig().globalPreferences.customSounds.equals("always") || data.customSounds) {
                 player.playSoundToPlayer(SoundEvents.BLOCK_NOTE_BLOCK_IRON_XYLOPHONE.value(), SoundCategory.MASTER, 1.0F, 0.5F);
             }
-            if (CONFIG.getCustomTitles().equals("always") || data.customTitles) {
+            if (Config.getConfig().globalPreferences.customTitles.equals("always") || data.customTitles) {
                 player.networkHandler.sendPacket(new TitleS2CPacket(Text.translatable("title.manhunt.gg").formatted(Formatting.AQUA)));
                 player.networkHandler.sendPacket(new SubtitleS2CPacket(Text.translatable("title.manhunt." + teamName + "_win").formatted(formatting)));
             }
@@ -522,14 +522,14 @@ public class Methods {
     }
 
     public static void runnersWin() {
-        teamWins("runners", CONFIG.getRunnersColor());
+        teamWins("runners", Config.getConfig().gameOptions.teamColor.runnersColor);
     }
     public static void huntersWin() {
-        teamWins("hunters", CONFIG.getHuntersColor());
+        teamWins("hunters", Config.getConfig().gameOptions.teamColor.huntersColor);
     }
 
     public static void deleteWorld() {
-        for (String string : CONFIG.getFilesToReset()) {
+        for (String string : Config.getConfig().filesToReset) {
             try {
                 File file = WORLD_DIR.resolve(string).toFile();
                 if (file.exists()) {

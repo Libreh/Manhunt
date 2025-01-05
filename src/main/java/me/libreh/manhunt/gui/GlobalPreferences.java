@@ -3,6 +3,7 @@ package me.libreh.manhunt.gui;
 import eu.pb4.sgui.api.ClickType;
 import eu.pb4.sgui.api.elements.GuiElementBuilder;
 import eu.pb4.sgui.api.gui.SimpleGui;
+import me.libreh.manhunt.config.Config;
 import net.minecraft.item.Item;
 import net.minecraft.item.Items;
 import net.minecraft.screen.ScreenHandlerType;
@@ -13,7 +14,6 @@ import net.minecraft.util.Formatting;
 import java.util.ArrayList;
 import java.util.List;
 
-import static me.libreh.manhunt.config.ManhuntConfig.*;
 import static me.libreh.manhunt.utils.Constants.*;
 import static me.libreh.manhunt.utils.Methods.hasPermission;
 
@@ -23,7 +23,7 @@ public class GlobalPreferences {
 
         globalPreferencesGui.setTitle(Text.translatable("config.manhunt.global_preferences"));
 
-        CONFIG.save();
+        Config.saveConfig();
         ConfigGui.playUISound(player);
 
         List<Text> loreList;
@@ -35,7 +35,7 @@ public class GlobalPreferences {
         loreList = new ArrayList<>();
         name = "custom_sounds";
         item = Items.NOTE_BLOCK;
-        stringvalue = CONFIG.getCustomSounds();
+        stringvalue = Config.getConfig().globalPreferences.customSounds;
 
         loreList.add(Text.empty());
         loreList.add(Text.translatable("lore.manhunt." + name).styled(style -> style
@@ -78,14 +78,14 @@ public class GlobalPreferences {
                     if (SPAM_PREVENTION.get(player.getUuid()) < 6) {
                         if (hasPermission(player, "manhunt.config")) {
                             if (type == ClickType.DROP) {
-                                CONFIG.setCustomSounds(customSoundsDefault);
+                                Config.getConfig().globalPreferences.customSounds = Config.getConfig().customSoundsDefault;
                             } else {
                                 if (customSounds.equals("always")) {
-                                    CONFIG.setCustomSounds(PER_PLAYER);
+                                    Config.getConfig().globalPreferences.customSounds = PER_PLAYER;
                                 } else if (customSounds.equals(PER_PLAYER)) {
-                                    CONFIG.setCustomSounds("never");
+                                    Config.getConfig().globalPreferences.customSounds = "never";
                                 } else {
-                                    CONFIG.setCustomSounds("always");
+                                    Config.getConfig().globalPreferences.customSounds = "always";
                                 }
                             }
                             openGlobalPreferencesGui(player);
@@ -101,7 +101,7 @@ public class GlobalPreferences {
         loreList = new ArrayList<>();
         name = "custom_titles";
         item = Items.OAK_SIGN;
-        stringvalue = CONFIG.getCustomTitles();
+        stringvalue = Config.getConfig().globalPreferences.customTitles;
 
         loreList.add(Text.empty());
         loreList.add(Text.translatable("lore.manhunt." + name).styled(style -> style
@@ -144,14 +144,14 @@ public class GlobalPreferences {
                     if (SPAM_PREVENTION.get(player.getUuid()) < 6) {
                         if (hasPermission(player, "manhunt.config")) {
                             if (type == ClickType.DROP) {
-                                CONFIG.setCustomTitles(customTitlesDefault);
+                                Config.getConfig().globalPreferences.customTitles = Config.getConfig().customTitlesDefault;
                             } else {
                                 if (customTitles.equals("always")) {
-                                    CONFIG.setCustomTitles(PER_PLAYER);
+                                    Config.getConfig().globalPreferences.customTitles = PER_PLAYER;
                                 } else if (customTitles.equals(PER_PLAYER)) {
-                                    CONFIG.setCustomTitles("never");
+                                    Config.getConfig().globalPreferences.customTitles = "never";
                                 } else {
-                                    CONFIG.setCustomTitles("always");
+                                    Config.getConfig().globalPreferences.customTitles = "always";
                                 }
                             }
                             openGlobalPreferencesGui(player);
@@ -167,7 +167,7 @@ public class GlobalPreferences {
         loreList = new ArrayList<>();
         name = "friendly_fire";
         item = Items.EMERALD;
-        stringvalue = CONFIG.getFriendlyFire();
+        stringvalue = Config.getConfig().globalPreferences.friendlyFire;
 
         loreList.add(Text.empty());
         loreList.add(Text.translatable("lore.manhunt." + name).styled(style -> style
@@ -208,14 +208,14 @@ public class GlobalPreferences {
                     if (SPAM_PREVENTION.get(player.getUuid()) < 6) {
                        if (hasPermission(player, "manhunt.config")) {
                             if (type == ClickType.DROP) {
-                                CONFIG.setFriendlyFire(friendlyFireDefault);
+                                Config.getConfig().globalPreferences.friendlyFire = Config.getConfig().friendlyFireDefault;
                             } else {
                                 if (friendlyFire.equals("always")) {
-                                    CONFIG.setFriendlyFire(PER_PLAYER);
+                                    Config.getConfig().globalPreferences.friendlyFire = PER_PLAYER;
                                 } else if (friendlyFire.equals(PER_PLAYER)) {
-                                    CONFIG.setFriendlyFire("never");
+                                    Config.getConfig().globalPreferences.friendlyFire = "never";
                                 } else {
-                                    CONFIG.setFriendlyFire("always");
+                                    Config.getConfig().globalPreferences.friendlyFire = "always";
                                 }
                             }
                             openGlobalPreferencesGui(player);
@@ -231,7 +231,7 @@ public class GlobalPreferences {
         loreList = new ArrayList<>();
         name = "bed_explosions_pvp";
         item = Items.RED_BED;
-        stringvalue = CONFIG.getBedExplosionsPvP();
+        stringvalue = Config.getConfig().globalPreferences.bedExplosionsPvP;
 
         loreList.add(Text.empty());
         loreList.add(Text.translatable("lore.manhunt." + name).styled(style -> style
@@ -274,14 +274,14 @@ public class GlobalPreferences {
                     if (SPAM_PREVENTION.get(player.getUuid()) < 6) {
                         if (hasPermission(player, "manhunt.config")) {
                             if (type == ClickType.DROP) {
-                                CONFIG.setBedExplosionsPvP(bedExplosionsPvPDefault);
+                                Config.getConfig().globalPreferences.bedExplosionsPvP = Config.getConfig().bedExplosionsPvPDefault;
                             } else {
                                 if (bedExplosionsPvP.equals("on")) {
-                                    CONFIG.setBedExplosionsPvP(RUNNERS_PREFERENCE);
+                                    Config.getConfig().globalPreferences.bedExplosionsPvP = RUNNERS_PREFERENCE;
                                 } else if (bedExplosionsPvP.equals(RUNNERS_PREFERENCE)) {
-                                    CONFIG.setBedExplosionsPvP("off");
+                                    Config.getConfig().globalPreferences.bedExplosionsPvP = "off";
                                 } else {
-                                    CONFIG.setBedExplosionsPvP("on");
+                                    Config.getConfig().globalPreferences.bedExplosionsPvP = "on";
                                 }
                             }
                             openGlobalPreferencesGui(player);
@@ -304,7 +304,7 @@ public class GlobalPreferences {
         loreList = new ArrayList<>();
         name = "nether_lava_pvp";
         item = Items.LAVA_BUCKET;
-        stringvalue = CONFIG.getNetherLavaPvP();
+        stringvalue = Config.getConfig().globalPreferences.netherLavaPvP;
 
         loreList.add(Text.empty());
         loreList.add(Text.translatable("lore.manhunt." + name).styled(style -> style
@@ -347,14 +347,14 @@ public class GlobalPreferences {
                     if (SPAM_PREVENTION.get(player.getUuid()) < 6) {
                         if (hasPermission(player, "manhunt.config")) {
                             if (type == ClickType.DROP) {
-                                CONFIG.setNetherLavaPvP(netherLavaPvPDefault);
+                                Config.getConfig().globalPreferences.netherLavaPvP = Config.getConfig().netherLavaPvPDefault;
                             } else {
                                 if (netherLavaPvP.equals("on")) {
-                                    CONFIG.setNetherLavaPvP(RUNNERS_PREFERENCE);
+                                    Config.getConfig().globalPreferences.netherLavaPvP = RUNNERS_PREFERENCE;
                                 } else if (netherLavaPvP.equals(RUNNERS_PREFERENCE)) {
-                                    CONFIG.setNetherLavaPvP("off");
+                                    Config.getConfig().globalPreferences.netherLavaPvP = "off";
                                 } else {
-                                    CONFIG.setNetherLavaPvP("on");
+                                    Config.getConfig().globalPreferences.netherLavaPvP = "on";
                                 }
                             }
                             openGlobalPreferencesGui(player);
@@ -370,7 +370,7 @@ public class GlobalPreferences {
         loreList = new ArrayList<>();
         name = "announce_seed";
         item = Items.WHEAT_SEEDS;
-        stringvalue = CONFIG.getAnnounceSeed();
+        stringvalue = Config.getConfig().globalPreferences.announceSeed;
 
         loreList.add(Text.empty());
         loreList.add(Text.translatable("lore.manhunt." + name).styled(style -> style
@@ -413,14 +413,14 @@ public class GlobalPreferences {
                     if (SPAM_PREVENTION.get(player.getUuid()) < 6) {
                         if (hasPermission(player, "manhunt.config")) {
                             if (type == ClickType.DROP) {
-                                CONFIG.setAnnounceSeed(announceSeedDefault);
+                                Config.getConfig().globalPreferences.announceSeed = Config.getConfig().announceSeedDefault;
                             } else {
                                 if (announceSeed.equals("always")) {
-                                    CONFIG.setAnnounceSeed(PER_PLAYER);
+                                    Config.getConfig().globalPreferences.announceSeed = PER_PLAYER;
                                 } else if (announceSeed.equals(PER_PLAYER)) {
-                                    CONFIG.setAnnounceSeed("never");
+                                    Config.getConfig().globalPreferences.announceSeed = "never";
                                 } else {
-                                    CONFIG.setAnnounceSeed("always");
+                                    Config.getConfig().globalPreferences.announceSeed = "always";
                                 }
                             }
                             openGlobalPreferencesGui(player);
@@ -436,7 +436,7 @@ public class GlobalPreferences {
         loreList = new ArrayList<>();
         name = "announce_duration";
         item = Items.CLOCK;
-        stringvalue = CONFIG.getAnnounceDuration();
+        stringvalue = Config.getConfig().globalPreferences.announceDuration;
 
         loreList.add(Text.empty());
         loreList.add(Text.translatable("lore.manhunt." + name).styled(style -> style
@@ -479,14 +479,14 @@ public class GlobalPreferences {
                     if (SPAM_PREVENTION.get(player.getUuid()) < 6) {
                         if (hasPermission(player, "manhunt.config")) {
                             if (type == ClickType.DROP) {
-                                CONFIG.setAnnounceDuration(announceDurationDefault);
+                                Config.getConfig().globalPreferences.announceDuration = Config.getConfig().announceDurationDefault;
                             } else {
                                 if (announceDuration.equals("always")) {
-                                    CONFIG.setAnnounceDuration(PER_PLAYER);
+                                    Config.getConfig().globalPreferences.announceDuration = PER_PLAYER;
                                 } else if (announceDuration.equals(PER_PLAYER)) {
-                                    CONFIG.setAnnounceDuration("never");
+                                    Config.getConfig().globalPreferences.announceDuration = "never";
                                 } else {
-                                    CONFIG.setAnnounceDuration("always");
+                                    Config.getConfig().globalPreferences.announceDuration = "always";
                                 }
                             }
                             openGlobalPreferencesGui(player);
@@ -503,7 +503,8 @@ public class GlobalPreferences {
                 .setCallback(() -> {
                     ConfigGui.playUISound(player);
                     ConfigGui.openConfigGui(player);
-                }));
+                })
+        );
 
         globalPreferencesGui.open();
     }
