@@ -122,25 +122,25 @@ public class Config {
         }
     }
 
-    public final int preloadDistanceDefault = gameOptions.preloadDistance;
-    public final String presetModeDefault = gameOptions.presetMode;
-    public final boolean teamColorDefault = gameOptions.teamColor.enabled;
-    public final Formatting huntersColorDefault = gameOptions.teamColor.huntersColor;
-    public final Formatting runnersColorDefault = gameOptions.teamColor.runnersColor;
-    public final int headStartSecDefault = gameOptions.headStart;
-    public final int timeLimitMinDefault = gameOptions.timeLimit;
-    
-    public final String customSoundsDefault = globalPreferences.customSounds;
-    public final String customTitlesDefault = globalPreferences.customTitles;
-    public final String friendlyFireDefault = globalPreferences.friendlyFire;
-    public final String bedExplosionsPvPDefault = globalPreferences.bedExplosionsPvP;
-    public final String netherLavaPvPDefault = globalPreferences.netherLavaPvP;
-    public final String announceSeedDefault = globalPreferences.announceSeed;
-    public final String announceDurationDefault = globalPreferences.announceDuration;
-    
-    public final boolean vanillaDefault = modIntegrations.vanillaIntegration.enabled;
-    public final Difficulty difficultyDefault = modIntegrations.vanillaIntegration.difficulty;
-    public final int borderSizeDefault = modIntegrations.vanillaIntegration.borderSize;
-    public final int spawnRadiusDefault = modIntegrations.vanillaIntegration.spawnRadius;
-    public final boolean spectatorsGenerateChunksDefault = modIntegrations.vanillaIntegration.spectatorsGenerateChunks;
+    public transient final int preloadDistanceDefault = gameOptions.preloadDistance;
+    public transient final String presetModeDefault = gameOptions.presetMode;
+    public transient final boolean teamColorDefault = gameOptions.teamColor.enabled;
+    public transient final Formatting huntersColorDefault = gameOptions.teamColor.huntersColor;
+    public transient final Formatting runnersColorDefault = gameOptions.teamColor.runnersColor;
+    public transient final int headStartSecDefault = gameOptions.headStart;
+    public transient final int timeLimitMinDefault = gameOptions.timeLimit;
+
+    public transient final String customSoundsDefault = globalPreferences.customSounds;
+    public transient final String customTitlesDefault = globalPreferences.customTitles;
+    public transient final String friendlyFireDefault = globalPreferences.friendlyFire;
+    public transient final String bedExplosionsPvPDefault = globalPreferences.bedExplosionsPvP;
+    public transient final String netherLavaPvPDefault = globalPreferences.netherLavaPvP;
+    public transient final String announceSeedDefault = globalPreferences.announceSeed;
+    public transient final String announceDurationDefault = globalPreferences.announceDuration;
+
+    public transient final boolean vanillaDefault = modIntegrations.vanillaIntegration.enabled;
+    public transient final Difficulty difficultyDefault = modIntegrations.vanillaIntegration.difficulty;
+    public transient final int borderSizeDefault = modIntegrations.vanillaIntegration.borderSize;
+    public transient final int spawnRadiusDefault = modIntegrations.vanillaIntegration.spawnRadius;
+    public transient final boolean spectatorsGenerateChunksDefault = modIntegrations.vanillaIntegration.spectatorsGenerateChunks;
 }
