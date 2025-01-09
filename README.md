@@ -12,7 +12,7 @@ You can customize this with the "files_to_reset" config property
 
 ## Commands (and permissions):
 - `/preferences` - Opens the Preferences GUI (`manhunt.preferences`, available by default)
-- `/config` - Opens the Config GUI (`manhunt.config.show`, available by default but requires `manhunt.config.modify` to modify)
+- `/config` - Opens the Config GUI (`manhunt.config.show`, available by default, requires `manhunt.config.modify` to modify)
 - `/duration` - Displays the duration once a round has started (`manhunt.duration`, available by default)
 - `/coords` - Sends coordinates to team chat (`manhunt.coords`, available by default)
 - `/listcoords` - List all send team coordinates (`manhunt.coords.list`, available by default)
@@ -23,7 +23,7 @@ You can customize this with the "files_to_reset" config property
 - `/onerunner <player>` - Player is only hunter everyone else is runner (requires `manhunt.onehunter`)
 - `/feed <players>` - Resets specified players' saturation and hunger (requires `manhunt.feed`)
 - `/start` Starts round by preloading the terrain (requires `manhunt.start`)
-- `/reset` - Resets the world and teleports everyone back to lobby (requires `manhunt.reset`)
+- `/reset` - Resets the world and ends the round (requires `manhunt.reset` when a round is ongoing, `manhunt.force_reset` if not)
 - `/pause` - Freezes everything and makes all players blind (requires `manhunt.pause`)
 - `/unpause` - Unfreezes everything and unblinds all players (requires `manhunt.unpause`)
 

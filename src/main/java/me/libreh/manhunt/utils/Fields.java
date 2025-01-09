@@ -28,7 +28,7 @@ public class Fields {
     public static List<CompletableFuture<Chunk>> chunkFutureList = new ArrayList<>();
 
     public static boolean shouldEnd;
-    public static boolean isPaused;
+    public static boolean paused;
     public static int headStartTicks;
     public static int timeLimitTicks;
     public static int pauseTicks;

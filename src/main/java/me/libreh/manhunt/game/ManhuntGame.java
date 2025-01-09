@@ -187,7 +187,7 @@ public class ManhuntGame {
         SPAWN_POS.clear();
 
         shouldEnd = false;
-        isPaused = false;
+        paused = false;
         headStartTicks = 0;
         timeLimitTicks = 0;
     }

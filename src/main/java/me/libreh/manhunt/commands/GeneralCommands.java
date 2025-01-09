@@ -38,9 +38,7 @@ public class GeneralCommands {
     public static void manhuntCommand(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(literal("manhunt")
                 .then(literal("reload")
-                        .requires(source -> (source.isExecutedByPlayer() &&
-                                hasPermission(source.getPlayer(), "manhunt.command.reload")) || (!source.isExecutedByPlayer())
-                        )
+                        .requires(source -> requirePermissionOrOperator(source, "manhunt.reload"))
                         .executes(context -> {
                             Config.loadConfig();
 
@@ -52,10 +50,7 @@ public class GeneralCommands {
 
     public static void startCommand(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(literal("start")
-                .requires(
-                        source -> isPreGame() &&
-                                source.isExecutedByPlayer() && hasPermission(source.getPlayer(), "manhunt.command.start") ||
-                                !source.isExecutedByPlayer())
+                .requires(source -> isPreGame() && requirePermissionOrOperator(source, "manhunt.start"))
                 .executes(context -> checkStart(context.getSource())));
     }
 
@@ -135,14 +130,16 @@ public class GeneralCommands {
     public static void resetCommand(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(literal("reset")
                 .requires(
-                        source -> !isPreGame() && (gameState == GameState.POSTGAME &&
-                                source.isExecutedByPlayer() && hasPermission(source.getPlayer(), "manhunt.command.reset") ||
-                                !source.isExecutedByPlayer()) || isPlaying() && source.isExecutedByPlayer() &&
-                                Permissions.check(source, "manhunt.command.force_reset"))
+                        source -> !isPreGame() &&
+                                (gameState == GameState.POSTGAME && requirePermissionOrOperator(source, "manhunt.reset")) ||
+                                isPlaying() && Permissions.check(source, "manhunt.force_reset")
+                )
                 .executes(context -> resetCommand(Random.create().nextLong()))
                 .then(argument("seed", LongArgumentType.longArg())
                         .executes(context -> resetCommand(LongArgumentType.getLong(context,
-                                "seed"))))
+                                "seed"))
+                        )
+                )
         );
     }
 
@@ -156,7 +153,7 @@ public class GeneralCommands {
 
     public static void durationCommand(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(literal("duration")
-                .requires(source -> !isPreGame())
+                .requires(source -> !isPreGame() && Permissions.check(source, "manhunt.duration", true))
                 .executes(context -> showDuration(context.getSource())));
     }
 
@@ -205,10 +202,7 @@ public class GeneralCommands {
     public static void feedCommand(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(literal("feed")
                 .then(argument("targets", EntityArgumentType.players())
-                        .requires(source ->  (source.isExecutedByPlayer() &&
-                                Permissions.check(source, "manhunt.command.feed") ||
-                                !source.isExecutedByPlayer()) &&
-                                !isPreGame())
+                        .requires(source -> !isPreGame() && requirePermissionOrOperator(source, "manhunt.feed"))
                         .executes(context -> {
                             for (ServerPlayerEntity player : EntityArgumentType.getPlayers(context, "targets")) {
                                 player.setHealth(player.getMaxHealth());

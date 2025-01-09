@@ -90,7 +90,7 @@ public class GameOptionsGui {
                     if (SPAM_PREVENTION.get(player.getUuid()) < 12)
                         SPAM_PREVENTION.put(player.getUuid(), SPAM_PREVENTION.get(player.getUuid()) + 1);
                     if (SPAM_PREVENTION.get(player.getUuid()) < 6) {
-                        if (hasPermission(player, "manhunt.config")) {
+                        if (playerPermissionOrOperator(player, "manhunt.config.modify")) {
                             if (!type.shift) {
                                 if (type == ClickType.DROP) {
                                     Config.getConfig().gameOptions.preloadDistance = Config.getConfig().preloadDistanceDefault;
@@ -276,7 +276,7 @@ public class GameOptionsGui {
                     if (SPAM_PREVENTION.get(player.getUuid()) < 12)
                         SPAM_PREVENTION.put(player.getUuid(), SPAM_PREVENTION.get(player.getUuid()) + 1);
                     if (SPAM_PREVENTION.get(player.getUuid()) < 6) {
-                        if (hasPermission(player, "manhunt.config")) {
+                        if (playerPermissionOrOperator(player, "manhunt.config.modify")) {
                             if (!type.shift) {
                                 if (type == ClickType.DROP) {
                                     Config.getConfig().gameOptions.headStart = Config.getConfig().headStartSecDefault;
@@ -383,7 +383,7 @@ public class GameOptionsGui {
                     if (SPAM_PREVENTION.get(player.getUuid()) < 12)
                         SPAM_PREVENTION.put(player.getUuid(), SPAM_PREVENTION.get(player.getUuid()) + 1);
                     if (SPAM_PREVENTION.get(player.getUuid()) < 6) {
-                        if (hasPermission(player, "manhunt.config")) {
+                        if (playerPermissionOrOperator(player, "manhunt.config.modify")) {
                             if (!type.shift) {
                                 if (type == ClickType.DROP) {
                                     Config.getConfig().gameOptions.timeLimit = Config.getConfig().timeLimitMinDefault;
@@ -447,7 +447,7 @@ public class GameOptionsGui {
         if (SPAM_PREVENTION.get(player.getUuid()) < 12)
             SPAM_PREVENTION.put(player.getUuid(), SPAM_PREVENTION.get(player.getUuid()) + 1);
         if (SPAM_PREVENTION.get(player.getUuid()) < 6) {
-            if (hasPermission(player, "manhunt.config")) {
+            if (playerPermissionOrOperator(player, "manhunt.config.modify")) {
                 if (clickType == ClickType.DROP) {
                     Config.getConfig().gameOptions.presetMode = Config.getConfig().presetModeDefault;
                     openGameOptionsGui(player);
@@ -547,7 +547,7 @@ public class GameOptionsGui {
 
     private static void openTeamColorGui(ServerPlayerEntity player, ClickType clickType, Boolean boolvalue) {
         if (notSpamming(player)) {
-            if (hasPermission(player, "manhunt.config")) {
+            if (playerPermissionOrOperator(player, "manhunt.config.modify")) {
                 if (!clickType.shift) {
                     if (clickType == ClickType.DROP) {
                         Config.getConfig().gameOptions.teamColor.enabled = Config.getConfig().teamColorDefault;
@@ -586,7 +586,7 @@ public class GameOptionsGui {
                             .setLore(loreList)
                             .setCallback((index, type, action) -> {
                                 if (SPAM_PREVENTION.get(player.getUuid()) < 6) {
-                                    if (hasPermission(player, "manhunt.config")) {
+                                    if (playerPermissionOrOperator(player, "manhunt.config.modify")) {
                                         if (type == ClickType.DROP) {
                                             Config.getConfig().gameOptions.teamColor.huntersColor = Config.getConfig().huntersColorDefault;
 
@@ -785,7 +785,7 @@ public class GameOptionsGui {
                             .setLore(loreList)
                             .setCallback((index, type, action) -> {
                                 if (SPAM_PREVENTION.get(player.getUuid()) < 6) {
-                                    if (hasPermission(player, "manhunt.config")) {
+                                    if (playerPermissionOrOperator(player, "manhunt.config.modify")) {
                                         if (type == ClickType.DROP) {
                                             Config.getConfig().gameOptions.teamColor.runnersColor = Config.getConfig().runnersColorDefault;
                                             ConfigGui.playUISound(player);

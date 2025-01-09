@@ -146,7 +146,7 @@ public class PlayerInterfact {
             }
         } else {
             if (isPlaying()) {
-                if (isPaused) {
+                if (paused) {
                     return ActionResult.FAIL;
                 } else {
                     if (isHeadstart() && isHunter(player)) {
@@ -174,7 +174,7 @@ public class PlayerInterfact {
     public static ActionResult useBlock(PlayerEntity player, World world, Hand hand, HitResult hitResult) {
         if (!isPreGame()) {
             if (isPlaying()) {
-                if (isPaused) {
+                if (paused) {
                     return ActionResult.FAIL;
                 } else {
                     if (Config.getConfig().gameOptions.headStart != 0 && headStartTicks != 0 && isHunter(player)) {

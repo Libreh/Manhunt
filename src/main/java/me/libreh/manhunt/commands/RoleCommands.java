@@ -22,11 +22,7 @@ public class RoleCommands {
                 .requires(source -> isPreGame())
                 .executes(context -> selfHunter(context.getSource()))
                 .then(argument("targets", EntityArgumentType.players())
-                        .requires(
-                                source -> source.isExecutedByPlayer() &&
-                                        hasPermission(source.getPlayer(), "manhunt.hunter") ||
-                                        !source.isExecutedByPlayer()
-                        )
+                        .requires(source -> requirePermissionOrOperator(source, "manhunt.hunter"))
                         .executes(context -> setHunters(context.getSource(),
                                 EntityArgumentType.getPlayers(context, "targets"))
                         )
@@ -36,7 +32,7 @@ public class RoleCommands {
 
     private static int selfHunter(ServerCommandSource source) {
         if (source.isExecutedByPlayer() && (Config.getConfig().gameOptions.presetMode.equals("free_select") ||
-                hasPermission(source.getPlayer(), "manhunt.hunter"))
+                requirePermissionOrOperator(source, "manhunt.hunter"))
         ) {
             var player = source.getPlayer();
 
@@ -76,9 +72,7 @@ public class RoleCommands {
 
     public static void oneHunterCommand(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(literal("onehunter")
-                .requires(source -> isPreGame() && source.isExecutedByPlayer() &&
-                        hasPermission(source.getPlayer(), "manhunt.one_hunter") || !source.isExecutedByPlayer()
-                )
+                .requires(source -> isPreGame() && requirePermissionOrOperator(source, "manhunt.one_hunter"))
                 .then(argument("player", EntityArgumentType.player())
                         .executes(context ->
                                 setOneHunter(EntityArgumentType.getPlayer(context, "player"))
@@ -105,11 +99,11 @@ public class RoleCommands {
 
     public static void oneRunnerCommand(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(literal("onerunner")
-                .requires(source -> isPreGame() && source.isExecutedByPlayer() &&
-                                hasPermission(source.getPlayer(), "manhunt.one_runner") || !source.isExecutedByPlayer()
-                ).then(argument("player", EntityArgumentType.player())
+                .requires(source -> isPreGame() && requirePermissionOrOperator(source, "manhunt.one_runner"))
+                .then(argument("player", EntityArgumentType.player())
                         .executes(context ->
-                                setOneRunner(EntityArgumentType.getPlayer(context, "player")))
+                                setOneRunner(EntityArgumentType.getPlayer(context, "player"))
+                        )
                 )
         );
     }
@@ -135,10 +129,7 @@ public class RoleCommands {
                 .requires(source -> isPreGame())
                 .executes(context -> selfRunner(context.getSource()))
                 .then(argument("targets", EntityArgumentType.players())
-                        .requires(source -> source.isExecutedByPlayer() &&
-                                hasPermission(source.getPlayer(), "manhunt.runner") ||
-                                !source.isExecutedByPlayer()
-                        )
+                        .requires(source -> requirePermissionOrOperator(source, "manhunt.runner"))
                         .executes(context ->
                                 setRunners(EntityArgumentType.getPlayers(context, "targets"))
                         )
@@ -148,7 +139,7 @@ public class RoleCommands {
 
     private static int selfRunner(ServerCommandSource source) {
         if (source.isExecutedByPlayer() && (Config.getConfig().gameOptions.presetMode.equals("free_select") ||
-                hasPermission(source.getPlayer(), "manhunt.runner"))
+                requirePermissionOrOperator(source, "manhunt.runner"))
         ) {
             var player = source.getPlayer();
             if (isHunter(player)) {

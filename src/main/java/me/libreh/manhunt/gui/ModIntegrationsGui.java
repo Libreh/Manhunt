@@ -17,7 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static me.libreh.manhunt.utils.Constants.SPAM_PREVENTION;
-import static me.libreh.manhunt.utils.Methods.hasPermission;
+import static me.libreh.manhunt.utils.Methods.playerPermissionOrOperator;
 
 public class ModIntegrationsGui {
     public static void openModIntegrationsGui(ServerPlayerEntity player) {
@@ -82,7 +82,7 @@ public class ModIntegrationsGui {
     private static void openVanillaIntegrationGui(ServerPlayerEntity player, ClickType clickType, boolean vanilla) {
         if (SPAM_PREVENTION.get(player.getUuid()) < 6) {
             if (!clickType.shift) {
-                if (hasPermission(player, "manhunt.config")) {
+                if (playerPermissionOrOperator(player, "manhunt.config.modify")) {
                     if (clickType == ClickType.DROP) {
                         Config.getConfig().modIntegrations.vanillaIntegration.enabled = Config.getConfig().vanillaDefault;
                     } else {
@@ -140,7 +140,7 @@ public class ModIntegrationsGui {
                         .setName(Text.translatable(name).formatted(Formatting.WHITE))
                         .setLore(loreList)
                         .setCallback((index, type, action) -> {
-                            if (hasPermission(player, "manhunt.config")) {
+                            if (playerPermissionOrOperator(player, "manhunt.config.modify")) {
                                 if (SPAM_PREVENTION.get(player.getUuid()) < 6) {
                                     if (type == ClickType.DROP) {
                                         Config.getConfig().modIntegrations.vanillaIntegration.difficulty = Config.getConfig().difficultyDefault;
@@ -212,7 +212,7 @@ public class ModIntegrationsGui {
                         .setCallback((index, type, action) -> {
                             if (SPAM_PREVENTION.get(player.getUuid()) < 12)
                                 SPAM_PREVENTION.put(player.getUuid(), SPAM_PREVENTION.get(player.getUuid()) + 1);
-                            if (hasPermission(player, "manhunt.config")) {
+                            if (playerPermissionOrOperator(player, "manhunt.config.modify")) {
                                 if (SPAM_PREVENTION.get(player.getUuid()) < 6) {
                                     if (!type.shift) {
                                         if (type == ClickType.DROP) {
@@ -307,7 +307,7 @@ public class ModIntegrationsGui {
                 vanillaIntegrationGui.setSlot(slot, new GuiElementBuilder(item)
                         .setName(Text.translatable("config.manhunt." + name))
                         .setLore(loreList).setCallback((index, type, action) -> {
-                            if (hasPermission(player, "manhunt.config")) {
+                            if (playerPermissionOrOperator(player, "manhunt.config.modify")) {
                                 if (SPAM_PREVENTION.get(player.getUuid()) < 6) {
                                     if (!type.shift) {
                                         if (type == ClickType.DROP) {
@@ -389,7 +389,7 @@ public class ModIntegrationsGui {
                         .setCallback((index, type, action) -> {
                             if (SPAM_PREVENTION.get(player.getUuid()) < 12)
                                 SPAM_PREVENTION.put(player.getUuid(), SPAM_PREVENTION.get(player.getUuid()) + 1);
-                            if (hasPermission(player, "manhunt.config")) {
+                            if (playerPermissionOrOperator(player, "manhunt.config.modify")) {
                                 if (SPAM_PREVENTION.get(player.getUuid()) < 6) {
                                     if (type == ClickType.DROP) {
                                         Config.getConfig().modIntegrations.vanillaIntegration.spectatorsGenerateChunks = Config.getConfig().spectatorsGenerateChunksDefault;

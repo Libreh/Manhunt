@@ -91,7 +91,7 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity {
 
     @Inject(method = "shouldDamagePlayer", at = @At("HEAD"), cancellable = true)
     private void friendlyFireMixin(PlayerEntity attacker, CallbackInfoReturnable<Boolean> ci) {
-        if (isPreGame() || isPaused) {
+        if (isPreGame() || paused) {
             ci.setReturnValue(false);
         } else if (isPlaying()) {
             if (this.isTeamPlayer(attacker.getScoreboardTeam())) {

@@ -6,7 +6,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 
 import static me.libreh.manhunt.utils.Constants.*;
 import static me.libreh.manhunt.utils.Fields.RUNNERS_TEAM;
-import static me.libreh.manhunt.utils.Fields.isPaused;
+import static me.libreh.manhunt.utils.Fields.paused;
 import static me.libreh.manhunt.utils.Methods.isPlaying;
 import static me.libreh.manhunt.utils.Methods.isRunner;
 
@@ -32,7 +32,7 @@ public class PlayerState {
         boolean runner = isRunner(player);
 
         if (isPlaying()) {
-            if (isPaused) {
+            if (paused) {
                 PAUSE_LEAVE_LIST.add(playerUuid);
             } else {
                 if (runner && RUNNERS_TEAM.getPlayerList().size() == 1) {

@@ -15,7 +15,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static me.libreh.manhunt.utils.Constants.*;
-import static me.libreh.manhunt.utils.Methods.hasPermission;
+import static me.libreh.manhunt.utils.Methods.playerPermissionOrOperator;
+import static me.libreh.manhunt.utils.Methods.requirePermissionOrOperator;
 
 public class GlobalPreferences {
     public static void openGlobalPreferencesGui(ServerPlayerEntity player) {
@@ -76,7 +77,7 @@ public class GlobalPreferences {
                     if (SPAM_PREVENTION.get(player.getUuid()) < 12)
                         SPAM_PREVENTION.put(player.getUuid(), SPAM_PREVENTION.get(player.getUuid()) + 1);
                     if (SPAM_PREVENTION.get(player.getUuid()) < 6) {
-                        if (hasPermission(player, "manhunt.config")) {
+                        if (playerPermissionOrOperator(player, "manhunt.config.modify")) {
                             if (type == ClickType.DROP) {
                                 Config.getConfig().globalPreferences.customSounds = Config.getConfig().customSoundsDefault;
                             } else {
@@ -142,7 +143,7 @@ public class GlobalPreferences {
                     if (SPAM_PREVENTION.get(player.getUuid()) < 12)
                         SPAM_PREVENTION.put(player.getUuid(), SPAM_PREVENTION.get(player.getUuid()) + 1);
                     if (SPAM_PREVENTION.get(player.getUuid()) < 6) {
-                        if (hasPermission(player, "manhunt.config")) {
+                        if (playerPermissionOrOperator(player, "manhunt.config.modify")) {
                             if (type == ClickType.DROP) {
                                 Config.getConfig().globalPreferences.customTitles = Config.getConfig().customTitlesDefault;
                             } else {
@@ -206,7 +207,7 @@ public class GlobalPreferences {
                     if (SPAM_PREVENTION.get(player.getUuid()) < 12)
                         SPAM_PREVENTION.put(player.getUuid(), SPAM_PREVENTION.get(player.getUuid()) + 1);
                     if (SPAM_PREVENTION.get(player.getUuid()) < 6) {
-                       if (hasPermission(player, "manhunt.config")) {
+                       if (playerPermissionOrOperator(player, "manhunt.config.modify")) {
                             if (type == ClickType.DROP) {
                                 Config.getConfig().globalPreferences.friendlyFire = Config.getConfig().friendlyFireDefault;
                             } else {
@@ -272,7 +273,7 @@ public class GlobalPreferences {
                     if (SPAM_PREVENTION.get(player.getUuid()) < 12)
                         SPAM_PREVENTION.put(player.getUuid(), SPAM_PREVENTION.get(player.getUuid()) + 1);
                     if (SPAM_PREVENTION.get(player.getUuid()) < 6) {
-                        if (hasPermission(player, "manhunt.config")) {
+                        if (playerPermissionOrOperator(player, "manhunt.config.modify")) {
                             if (type == ClickType.DROP) {
                                 Config.getConfig().globalPreferences.bedExplosionsPvP = Config.getConfig().bedExplosionsPvPDefault;
                             } else {
@@ -345,7 +346,7 @@ public class GlobalPreferences {
                     if (SPAM_PREVENTION.get(player.getUuid()) < 12)
                         SPAM_PREVENTION.put(player.getUuid(), SPAM_PREVENTION.get(player.getUuid()) + 1);
                     if (SPAM_PREVENTION.get(player.getUuid()) < 6) {
-                        if (hasPermission(player, "manhunt.config")) {
+                        if (playerPermissionOrOperator(player, "manhunt.config.modify")) {
                             if (type == ClickType.DROP) {
                                 Config.getConfig().globalPreferences.netherLavaPvP = Config.getConfig().netherLavaPvPDefault;
                             } else {
@@ -411,7 +412,7 @@ public class GlobalPreferences {
                     if (SPAM_PREVENTION.get(player.getUuid()) < 12)
                         SPAM_PREVENTION.put(player.getUuid(), SPAM_PREVENTION.get(player.getUuid()) + 1);
                     if (SPAM_PREVENTION.get(player.getUuid()) < 6) {
-                        if (hasPermission(player, "manhunt.config")) {
+                        if (playerPermissionOrOperator(player, "manhunt.config.modify")) {
                             if (type == ClickType.DROP) {
                                 Config.getConfig().globalPreferences.announceSeed = Config.getConfig().announceSeedDefault;
                             } else {
@@ -477,7 +478,7 @@ public class GlobalPreferences {
                     if (SPAM_PREVENTION.get(player.getUuid()) < 12)
                         SPAM_PREVENTION.put(player.getUuid(), SPAM_PREVENTION.get(player.getUuid()) + 1);
                     if (SPAM_PREVENTION.get(player.getUuid()) < 6) {
-                        if (hasPermission(player, "manhunt.config")) {
+                        if (playerPermissionOrOperator(player, "manhunt.config.modify")) {
                             if (type == ClickType.DROP) {
                                 Config.getConfig().globalPreferences.announceDuration = Config.getConfig().announceDurationDefault;
                             } else {

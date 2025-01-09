@@ -21,6 +21,7 @@ import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.packet.s2c.play.SubtitleS2CPacket;
 import net.minecraft.network.packet.s2c.play.TitleS2CPacket;
+import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
@@ -82,9 +83,12 @@ public class Methods {
         return Config.getConfig().gameOptions.headStart != 0 && headStartTicks >= 20;
     }
 
-    public static boolean hasPermission(PlayerEntity player, String key) {
-        return Permissions.check(player, key) || Permissions.check(player, "manhunt.operator") ||
-                player.hasPermissionLevel(1) || player.hasPermissionLevel(2) || player.hasPermissionLevel(3) || player.hasPermissionLevel(4);
+    public static boolean requirePermissionOrOperator(ServerCommandSource source, String key) {
+        return Permissions.check(source, key, Config.getConfig().defaultOpPermissionLevel) || Permissions.check(source, "manhunt.operator");
+    }
+
+    public static boolean playerPermissionOrOperator(ServerPlayerEntity player, String key) {
+        return Permissions.check(player, key, Config.getConfig().defaultOpPermissionLevel) || Permissions.check(player, "manhunt.operator");
     }
 
     public static boolean isTeamless(PlayerEntity player) {

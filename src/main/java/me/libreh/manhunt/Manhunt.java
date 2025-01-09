@@ -71,7 +71,7 @@ public class Manhunt implements ModInitializer {
 
         PlayerBlockBreakEvents.BEFORE.register((world, player, pos, state, blockEntity) -> {
             if (isPlaying()) {
-                if (isPaused) {
+                if (paused) {
                     return false;
                 } else {
                     return headStartTicks == 0 || !isHunter(player);
@@ -81,7 +81,7 @@ public class Manhunt implements ModInitializer {
         });
         AttackEntityCallback.EVENT.register((player, world, hand, entity, hitResult) -> {
             if (isPlaying()) {
-                if (isPaused) {
+                if (paused) {
                     return ActionResult.FAIL;
                 } else {
                     if (headStartTicks != 0 && isHunter(player)) {

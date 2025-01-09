@@ -20,10 +20,7 @@ import static net.minecraft.server.command.CommandManager.literal;
 public class PauseCommands {
     public static void pauseCommand(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(literal("pause")
-                .requires(source -> isPlaying() && !isPaused &&
-                        (source.isExecutedByPlayer() && hasPermission(source.getPlayer(), "manhunt.command.pause") ||
-                                !source.isExecutedByPlayer() ||
-                                isRunner(source.getPlayer())))
+                .requires(source -> !paused && isPlaying() && requirePermissionOrOperator(source, "manhunt.pause"))
                 .executes(context -> pauseCommand(5))
                 .then(argument("minutes", IntegerArgumentType.integer())
                         .executes(context -> pauseCommand(IntegerArgumentType.getInteger(context, "minutes")))));
@@ -36,7 +33,7 @@ public class PauseCommands {
     }
 
     public static void pauseGame(int minutes) {
-        isPaused = true;
+        paused = true;
 
         pauseTicks = minutes * 60 * 20;
 
@@ -68,12 +65,8 @@ public class PauseCommands {
 
     public static void unpauseCommand(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(literal("unpause")
-                .requires(
-                        source -> isPlaying() && isPaused &&
-                                (source.isExecutedByPlayer() && hasPermission(source.getPlayer(), "manhunt.command.unpause") ||
-                                        !source.isExecutedByPlayer() ||
-                                        isRunner(source.getPlayer()))
-                ).executes(context -> unpauseCommand())
+                .requires(source -> paused && isPlaying() && requirePermissionOrOperator(source, "manhunt.unpause"))
+                .executes(context -> unpauseCommand())
         );
     }
 
@@ -84,7 +77,7 @@ public class PauseCommands {
     }
 
     public static void unpauseGame() {
-        isPaused = false;
+        paused = false;
 
         SERVER.getTickManager().setFrozen(false);
 

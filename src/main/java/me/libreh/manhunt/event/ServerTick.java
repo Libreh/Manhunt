@@ -89,7 +89,7 @@ public class ServerTick {
 
             tickCount++;
             if (tickCount == 19) {
-                if (isPaused) {
+                if (paused) {
                     pauseTicks -= 20;
 
                     if (pauseTicks <= 0) {
@@ -240,7 +240,7 @@ public class ServerTick {
                 updateGameMode(player);
 
                 if (isPlaying()) {
-                    if (isPaused) {
+                    if (paused) {
                         if (isRunner(player) && RUNNERS_TEAM.getPlayerList().size() == 1) {
                             PauseCommands.unpauseGame();
                         } else if (!PAUSE_LEAVE_LIST.contains(playerUuid)) {
@@ -463,7 +463,7 @@ public class ServerTick {
                     }
                 }
 
-                if (isPaused) {
+                if (paused) {
                     if (SAVED_POS.containsKey(playerUuid) && SAVED_YAW.containsKey(playerUuid) && SAVED_PITCH.containsKey(playerUuid)) {
                         player.teleport(server.getWorld(player.getWorld().getRegistryKey()),
                                 SAVED_POS.get(playerUuid).getX(), SAVED_POS.get(playerUuid).getY(), SAVED_POS.get(playerUuid).getZ(),

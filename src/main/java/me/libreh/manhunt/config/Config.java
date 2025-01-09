@@ -97,6 +97,8 @@ public class Config {
             "entities", "playerdat", "poi", "region", "stats", "level.dat", "level.dat_old"
     );
 
+    public int defaultOpPermissionLevel = 3;
+
     public static void loadConfig() {
         Config oldConfig = CONFIG;
 
