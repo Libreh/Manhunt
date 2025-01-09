@@ -1,4 +1,7 @@
-﻿# Manhunt
+# IMPORTANT LICENSE NOTICE
+By using this project in any form, you hereby give your "express assent" for the terms of the license of this project (see LICENSE), and acknowledge that I (the author of this project) have fulfilled my obligation under the license to "make a reasonable effort under the circumstances to obtain the express assent of recipients to the terms of this License".
+ 
+# Manhunt
 A server-side Manhunt mod for Fabric.
 
 ```txt
