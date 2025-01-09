@@ -22,10 +22,11 @@ You can customize this with the "files_to_reset" config property
 - `/hunter <player>` - Assign hunter to player (requires `manhunt.hunter`)
 - `/onerunner <player>` - Player is only hunter everyone else is runner (requires `manhunt.onehunter`)
 - `/feed <players>` - Resets specified players' saturation and hunger (requires `manhunt.feed`)
-- `/start` - Starts round by preloading the terrain (requires `manhunt.start`)
+- `/start` Starts round by preloading the terrain (requires `manhunt.start`)
 - `/reset` - Resets the world and teleports everyone back to lobby (requires `manhunt.reset`)
 - `/pause` - Freezes everything and makes all players blind (requires `manhunt.pause`)
-- `/unpause` Unfreezes everything and unblinds all players (requires `manhunt.unpause`)
+- `/unpause` - Unfreezes everything and unblinds all players (requires `manhunt.unpause`)
+
 All permissions are available with `manhunt.operator`
 
 ## Configuration
