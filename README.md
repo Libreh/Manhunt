@@ -33,7 +33,7 @@ You can customize this with the "files_to_reset" config property
   "game_options": {
     // Preloads the terrain before start
     "preload_distance": 5,
-    // Distributes players based on the option
+    // Changes team distribution
     "preset_mode": "free_select",
     "team_color": {
       // Shows specified team color or white
