@@ -6,7 +6,8 @@ A server-side Manhunt mod for Fabric.
 
 ```txt
 ⚠️⚠️⚠️ WARNING ⚠️⚠️⚠️
-This mod DELETES THE WORLD on startup and shutdown!
+This mod DELETES WORLD FILES on startup and shutdown!
+You can customize this with the "files_to_reset" config property
 ```
 
 ## Commands (and permissions):
