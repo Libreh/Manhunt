@@ -17,7 +17,6 @@ import static me.libreh.manhunt.utils.Constants.PER_PLAYER;
 import static me.libreh.manhunt.utils.Constants.RUNNERS_PREFERENCE;
 
 public class Config {
-    private static final File configFile = new File("./config/manhunt.json");
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
     
     private static Config CONFIG;
@@ -97,6 +96,7 @@ public class Config {
             "entities", "playerdat", "poi", "region", "stats", "level.dat", "level.dat_old"
     );
 
+    @SerializedName("default_op_permission_level")
     public int defaultOpPermissionLevel = 3;
 
     public static void loadConfig() {
@@ -104,7 +104,7 @@ public class Config {
 
         CONFIG = null;
         try {
-            File configFile = new File(FabricLoader.getInstance().getConfigDir().toFile(), "rulebook.json");
+            File configFile = new File(FabricLoader.getInstance().getConfigDir().toFile(), "manhunt.json");
 
             CONFIG = configFile.exists() ? GSON.fromJson(new InputStreamReader(new FileInputStream(configFile), StandardCharsets.UTF_8), Config.class) : new Config();
 
@@ -116,6 +116,8 @@ public class Config {
 
     public static void saveConfig() {
         try {
+            File configFile = new File(FabricLoader.getInstance().getConfigDir().toFile(), "manhunt.json");
+
             BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(configFile), StandardCharsets.UTF_8));
             writer.write(GSON.toJson(CONFIG));
             writer.close();
