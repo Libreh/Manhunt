@@ -132,7 +132,7 @@ public class GeneralCommands {
                 .requires(
                         source -> !isPreGame() &&
                                 (gameState == GameState.POSTGAME && requirePermissionOrOperator(source, "manhunt.reset")) ||
-                                isPlaying() && Permissions.check(source, "manhunt.force_reset")
+                                isPlaying() && (Permissions.check(source, "manhunt.force_reset") || !source.isExecutedByPlayer())
                 )
                 .executes(context -> resetCommand(Random.create().nextLong()))
                 .then(argument("seed", LongArgumentType.longArg())
