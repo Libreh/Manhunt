@@ -15,8 +15,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import static me.libreh.manhunt.utils.Fields.RUNNERS_TEAM;
-import static me.libreh.manhunt.utils.Fields.SERVER;
+import static me.libreh.manhunt.utils.Fields.runnersTeam;
+import static me.libreh.manhunt.utils.Fields.server;
 import static me.libreh.manhunt.utils.Methods.*;
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
@@ -62,7 +62,7 @@ public class CoordsCommands {
             }
         }
 
-        for (ServerPlayerEntity serverPlayer : SERVER.getPlayerManager().getPlayerList()) {
+        for (ServerPlayerEntity serverPlayer : server.getPlayerManager().getPlayerList()) {
             if (hunter) {
                 if (isHunter(serverPlayer)) {
                     serverPlayer.sendMessage(Text.translatable("chat.manhunt.send_coordinates", Text.literal(team).formatted(formatting),
@@ -72,7 +72,7 @@ public class CoordsCommands {
                     );
                 }
             } else {
-                if (serverPlayer.isTeamPlayer(RUNNERS_TEAM)) {
+                if (serverPlayer.isTeamPlayer(runnersTeam)) {
                     serverPlayer.sendMessage(Text.translatable("chat.manhunt.send_coordinates", Text.literal(team).formatted(formatting),
                             Text.literal(player.getNameForScoreboard()).formatted(formatting),
                             Text.literal(String.valueOf(player.getBlockX())), Text.literal(String.valueOf(player.getBlockY())), Text.literal(String.valueOf(player.getBlockZ())),

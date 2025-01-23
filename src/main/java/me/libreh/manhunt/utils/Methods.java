@@ -5,6 +5,8 @@ import me.libreh.manhunt.config.Config;
 import me.libreh.manhunt.config.PlayerData;
 import me.libreh.manhunt.game.GameState;
 import me.libreh.manhunt.game.ManhuntGame;
+import me.libreh.manhunt.world.ServerTaskExecutor;
+import me.libreh.manhunt.world.ServerWorldController;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.advancement.AdvancementEntry;
 import net.minecraft.advancement.AdvancementProgress;
@@ -19,6 +21,7 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.network.packet.c2s.play.ClientStatusC2SPacket;
 import net.minecraft.network.packet.s2c.play.SubtitleS2CPacket;
 import net.minecraft.network.packet.s2c.play.TitleS2CPacket;
 import net.minecraft.server.command.ServerCommandSource;
@@ -50,7 +53,7 @@ public class Methods {
     public static void changeState(GameState newState) {
         gameState = newState;
 
-        SERVER.setMotd(gameState.getColor() + "[" + gameState.getMotd() + "]§f Manhunt");
+        server.setMotd(gameState.getColor() + "[" + gameState.getMotd() + "]§f Manhunt");
 
         switch (gameState) {
             case GameState.PREGAME -> ManhuntGame.resetGame();
@@ -103,39 +106,39 @@ public class Methods {
     }
 
     public static void makeRunner(String playerName) {
-        SCOREBOARD.addScoreHolderToTeam(playerName, RUNNERS_TEAM);
+        scoreboard.addScoreHolderToTeam(playerName, runnersTeam);
     }
     public static void makeRunner(PlayerEntity player) {
         makeRunner(player.getNameForScoreboard());
     }
 
     public static void makeHunter(String playerName) {
-        SCOREBOARD.addScoreHolderToTeam(playerName, HUNTERS_TEAM);
+        scoreboard.addScoreHolderToTeam(playerName, huntersTeam);
     }
     public static void makeHunter(PlayerEntity player) {
         makeHunter(player.getNameForScoreboard());
     }
 
     public static void teleportToLobby(ServerPlayerEntity player) {
-        player.teleport(player.getServer().getWorld(LOBBY_REGISTRY_KEY),
-                LOBBY_SPAWN.x, LOBBY_SPAWN.y, LOBBY_SPAWN.z,
+        var lobbyWorld = server.getWorld(LOBBY_REGISTRY_KEY);
+        if (lobbyWorld == null) return;
+        player.teleport(lobbyWorld, LOBBY_SPAWN.x, LOBBY_SPAWN.y, LOBBY_SPAWN.z,
                 Set.of(), 180.0F, 0.0F, true);
     }
 
     public static void setPlayerSpawn(ServerPlayerEntity player) {
-        var overworld = player.getServer().getOverworld();
         var spawnPos = player.getWorldSpawnPos(overworld, overworld.getSpawnPos());
         SPAWN_POS.put(player.getUuid(), spawnPos.toBottomCenterPos());
     }
 
     public static void resetWorldTime() {
-        var worldProperties = SERVER.getSaveProperties().getMainWorldProperties();
+        var worldProperties = server.getSaveProperties().getMainWorldProperties();
         worldProperties.setTime(0);
         worldProperties.setRainTime(0);
         worldProperties.setRaining(false);
         worldProperties.setThunderTime(0);
         worldProperties.setThundering(false);
-        for (ServerWorld world : SERVER.getWorlds()) {
+        for (ServerWorld world : server.getWorlds()) {
             world.setTimeOfDay(1000);
             world.resetWeather();
         }
@@ -164,22 +167,41 @@ public class Methods {
         }
     }
 
-    public static void updateGameMode(ServerPlayerEntity player) {
-        player.changeGameMode(getGameMode());
-
+    public static void updateGameMode(ServerPlayerEntity player, boolean forceReset) {
         var playerUuid = player.getUuid();
-        if (isTeamless(player) || isPlaying() && !PLAY_LIST.contains(playerUuid) || player.interactionManager.getGameMode() != getGameMode() ||
-                (!isPreGame() && isLobby(player.getServerWorld()) || (isPreGame() && !isLobby(player.getServerWorld())))
-        ) {
-            if (isPreGame() && isTeamless(player)) {
-                joinPresetMode(player);
-            } else if (isPlaying() && !PLAY_LIST.contains(player.getUuid())) {
-                PLAY_LIST.add(player.getUuid());
+        var isRespawnNeeded = (player.interactionManager.getGameMode() != getGameMode() || forceReset) && isPreGame() && gameState != GameState.POSTGAME;
+        var hasPlayed = PLAY_LIST.contains(playerUuid);
+        var isStuckInLobby = isLobby(player.getServerWorld()) && !isPreGame();
+        var isStuckInWorld = !isLobby(player.getServerWorld()) && isPreGame();
+        if (isRespawnNeeded || !hasPlayed || isStuckInLobby || isStuckInWorld) {
+            if (!player.isAlive()) {
+                var newPlayer = player;
+                var networkHandler = newPlayer.networkHandler;
+                networkHandler.onClientStatus(new ClientStatusC2SPacket(ClientStatusC2SPacket.Mode.PERFORM_RESPAWN));
+                newPlayer = networkHandler.player;
 
-                joinPresetMode(player);
+                if (ServerWorldController.taskExecutor == null) {
+                    ServerWorldController.taskExecutor = new ServerTaskExecutor(server);
+                }
+
+                ServerPlayerEntity finalNewPlayer = newPlayer;
+                ServerWorldController.taskExecutor.execute(() -> updateGameMode(finalNewPlayer, true));
+                return;
             }
 
             respawnPlayer(player);
+        }
+
+        if (player.interactionManager.getGameMode() != getGameMode()) {
+            player.changeGameMode(getGameMode());
+        }
+
+        if (isPreGame() && isTeamless(player)) {
+            joinPresetMode(player);
+        } else if (isPlaying() && !PLAY_LIST.contains(playerUuid)) {
+            PLAY_LIST.add(player.getUuid());
+
+            joinPresetMode(player);
         }
 
         if (isPreGame()) {
@@ -198,8 +220,8 @@ public class Methods {
         player.getInventory().clear();
         player.getEnderChestInventory().clear();
 
-        player.lockRecipes(player.getServer().getRecipeManager().values());
-        for (AdvancementEntry advancement : player.getServer().getAdvancementLoader().getAdvancements()) {
+        player.lockRecipes(server.getRecipeManager().values());
+        for (AdvancementEntry advancement : server.getAdvancementLoader().getAdvancements()) {
             AdvancementProgress progress = player.getAdvancementTracker().getProgress(advancement);
             for (String criteria : progress.getObtainedCriteria()) {
                 player.getAdvancementTracker().revokeCriterion(advancement, criteria);
@@ -224,7 +246,9 @@ public class Methods {
             }
 
             Vec3d pos = SPAWN_POS.get(playerUuid);
-            player.teleport(OVERWORLD, pos.x, pos.y, pos.z, Set.of(), 0.0F, 0.0F, true);
+            player.teleport(overworld, pos.x, pos.y, pos.z, Set.of(), 0.0F, 0.0F, true);
+            player.setSpawnPoint(overworld.getRegistryKey(), new BlockPos((int) pos.x, (int) pos.y, (int) pos.z),
+                    0.0F, true, false);
         }
     }
 
@@ -232,7 +256,7 @@ public class Methods {
         ServerPlayerEntity trackedPlayer = null;
 
         float distance = -1.0F;
-        for (ServerPlayerEntity serverPlayer : SERVER.getPlayerManager().getPlayerList()) {
+        for (ServerPlayerEntity serverPlayer : server.getPlayerManager().getPlayerList()) {
             if (isRunner(serverPlayer)) {
                 if (trackedPlayer == null) {
                     trackedPlayer = serverPlayer;
@@ -387,8 +411,8 @@ public class Methods {
                 case "equal_split" -> {
                     int hunters = 0;
                     int runners = 0;
-                    for (ServerPlayerEntity serverPlayer : SERVER.getPlayerManager().getPlayerList()) {
-                        if (serverPlayer.isTeamPlayer(HUNTERS_TEAM)) {
+                    for (ServerPlayerEntity serverPlayer : server.getPlayerManager().getPlayerList()) {
+                        if (serverPlayer.isTeamPlayer(huntersTeam)) {
                             hunters++;
                         } else {
                             runners++;
@@ -403,7 +427,7 @@ public class Methods {
                 case "speedrun_showdown" -> makeRunner(player);
                 case "runner_cycle" -> {
                     int runners = 0;
-                    for (ServerPlayerEntity serverPlayer : SERVER.getPlayerManager().getPlayerList()) {
+                    for (ServerPlayerEntity serverPlayer : server.getPlayerManager().getPlayerList()) {
                         if (isRunner(serverPlayer)) {
                             runners++;
                             break;
@@ -417,7 +441,7 @@ public class Methods {
                 }
                 case "hunter_infection" -> {
                     int hunters = 0;
-                    for (ServerPlayerEntity serverPlayer : SERVER.getPlayerManager().getPlayerList()) {
+                    for (ServerPlayerEntity serverPlayer : server.getPlayerManager().getPlayerList()) {
                         if (isHunter(serverPlayer)) {
                             hunters++;
                             break;
@@ -446,7 +470,7 @@ public class Methods {
                 case "hunter_infection" -> hunterInfection();
             }
         } else {
-            for (ServerPlayerEntity player : SERVER.getPlayerManager().getPlayerList()) {
+            for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
                 if (isTeamless(player)) {
                     makeHunter(player);
                 }
@@ -455,7 +479,7 @@ public class Methods {
     }
 
     public static void equalSplit() {
-        List<String> playerNames = new ArrayList<>(List.of(SERVER.getPlayerManager().getPlayerNames()));
+        List<String> playerNames = new ArrayList<>(List.of(server.getPlayerManager().getPlayerNames()));
         Collections.shuffle(playerNames);
 
         boolean runner = true;
@@ -471,7 +495,7 @@ public class Methods {
     }
 
     public static void speedrunShowdown() {
-        for (ServerPlayerEntity serverPlayer : SERVER.getPlayerManager().getPlayerList()) {
+        for (ServerPlayerEntity serverPlayer : server.getPlayerManager().getPlayerList()) {
             makeRunner(serverPlayer);
         }
     }
@@ -479,39 +503,39 @@ public class Methods {
     public static void runnerCycle() {
         if (presetModeList.isEmpty()) {
             presetModeList = new ArrayList<>();
-            for (ServerPlayerEntity player : SERVER.getPlayerManager().getPlayerList()) {
+            for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
                 presetModeList.add(player.getUuid());
             }
         }
         Collections.shuffle(presetModeList);
-        presetModeList.removeIf(uuid -> SERVER.getPlayerManager().getPlayer(uuid).isDisconnected());
+        presetModeList.removeIf(uuid -> Objects.requireNonNull(server.getPlayerManager().getPlayer(uuid)).isDisconnected());
 
-        for (ServerPlayerEntity player : SERVER.getPlayerManager().getPlayerList()) {
+        for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
             makeHunter(player);
         }
-        ServerPlayerEntity runner = SERVER.getPlayerManager().getPlayer(presetModeList.getFirst());
-        SCOREBOARD.addScoreHolderToTeam(runner.getNameForScoreboard(), RUNNERS_TEAM);
+        ServerPlayerEntity runner = server.getPlayerManager().getPlayer(presetModeList.getFirst());
+        scoreboard.addScoreHolderToTeam(runner.getNameForScoreboard(), runnersTeam);
         presetModeList.remove(runner.getUuid());
     }
 
     public static void hunterInfection() {
         List<UUID> uuidList = new ArrayList<>();
-        for (ServerPlayerEntity player : SERVER.getPlayerManager().getPlayerList()) {
+        for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
             uuidList.add(player.getUuid());
         }
         Collections.shuffle(uuidList);
 
-        for (ServerPlayerEntity player : SERVER.getPlayerManager().getPlayerList()) {
+        for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
             makeRunner(player);
         }
-        ServerPlayerEntity hunter = SERVER.getPlayerManager().getPlayer(uuidList.getFirst());
-        SCOREBOARD.addScoreHolderToTeam(hunter.getNameForScoreboard(), HUNTERS_TEAM);
+        ServerPlayerEntity hunter = server.getPlayerManager().getPlayer(uuidList.getFirst());
+        scoreboard.addScoreHolderToTeam(hunter.getNameForScoreboard(), huntersTeam);
     }
 
     public static void teamWins(String teamName, Formatting formatting) {
         changeState(GameState.POSTGAME);
 
-        for (ServerPlayerEntity player : SERVER.getPlayerManager().getPlayerList()) {
+        for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
             var data = PlayerData.get(player);
 
             if (Config.getConfig().globalPreferences.customSounds.equals("always") || data.customSounds) {
@@ -549,7 +573,7 @@ public class Methods {
         }
     }
 
-    public static void unzip() {
+    public static void unzipLobbyWorld() {
         try (ZipInputStream zis = new ZipInputStream(Manhunt.class.getResourceAsStream("/manhunt/lobby_world.zip"))) {
             ZipEntry entry;
             byte[] buffer = new byte[1024];
@@ -570,5 +594,7 @@ public class Methods {
         } catch (IOException e) {
             Manhunt.LOGGER.info("Failed to unzip world", e);
         }
+
+        Manhunt.LOGGER.info("Manhunt lobby loaded");
     }
 }

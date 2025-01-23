@@ -32,50 +32,50 @@ All permissions are available with `manhunt.operator`
 ## Configuration
 ```json5
 {
-  "game_options": {
+  "gameOptions": {
     // Preloads the terrain before start
-    "preload_distance": 5,
+    "preloadDistance": 5,
     // Changes team distribution
-    "preset_mode": "free_select",
-    "team_color": {
+    "presetMode": "free_select",
+    "teamColor": {
       // Shows specified team color or white
       "enabled": true,
-      "hunters_color": "RED",
-      "runners_color": "GREEN"
+      "huntersColor": "RED",
+      "runnersColor": "GREEN"
     },
     // In seconds until the hunters aren't frozen from start
-    "head_start": 0,
+    "headStart": 0,
     // In minutes until the hunters win
-    "time_limit": 180
+    "timeLimit": 180
   },
-  "global_preferences": {
+  "globalPreferences": {
     // Plays when a round starts and ends
-    "custom_sounds": "per_player",
+    "customSounds": "per_player",
     // Is displayed when a round starts and ends
-    "custom_titles": "per_player",
+    "customTitles": "per_player",
     // Can damage teammates
-    "friendly_fire": "per_player",
+    "friendlyFire": "per_player",
     // Disabled bed placement if enemy is within 9 blocks
-    "bed_explosions_pvp": "runners_preference",
+    "bedExplosionsPvp": "per_runner",
     // Disabled emptying lava bucket in nether if enemy is within 9 blocks
-    "nether_lava_pvp": "runners_preference",
+    "netherLavaPvp": "per_runner",
     // Displays the world seed at the end of the round
-    "announce_seed": "per_player",
+    "announceSeed": "per_player",
     // Displays the duration at the end of the round
-    "announce_duration": "per_player"
+    "announceDuration": "per_player"
   },
-  "mod_integrations": {
-    "vanilla_integration": {
+  "modIntegrations": {
+    "vanillaIntegration": {
       // Vanilla settings and gamerules
       "enabled": true,
       "difficulty": "NORMAL",
-      "border_size": 59999968,
-      "spawn_radius": 10,
-      "spectators_generate_chunks": false
+      "borderSize": 59999968,
+      "spawnRadius": 10,
+      "spectatorsGenerateChunks": false
     }
   },
   // Is applied on start and shutdown
-  "files_to_reset": [
+  "filesToReset": [
     "advancements",
     "data/idcounts.dat",
     "data/map_*.dat",
@@ -91,7 +91,9 @@ All permissions are available with `manhunt.operator`
     "stats",
     "level.dat",
     "level.dat_old"
-  ]
+  ],
+  // Default permission level for commands
+  "defaultOpPermissionLevel": 3
 }
 ```
 

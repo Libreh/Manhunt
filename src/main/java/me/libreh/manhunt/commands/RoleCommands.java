@@ -11,7 +11,7 @@ import net.minecraft.util.Formatting;
 
 import java.util.Collection;
 
-import static me.libreh.manhunt.utils.Fields.SERVER;
+import static me.libreh.manhunt.utils.Fields.server;
 import static me.libreh.manhunt.utils.Methods.*;
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
@@ -39,7 +39,7 @@ public class RoleCommands {
             if (isRunner(player)) {
                 makeHunter(player);
 
-                SERVER.getPlayerManager().broadcast(Text.translatable("chat.manhunt.joined_team",
+                server.getPlayerManager().broadcast(Text.translatable("chat.manhunt.joined_team",
                         Text.literal(player.getNameForScoreboard()).formatted(Config.getConfig().gameOptions.teamColor.huntersColor),
                         Text.translatable("role.manhunt.hunters").formatted(Config.getConfig().gameOptions.teamColor.huntersColor)),false
                 );
@@ -61,7 +61,7 @@ public class RoleCommands {
         for (ServerPlayerEntity player : players) {
             makeHunter(player);
 
-            source.getServer().getPlayerManager().broadcast(Text.translatable("chat.manhunt.set_role",
+            server.getPlayerManager().broadcast(Text.translatable("chat.manhunt.set_role",
                     Text.literal(player.getNameForScoreboard()).formatted(Config.getConfig().gameOptions.teamColor.huntersColor),
                     Text.translatable("role.manhunt.hunter").formatted(Config.getConfig().gameOptions.teamColor.huntersColor)), false
             );
@@ -82,13 +82,13 @@ public class RoleCommands {
     }
 
     private static int setOneHunter(ServerPlayerEntity player) {
-        for (ServerPlayerEntity serverPlayer : SERVER.getPlayerManager().getPlayerList()) {
+        for (ServerPlayerEntity serverPlayer : server.getPlayerManager().getPlayerList()) {
             makeRunner(serverPlayer);
         }
 
         makeHunter(player);
 
-        SERVER.getPlayerManager().broadcast(Text.translatable("chat.manhunt.one_role",
+        server.getPlayerManager().broadcast(Text.translatable("chat.manhunt.one_role",
                 Text.literal(player.getNameForScoreboard()).formatted(Config.getConfig().gameOptions.teamColor.huntersColor),
                 Text.translatable("role.manhunt.hunter").formatted(Config.getConfig().gameOptions.teamColor.huntersColor)),
                 false
@@ -109,13 +109,13 @@ public class RoleCommands {
     }
 
     private static int setOneRunner(ServerPlayerEntity player) {
-        for (ServerPlayerEntity serverPlayer : SERVER.getPlayerManager().getPlayerList()) {
+        for (ServerPlayerEntity serverPlayer : server.getPlayerManager().getPlayerList()) {
             makeHunter(serverPlayer);
         }
 
         makeRunner(player);
 
-        SERVER.getPlayerManager().broadcast(Text.translatable("chat.manhunt.one_role",
+        server.getPlayerManager().broadcast(Text.translatable("chat.manhunt.one_role",
                 Text.literal(player.getNameForScoreboard()).formatted(Config.getConfig().gameOptions.teamColor.runnersColor),
                 Text.translatable("role.manhunt.runner").formatted(Config.getConfig().gameOptions.teamColor.runnersColor)),
                 false
@@ -145,7 +145,7 @@ public class RoleCommands {
             if (isHunter(player)) {
                 makeRunner(player);
 
-                SERVER.getPlayerManager().broadcast(Text.translatable("chat.manhunt.joined_team",
+                server.getPlayerManager().broadcast(Text.translatable("chat.manhunt.joined_team",
                         Text.literal(player.getNameForScoreboard()).formatted(Config.getConfig().gameOptions.teamColor.runnersColor),
                         Text.translatable("role.manhunt.runners").formatted(Config.getConfig().gameOptions.teamColor.runnersColor)),
                         false);
@@ -168,7 +168,7 @@ public class RoleCommands {
         for (ServerPlayerEntity player : players) {
             makeRunner(player);
 
-            SERVER.getPlayerManager().broadcast(Text.translatable("chat.manhunt.set_role",
+            server.getPlayerManager().broadcast(Text.translatable("chat.manhunt.set_role",
                     Text.literal(player.getNameForScoreboard()).formatted(Config.getConfig().gameOptions.teamColor.runnersColor),
                     Text.translatable("role.manhunt.runner").formatted(Config.getConfig().gameOptions.teamColor.runnersColor)),
                     false

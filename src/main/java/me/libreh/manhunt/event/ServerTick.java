@@ -1,11 +1,9 @@
 package me.libreh.manhunt.event;
 
-import me.libreh.manhunt.commands.GeneralCommands;
 import me.libreh.manhunt.commands.PauseCommands;
 import me.libreh.manhunt.config.Config;
 import me.libreh.manhunt.config.PlayerData;
 import me.libreh.manhunt.game.GameState;
-import me.libreh.manhunt.world.ServerWorldController;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.NbtComponent;
@@ -36,12 +34,6 @@ import static me.libreh.manhunt.utils.Methods.*;
 
 public class ServerTick {
     public static void serverTick(MinecraftServer server) {
-        if (firstReset) {
-            firstReset = false;
-
-            ServerWorldController.resetWorlds(GeneralCommands.seed);
-        }
-
         if (gameState == GameState.PRELOADING) {
             int doneCount = 0;
             for (Future<?> future : chunkFutureList) {
@@ -89,7 +81,7 @@ public class ServerTick {
 
             tickCount++;
             if (tickCount == 19) {
-                if (paused) {
+                if (isPaused) {
                     pauseTicks -= 20;
 
                     if (pauseTicks <= 0) {
@@ -234,14 +226,14 @@ public class ServerTick {
             var playerUuid = player.getUuid();
             var data = PlayerData.get(player);
 
-            if (JOIN_LIST.contains(playerUuid) && !player.notInAnyWorld) {
+            if (JOIN_LIST.contains(playerUuid)) {
                 JOIN_LIST.remove(playerUuid);
 
-                updateGameMode(player);
+                updateGameMode(player, false);
 
                 if (isPlaying()) {
-                    if (paused) {
-                        if (isRunner(player) && RUNNERS_TEAM.getPlayerList().size() == 1) {
+                    if (isPaused) {
+                        if (isRunner(player) && runnersTeam.getPlayerList().size() == 1) {
                             PauseCommands.unpauseGame();
                         } else if (!PAUSE_LEAVE_LIST.contains(playerUuid)) {
                             player.playSoundToPlayer(SoundEvents.BLOCK_ANVIL_LAND, SoundCategory.MASTER, 0.1f, 0.5F);
@@ -276,10 +268,10 @@ public class ServerTick {
             }
 
             if (isPreGame()) {
-                if (RESET_LIST.contains(playerUuid) && !player.notInAnyWorld && !player.isDead()) {
+                if (RESET_LIST.contains(playerUuid)) {
                     RESET_LIST.remove(playerUuid);
 
-                    updateGameMode(player);
+                    updateGameMode(player, true);
                 }
 
                 if (!hasItem(player, Items.PLAYER_HEAD)) {
@@ -433,13 +425,12 @@ public class ServerTick {
             }
 
             if (isPlaying()) {
-                if (START_LIST.contains(playerUuid) && !player.notInAnyWorld) {
+                if (START_LIST.contains(playerUuid)) {
                     START_LIST.remove(playerUuid);
 
                     PLAY_LIST.add(playerUuid);
 
-                    updateGameMode(player);
-
+                    updateGameMode(player, true);
 
                     if (Config.getConfig().globalPreferences.customSounds.equals("always") || data.customSounds) {
                         player.playSoundToPlayer(SoundEvents.BLOCK_NOTE_BLOCK_HARP.value(), SoundCategory.MASTER, 0.5F, 2.0F);
@@ -463,7 +454,7 @@ public class ServerTick {
                     }
                 }
 
-                if (paused) {
+                if (isPaused) {
                     if (SAVED_POS.containsKey(playerUuid) && SAVED_YAW.containsKey(playerUuid) && SAVED_PITCH.containsKey(playerUuid)) {
                         player.teleport(server.getWorld(player.getWorld().getRegistryKey()),
                                 SAVED_POS.get(playerUuid).getX(), SAVED_POS.get(playerUuid).getY(), SAVED_POS.get(playerUuid).getZ(),
@@ -483,7 +474,7 @@ public class ServerTick {
     }
 
     public static void freezeHunters() {
-        for (ServerPlayerEntity player : SERVER.getPlayerManager().getPlayerList()) {
+        for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
             var playerUuid = player.getUuid();
 
             if (isHunter(player)) {

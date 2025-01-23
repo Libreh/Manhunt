@@ -15,7 +15,8 @@
     "world.MinecraftServerSkipStartRegionMixin",
     "world.MinecraftServerUnsafeSkipCloseMixin",
     "world.ServerChunkLoadingManagerAccessor",
-    "world.ServerChunkManagerAccessor"
+    "world.ServerChunkManagerAccessor",
+    "world.ServerChunkManagerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

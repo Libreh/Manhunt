@@ -43,7 +43,7 @@ public class PlayerInterfact {
                     if (!isHunter(player)) {
                         makeHunter(player);
 
-                        SERVER.getPlayerManager().broadcast(Text.translatable("chat.manhunt.joined_team",
+                        server.getPlayerManager().broadcast(Text.translatable("chat.manhunt.joined_team",
                                 Text.literal(player.getNameForScoreboard()).formatted(Config.getConfig().gameOptions.teamColor.huntersColor),
                                 Text.translatable("role.manhunt.hunters").formatted(Config.getConfig().gameOptions.teamColor.huntersColor)),
                                 false);
@@ -63,7 +63,7 @@ public class PlayerInterfact {
                 if (SPAM_PREVENTION.get(player.getUuid()) < 4) {
                     READY_LIST.add(player.getUuid());
 
-                    SERVER.getPlayerManager().broadcast(Text.translatable("chat.manhunt.ready", Text.literal(player.getNameForScoreboard()).formatted(Formatting.GREEN)), false);
+                    server.getPlayerManager().broadcast(Text.translatable("chat.manhunt.ready", Text.literal(player.getNameForScoreboard()).formatted(Formatting.GREEN)), false);
 
                     NbtCompound nbt = new NbtCompound();
                     nbt.putBoolean("Remove", true);
@@ -79,10 +79,10 @@ public class PlayerInterfact {
 
                     player.playSoundToPlayer(SoundEvents.BLOCK_STONE_PLACE, SoundCategory.BLOCKS, 0.5F, 1.0F);
 
-                    if (READY_LIST.size() == SERVER.getPlayerManager().getPlayerList().size()) {
+                    if (READY_LIST.size() == server.getPlayerManager().getPlayerList().size()) {
                         int runners = 0;
 
-                        for (ServerPlayerEntity serverPlayer : SERVER.getPlayerManager().getPlayerList()) {
+                        for (ServerPlayerEntity serverPlayer : server.getPlayerManager().getPlayerList()) {
                             if (isRunner(serverPlayer)) {
                                 runners++;
                                 break;
@@ -90,7 +90,7 @@ public class PlayerInterfact {
                         }
 
                         if (runners == 0) {
-                            SERVER.getPlayerManager().broadcast(Text.translatable("chat.manhunt.minimum",
+                            server.getPlayerManager().broadcast(Text.translatable("chat.manhunt.minimum",
                                     Text.translatable("role.manhunt.runner")).formatted(Formatting.RED), false);
                         } else {
                             GeneralCommands.executeStart();
@@ -106,7 +106,7 @@ public class PlayerInterfact {
                 if (SPAM_PREVENTION.get(player.getUuid()) < 4) {
                     READY_LIST.remove(player.getUuid());
 
-                    SERVER.getPlayerManager().broadcast(Text.translatable("chat.manhunt.not_ready", Text.literal(player.getNameForScoreboard()).formatted(Formatting.RED)), false);
+                    server.getPlayerManager().broadcast(Text.translatable("chat.manhunt.not_ready", Text.literal(player.getNameForScoreboard()).formatted(Formatting.RED)), false);
 
                     NbtCompound nbt = new NbtCompound();
                     nbt.putBoolean("Remove", true);
@@ -128,7 +128,7 @@ public class PlayerInterfact {
                 if (notSpamming(player)) {
                     if (!isRunner(player)) {
                         makeRunner(player);
-                        SERVER.getPlayerManager().broadcast(Text.translatable("chat.manhunt.joined_team",
+                        server.getPlayerManager().broadcast(Text.translatable("chat.manhunt.joined_team",
                                 Text.literal(player.getNameForScoreboard()).formatted(Config.getConfig().gameOptions.teamColor.runnersColor),
                                 Text.translatable("role.manhunt.runners").formatted(Config.getConfig().gameOptions.teamColor.runnersColor)),
                                 false);
@@ -146,7 +146,7 @@ public class PlayerInterfact {
             }
         } else {
             if (isPlaying()) {
-                if (paused) {
+                if (isPaused) {
                     return ActionResult.FAIL;
                 } else {
                     if (isHeadstart() && isHunter(player)) {
@@ -157,7 +157,7 @@ public class PlayerInterfact {
 
             if (Config.getConfig().globalPreferences.netherLavaPvP.equals("off") || !PlayerData.get(player).netherLavaPvP) {
                 if (world.getRegistryKey() == World.NETHER && stack.getItem() == Items.LAVA_BUCKET) {
-                    for (ServerPlayerEntity serverPlayer : SERVER.getPlayerManager().getPlayerList()) {
+                    for (ServerPlayerEntity serverPlayer : server.getPlayerManager().getPlayerList()) {
                         if (player.distanceTo(serverPlayer) <= 9.0f && !player.isTeamPlayer(serverPlayer.getScoreboardTeam())) {
                             player.sendMessage(Text.translatable("chat.manhunt.disabled_if_close").formatted(Formatting.RED), false);
 
@@ -174,7 +174,7 @@ public class PlayerInterfact {
     public static ActionResult useBlock(PlayerEntity player, World world, Hand hand, HitResult hitResult) {
         if (!isPreGame()) {
             if (isPlaying()) {
-                if (paused) {
+                if (isPaused) {
                     return ActionResult.FAIL;
                 } else {
                     if (Config.getConfig().gameOptions.headStart != 0 && headStartTicks != 0 && isHunter(player)) {
@@ -186,7 +186,7 @@ public class PlayerInterfact {
             if (Config.getConfig().globalPreferences.bedExplosionsPvP.equals("off") || !PlayerData.get(player).bedExplosionsPvP) {
                 if (world.getRegistryKey() != World.OVERWORLD) {
                     if (player.getStackInHand(hand).getItem().getTranslationKey().contains("_bed")) {
-                        for (ServerPlayerEntity serverPlayer : player.getServer().getPlayerManager().getPlayerList()) {
+                        for (ServerPlayerEntity serverPlayer : server.getPlayerManager().getPlayerList()) {
                             if (player.distanceTo(serverPlayer) <= 9.0F && !player.isTeamPlayer(serverPlayer.getScoreboardTeam())) {
                                 player.sendMessage(Text.translatable("chat.manhunt.disabled_if_close").formatted(Formatting.RED), false);
 

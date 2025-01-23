@@ -4,7 +4,7 @@ import me.libreh.manhunt.Manhunt;
 import me.libreh.manhunt.mixin.world.LevelPropertiesAccessor;
 import me.libreh.manhunt.mixin.world.ServerChunkLoadingManagerAccessor;
 import me.libreh.manhunt.mixin.world.ServerChunkManagerAccessor;
-import me.libreh.manhunt.utils.Constants;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.*;
 import net.minecraft.util.Pair;
 import net.minecraft.util.Unit;
@@ -21,50 +21,67 @@ import java.util.concurrent.Executor;
 
 import static me.libreh.manhunt.Manhunt.MOD_ID;
 import static me.libreh.manhunt.utils.Fields.*;
-import static me.libreh.manhunt.utils.Methods.unzip;
+import static me.libreh.manhunt.utils.Methods.unzipLobbyWorld;
 
 public class ServerWorldController {
     public static Executor taskExecutor;
 
     private static final ChunkTicketType<Unit> TICKET_ASYNC = ChunkTicketType.create(MOD_ID + "-async", (a, b) -> 0);
 
-    public static void resetWorlds(long seed) {
-        SERVER.saveAll(false, true, true);
+    private static void tickKeepAlive(MinecraftServer server) {
+        if (server.getNetworkIo() != null) {
+            server.getNetworkIo().tick();
+        }
+    }
 
-        SERVER.saving = true;
+    public static void resetWorlds(long seed) {
+        tickKeepAlive(server);
+
+        server.saving = true;
         try {
-            SERVER.cancelTasks();
-            for (World world : SERVER.getWorlds()) {
+            server.getPlayerManager().saveAllPlayerData();
+            for (ServerWorld world : server.getWorlds()) {
+                world.getPersistentStateManager().save();
+            }
+
+            tickKeepAlive(server);
+            server.cancelTasks();
+            shouldCancelSaving = true;
+
+            for (World world : server.getWorlds()) {
                 world.close();
+                tickKeepAlive(server);
                 String[] directories = {"region", "poi", "entities"};
                 for (String dir : directories) {
-                    File file = SERVER.session.getWorldDirectory(world.getRegistryKey()).resolve(dir).toFile();
+                    File file = server.session.getWorldDirectory(world.getRegistryKey()).resolve(dir).toFile();
                     if (file.exists()) {
                         deleteRecursively(file);
                     }
                 }
+                tickKeepAlive(server);
             }
 
-            LevelPropertiesAccessor levelPropertiesAccessor = (LevelPropertiesAccessor) SERVER.getSaveProperties();
+            LevelPropertiesAccessor levelPropertiesAccessor = (LevelPropertiesAccessor) server.getSaveProperties();
             levelPropertiesAccessor.setGeneratorOptions(levelPropertiesAccessor.getGeneratorOptions().withSeed(OptionalLong.of(seed)));
-            SERVER.loadWorld();
+            server.loadWorld();
+            tickKeepAlive(server);
         } catch (IOException e) {
             Manhunt.LOGGER.info("Failed to reset", e);
         } finally {
-            SERVER.saving = false;
+            server.saving = false;
+            shouldCancelSaving = false;
         }
 
-        unzip();
+        unzipLobbyWorld();
 
-        OVERWORLD = SERVER.getWorld(World.OVERWORLD);
-        THE_NETHER = SERVER.getWorld(World.NETHER);
-        THE_END = SERVER.getWorld(World.END);
-        LOBBY = SERVER.getWorld(Constants.LOBBY_REGISTRY_KEY);
+        overworld = server.getWorld(World.OVERWORLD);
+        theNether = server.getWorld(World.NETHER);
+        theEnd = server.getWorld(World.END);
     }
 
     public static CompletableFuture<Chunk> getChunkAsync(ServerWorld world, Pair<Integer, Integer> chunk) {
-        if (!SERVER.isOnThread()) {
-            return CompletableFuture.supplyAsync(() -> getChunkAsync(world, chunk), SERVER).thenCompose(chunkFuture -> chunkFuture);
+        if (!server.isOnThread()) {
+            return CompletableFuture.supplyAsync(() -> getChunkAsync(world, chunk), server).thenCompose(chunkFuture -> chunkFuture);
         }
 
         ServerChunkManager chunkManager = world.getChunkManager();

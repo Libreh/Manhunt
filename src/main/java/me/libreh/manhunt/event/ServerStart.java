@@ -31,23 +31,23 @@ public class ServerStart {
         gameRules.get(GameRules.SPECTATORS_GENERATE_CHUNKS).set(false, server);
         gameRules.get(GameRules.DO_IMMEDIATE_RESPAWN).set(true, server);
 
-        RUNNERS_TEAM = SCOREBOARD.addTeam("runners");
-        RUNNERS_TEAM.setCollisionRule(AbstractTeam.CollisionRule.NEVER);
-        RUNNERS_TEAM.setShowFriendlyInvisibles(true);
-        RUNNERS_TEAM.getPlayerList().clear();
+        runnersTeam = scoreboard.addTeam("runners");
+        runnersTeam.setCollisionRule(AbstractTeam.CollisionRule.NEVER);
+        runnersTeam.setShowFriendlyInvisibles(true);
+        runnersTeam.getPlayerList().clear();
 
-        HUNTERS_TEAM = SCOREBOARD.addTeam("hunters");
-        HUNTERS_TEAM.setCollisionRule(AbstractTeam.CollisionRule.NEVER);
-        HUNTERS_TEAM.setShowFriendlyInvisibles(true);
-        HUNTERS_TEAM.getPlayerList().clear();
+        huntersTeam = scoreboard.addTeam("hunters");
+        huntersTeam.setCollisionRule(AbstractTeam.CollisionRule.NEVER);
+        huntersTeam.setShowFriendlyInvisibles(true);
+        huntersTeam.getPlayerList().clear();
 
         if (Config.getConfig().gameOptions.teamColor.enabled) {
-            RUNNERS_TEAM.setColor(Config.getConfig().gameOptions.teamColor.runnersColor);
-            HUNTERS_TEAM.setColor(Config.getConfig().gameOptions.teamColor.huntersColor);
+            runnersTeam.setColor(Config.getConfig().gameOptions.teamColor.runnersColor);
+            huntersTeam.setColor(Config.getConfig().gameOptions.teamColor.huntersColor);
 
         } else {
-            RUNNERS_TEAM.setColor(Formatting.RESET);
-            HUNTERS_TEAM.setColor(Formatting.RESET);
+            runnersTeam.setColor(Formatting.RESET);
+            huntersTeam.setColor(Formatting.RESET);
         }
     }
 }

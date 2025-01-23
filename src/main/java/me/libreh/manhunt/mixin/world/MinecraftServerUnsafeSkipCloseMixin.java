@@ -1,6 +1,5 @@
 package me.libreh.manhunt.mixin.world;
 
-import me.libreh.manhunt.utils.Methods;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.minecraft.server.MinecraftServer;
 import org.slf4j.Logger;
@@ -10,6 +9,8 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+import static me.libreh.manhunt.utils.Methods.deleteWorld;
 
 @Mixin(MinecraftServer.class)
 public abstract class MinecraftServerUnsafeSkipCloseMixin {
@@ -28,7 +29,7 @@ public abstract class MinecraftServerUnsafeSkipCloseMixin {
         }
 
         // finally, delete the world files before restarting
-        Methods.deleteWorld();
+        deleteWorld();
 
         // immediately halt the JVM (like System.exit(0) but *worse!*)
         Runtime.getRuntime().halt(0);

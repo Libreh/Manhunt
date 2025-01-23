@@ -15,24 +15,23 @@ import java.util.concurrent.CompletableFuture;
 
 public class Fields {
     public static GameState gameState = GameState.PREGAME;
-    public static MinecraftServer SERVER;
-    public static Scoreboard SCOREBOARD;
-    public static Team RUNNERS_TEAM;
-    public static Team HUNTERS_TEAM;
+    public static MinecraftServer server;
+    public static Scoreboard scoreboard;
+    public static Team runnersTeam;
+    public static Team huntersTeam;
     public static List<UUID> presetModeList = new LinkedList<>();
 
-    public static ServerWorld OVERWORLD;
-    public static ServerWorld THE_NETHER;
-    public static ServerWorld THE_END;
-    public static ServerWorld LOBBY;
+    public static ServerWorld overworld;
+    public static ServerWorld theNether;
+    public static ServerWorld theEnd;
     public static List<CompletableFuture<Chunk>> chunkFutureList = new ArrayList<>();
 
     public static boolean shouldEnd;
-    public static boolean paused;
+    public static boolean isPaused;
     public static int headStartTicks;
     public static int timeLimitTicks;
     public static int pauseTicks;
     public static boolean canStart;
-    public static boolean firstReset = true;
     public static int tickCount;
+    public static boolean shouldCancelSaving;
 }

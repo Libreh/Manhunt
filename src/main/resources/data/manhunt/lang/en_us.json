@@ -50,7 +50,7 @@
   "lore.manhunt.always": "Always",
   "lore.manhunt.per_player": "Per player",
   "lore.manhunt.never": "Never",
-  "lore.manhunt.runners_preference": "Runner's Preference",
+  "lore.manhunt.per_runner": "Per Runner",
   "lore.manhunt.preload_distance": "Preloads the terrain around spawn",
   "lore.manhunt.preload_distance.second": "in the background before teleporting players",
   "lore.manhunt.preset_mode": "Distributes the amount of players",

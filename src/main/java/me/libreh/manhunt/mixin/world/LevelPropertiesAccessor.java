@@ -10,7 +10,6 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 public interface LevelPropertiesAccessor {
     @Accessor("generatorOptions")
     GeneratorOptions getGeneratorOptions();
-
     @Mutable @Accessor("generatorOptions")
     void setGeneratorOptions(GeneratorOptions generatorOptions);
 }

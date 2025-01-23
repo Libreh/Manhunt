@@ -36,7 +36,7 @@ public class ConfigGui {
 
         configGui.setSlot(slot, new GuiElementBuilder(item)
                 .setName(Text.translatable("config.manhunt." + name))
-                .setCallback((index, type, action) -> GlobalPreferences.openGlobalPreferencesGui(player)));
+                .setCallback((index, type, action) -> GlobalPreferencesGui.openGlobalPreferencesGui(player)));
         slot++;
 
         name = "mod_integrations";

@@ -17,6 +17,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import static me.libreh.manhunt.utils.Fields.server;
+
 @Mixin(BedBlock.class)
 public class BedBlockMixin {
     @Inject(method = "onUse", at = @At("HEAD"), cancellable = true)
@@ -24,7 +26,7 @@ public class BedBlockMixin {
                                         BlockHitResult hit, CallbackInfoReturnable<ActionResult> cir) {
         if (Config.getConfig().globalPreferences.bedExplosionsPvP.equals("off") || !PlayerData.get(player).bedExplosionsPvP) {
             if (world.getRegistryKey() != World.OVERWORLD) {
-                for (ServerPlayerEntity serverPlayer : player.getServer().getPlayerManager().getPlayerList()) {
+                for (ServerPlayerEntity serverPlayer : server.getPlayerManager().getPlayerList()) {
                     if (player.distanceTo(serverPlayer) <= 9.0F && !player.isTeamPlayer(serverPlayer.getScoreboardTeam())) {
                         player.sendMessage(Text.translatable("chat.manhunt.disabled_if_close").formatted(Formatting.RED), false);
 

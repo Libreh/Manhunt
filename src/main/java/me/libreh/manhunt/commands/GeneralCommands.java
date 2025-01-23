@@ -32,7 +32,7 @@ import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
 
 public class GeneralCommands {
-    public static long seed = Random.create().nextLong();
+    public static long seed;
     public static String duration;
 
     public static void manhuntCommand(CommandDispatcher<ServerCommandSource> dispatcher) {
@@ -51,11 +51,12 @@ public class GeneralCommands {
     public static void startCommand(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(literal("start")
                 .requires(source -> isPreGame() && requirePermissionOrOperator(source, "manhunt.start"))
-                .executes(context -> checkStart(context.getSource())));
+                .executes(context -> checkStart(context.getSource()))
+        );
     }
 
     public static void executeStart() {
-        ServerWorldController.taskExecutor = new ServerTaskExecutor(SERVER);
+        ServerWorldController.taskExecutor = new ServerTaskExecutor(server);
 
         changeState(GameState.PRELOADING);
 
@@ -69,7 +70,7 @@ public class GeneralCommands {
             }
         }
 
-        var spawnPos = OVERWORLD.getSpawnPos();
+        var spawnPos = overworld.getSpawnPos();
         Set<Pair<Integer, Integer>> chunks = new HashSet<>();
         Pair<Integer, Integer> spawnpos = new Pair<>(spawnPos.getX(), spawnPos.getZ());
         for (Pair<Integer, Integer> offset : chunkOffsets) {
@@ -78,7 +79,7 @@ public class GeneralCommands {
 
         List<CompletableFuture<Chunk>> futures = new ArrayList<>();
         for (Pair<Integer, Integer> chunk : chunks) {
-            CompletableFuture<Chunk> future = ServerWorldController.getChunkAsync(OVERWORLD, chunk);
+            CompletableFuture<Chunk> future = ServerWorldController.getChunkAsync(overworld, chunk);
             futures.add(future);
         }
 
@@ -99,7 +100,7 @@ public class GeneralCommands {
     private static int checkStart(ServerCommandSource source) {
         int runners = 0;
 
-        for (ServerPlayerEntity player : SERVER.getPlayerManager().getPlayerList()) {
+        for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
             if (isRunner(player)) {
                 runners++;
                 break;
@@ -107,12 +108,12 @@ public class GeneralCommands {
         }
 
         if (runners != 0) {
-            var saveProperties = SERVER.getSaveProperties();
+            var saveProperties = server.getSaveProperties();
             var worldProperties = saveProperties.getMainWorldProperties();
             var generatorOptions = saveProperties.getGeneratorOptions();
 
-            MinecraftServer.setupSpawn(OVERWORLD, worldProperties, generatorOptions.hasBonusChest(), saveProperties.isDebugWorld());
-            OVERWORLD.setSpawnPos(OVERWORLD.getSpawnPos(), 0.0F);
+            MinecraftServer.setupSpawn(overworld, worldProperties, generatorOptions.hasBonusChest(), saveProperties.isDebugWorld());
+            overworld.setSpawnPos(overworld.getSpawnPos(), 0.0F);
 
             if (Config.getConfig().gameOptions.preloadDistance != 0) {
                 executeStart();
@@ -169,7 +170,7 @@ public class GeneralCommands {
     public static void setDuration() {
         if (gameState != PREGAME) {
             String hoursString;
-            int hours = (int) Math.floor((double) OVERWORLD.getTime() % (20 * 60 * 60 * 24) / (20 * 60 * 60));
+            int hours = (int) Math.floor((double) overworld.getTime() % (20 * 60 * 60 * 24) / (20 * 60 * 60));
 
             if (hours <= 9) {
                 hoursString = "0" + hours;
@@ -178,7 +179,7 @@ public class GeneralCommands {
             }
 
             String minutesString;
-            int minutes = (int) Math.floor((double) OVERWORLD.getTime() % (20 * 60 * 60) / (20 * 60));
+            int minutes = (int) Math.floor((double) overworld.getTime() % (20 * 60 * 60) / (20 * 60));
 
             if (minutes <= 9) {
                 minutesString = "0" + minutes;
@@ -187,7 +188,7 @@ public class GeneralCommands {
             }
 
             String secondsString;
-            int seconds = (int) Math.floor((double) OVERWORLD.getTime() % (20 * 60) / (20));
+            int seconds = (int) Math.floor((double) overworld.getTime() % (20 * 60) / (20));
 
             if (seconds <= 9) {
                 secondsString = "0" + seconds;

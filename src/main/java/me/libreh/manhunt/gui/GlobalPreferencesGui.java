@@ -16,9 +16,8 @@ import java.util.List;
 
 import static me.libreh.manhunt.utils.Constants.*;
 import static me.libreh.manhunt.utils.Methods.playerPermissionOrOperator;
-import static me.libreh.manhunt.utils.Methods.requirePermissionOrOperator;
 
-public class GlobalPreferences {
+public class GlobalPreferencesGui {
     public static void openGlobalPreferencesGui(ServerPlayerEntity player) {
         SimpleGui globalPreferencesGui = new SimpleGui(ScreenHandlerType.GENERIC_9X1, player, false);
 
@@ -245,19 +244,19 @@ public class GlobalPreferences {
         if (stringvalue.equals("on")) {
             loreList.add(Text.translatable("lore.manhunt.triple",
                     Text.translatable("lore.manhunt.on").formatted(Formatting.GREEN),
-                    Text.translatable("lore.manhunt.runners_preference"),
+                    Text.translatable("lore.manhunt." + PER_RUNNER),
                     Text.translatable("lore.manhunt.off")
             ).styled(style -> style.withColor(Formatting.GRAY).withItalic(false)));
-        } else if (stringvalue.equals(RUNNERS_PREFERENCE)) {
+        } else if (stringvalue.equals(PER_RUNNER)) {
             loreList.add(Text.translatable("lore.manhunt.triple",
                     Text.translatable("lore.manhunt.on"),
-                    Text.translatable("lore.manhunt.runners_preference").formatted(Formatting.YELLOW),
+                    Text.translatable("lore.manhunt." + PER_RUNNER).formatted(Formatting.YELLOW),
                     Text.translatable("lore.manhunt.off")
             ).styled(style -> style.withColor(Formatting.GRAY).withItalic(false)));
         } else {
             loreList.add(Text.translatable("lore.manhunt.triple",
                     Text.translatable("lore.manhunt.on"),
-                    Text.translatable("lore.manhunt.runners_preferences"),
+                    Text.translatable("lore.manhunt." + PER_RUNNER),
                     Text.translatable("lore.manhunt.off").formatted(Formatting.RED)
             ).styled(style -> style.withColor(Formatting.GRAY).withItalic(false)));
         }
@@ -278,8 +277,8 @@ public class GlobalPreferences {
                                 Config.getConfig().globalPreferences.bedExplosionsPvP = Config.getConfig().bedExplosionsPvPDefault;
                             } else {
                                 if (bedExplosionsPvP.equals("on")) {
-                                    Config.getConfig().globalPreferences.bedExplosionsPvP = RUNNERS_PREFERENCE;
-                                } else if (bedExplosionsPvP.equals(RUNNERS_PREFERENCE)) {
+                                    Config.getConfig().globalPreferences.bedExplosionsPvP = PER_RUNNER;
+                                } else if (bedExplosionsPvP.equals(PER_RUNNER)) {
                                     Config.getConfig().globalPreferences.bedExplosionsPvP = "off";
                                 } else {
                                     Config.getConfig().globalPreferences.bedExplosionsPvP = "on";
@@ -318,19 +317,19 @@ public class GlobalPreferences {
         if (stringvalue.equals("on")) {
             loreList.add(Text.translatable("lore.manhunt.triple",
                     Text.translatable("lore.manhunt.on").formatted(Formatting.GREEN),
-                    Text.translatable("lore.manhunt.runners_preference"),
+                    Text.translatable("lore.manhunt." + PER_RUNNER),
                     Text.translatable("lore.manhunt.off")
             ).styled(style -> style.withColor(Formatting.GRAY).withItalic(false)));
-        } else if (stringvalue.equals(RUNNERS_PREFERENCE)) {
+        } else if (stringvalue.equals(PER_RUNNER)) {
             loreList.add(Text.translatable("lore.manhunt.triple",
                     Text.translatable("lore.manhunt.on"),
-                    Text.translatable("lore.manhunt.runners_preference").formatted(Formatting.YELLOW),
+                    Text.translatable("lore.manhunt." + PER_RUNNER).formatted(Formatting.YELLOW),
                     Text.translatable("lore.manhunt.off")
             ).styled(style -> style.withColor(Formatting.GRAY).withItalic(false)));
         } else {
             loreList.add(Text.translatable("lore.manhunt.triple",
                     Text.translatable("lore.manhunt.on"),
-                    Text.translatable("lore.manhunt.runners_preferences"),
+                    Text.translatable("lore.manhunt." + PER_RUNNER),
                     Text.translatable("lore.manhunt.off").formatted(Formatting.RED)
             ).styled(style -> style.withColor(Formatting.GRAY).withItalic(false)));
         }
@@ -351,8 +350,8 @@ public class GlobalPreferences {
                                 Config.getConfig().globalPreferences.netherLavaPvP = Config.getConfig().netherLavaPvPDefault;
                             } else {
                                 if (netherLavaPvP.equals("on")) {
-                                    Config.getConfig().globalPreferences.netherLavaPvP = RUNNERS_PREFERENCE;
-                                } else if (netherLavaPvP.equals(RUNNERS_PREFERENCE)) {
+                                    Config.getConfig().globalPreferences.netherLavaPvP = PER_RUNNER;
+                                } else if (netherLavaPvP.equals(PER_RUNNER)) {
                                     Config.getConfig().globalPreferences.netherLavaPvP = "off";
                                 } else {
                                     Config.getConfig().globalPreferences.netherLavaPvP = "on";
@@ -396,7 +395,7 @@ public class GlobalPreferences {
         } else {
             loreList.add(Text.translatable("lore.manhunt.triple",
                     Text.translatable("lore.manhunt.always"),
-                    Text.translatable("lore.manhunt.runners_preferences"),
+                    Text.translatable("lore.manhunt.per_player"),
                     Text.translatable("lore.manhunt.never").formatted(Formatting.RED)
             ).styled(style -> style.withColor(Formatting.GRAY).withItalic(false)));
         }
@@ -462,7 +461,7 @@ public class GlobalPreferences {
         } else {
             loreList.add(Text.translatable("lore.manhunt.triple",
                     Text.translatable("lore.manhunt.always"),
-                    Text.translatable("lore.manhunt.runners_preferences"),
+                    Text.translatable("lore.manhunt.per_player"),
                     Text.translatable("lore.manhunt.never").formatted(Formatting.RED)
             ).styled(style -> style.withColor(Formatting.GRAY).withItalic(false)));
         }

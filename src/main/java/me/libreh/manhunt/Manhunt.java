@@ -19,9 +19,18 @@ import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.fabric.api.event.player.UseItemCallback;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.util.ActionResult;
+import net.minecraft.world.World;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+import static me.libreh.manhunt.utils.Constants.GAME_DIR;
 import static me.libreh.manhunt.utils.Fields.*;
 import static me.libreh.manhunt.utils.Methods.*;
 
@@ -33,9 +42,16 @@ public class Manhunt implements ModInitializer {
     public void onInitialize() {
         Config.loadConfig();
         PlayerDataApi.register(PlayerData.STORAGE);
-
-        deleteWorld();
-        unzip();
+        try {
+            FileUtils.deleteDirectory(GAME_DIR.resolve("world/datapacks/manhunt").toFile());
+            Path datapackPath = GAME_DIR.resolve("world/datapacks/manhunt.zip");
+            datapackPath.getParent().toFile().mkdirs();
+            Files.deleteIfExists(datapackPath);
+            Files.createFile(datapackPath);
+            IOUtils.copy(Manhunt.class.getResourceAsStream("/manhunt/datapack.zip"), new FileOutputStream(datapackPath.toFile()));
+        } catch (IOException e) {
+            LOGGER.error("Failed to add datapack", e);
+        }
 
         CommandRegistrationCallback.EVENT.register((dispatcher, access, environment) -> {
             CoordsCommands.coordsCommand(dispatcher); CoordsCommands.listCoordsCommands(dispatcher);
@@ -56,22 +72,24 @@ public class Manhunt implements ModInitializer {
         });
 
         ServerLifecycleEvents.SERVER_STARTED.register(minecraftServer -> {
-            SERVER = minecraftServer;
-            SCOREBOARD = SERVER.getScoreboard();
-            ServerStart.serverStart(SERVER);
+            unzipLobbyWorld();
+            server = minecraftServer;
+            scoreboard = server.getScoreboard();
+            overworld = minecraftServer.getWorld(World.OVERWORLD);
+            theNether = minecraftServer.getWorld(World.NETHER);
+            theEnd = minecraftServer.getWorld(World.END);
+            ServerStart.serverStart(server);
         });
         ServerTickEvents.START_SERVER_TICK.register(ServerTick::serverTick);
-
         ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> PlayerState.playerRespawn(oldPlayer));
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> PlayerState.playerJoin(handler));
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> PlayerState.playerLeave(handler));
-
         UseItemCallback.EVENT.register(PlayerInterfact::useItem);
         UseBlockCallback.EVENT.register(PlayerInterfact::useBlock);
 
         PlayerBlockBreakEvents.BEFORE.register((world, player, pos, state, blockEntity) -> {
             if (isPlaying()) {
-                if (paused) {
+                if (isPaused) {
                     return false;
                 } else {
                     return headStartTicks == 0 || !isHunter(player);
@@ -81,7 +99,7 @@ public class Manhunt implements ModInitializer {
         });
         AttackEntityCallback.EVENT.register((player, world, hand, entity, hitResult) -> {
             if (isPlaying()) {
-                if (paused) {
+                if (isPaused) {
                     return ActionResult.FAIL;
                 } else {
                     if (headStartTicks != 0 && isHunter(player)) {

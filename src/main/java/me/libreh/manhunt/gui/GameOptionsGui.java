@@ -49,28 +49,28 @@ public class GameOptionsGui {
                 .withColor(Formatting.GRAY).withItalic(false))
         );
         loreList.add(Text.empty());
-        if (intvalue != 0 && intvalue != 5 && intvalue != 10) {
+        if (intvalue != 4 && intvalue != 8 && intvalue != 12) {
             loreList.add(Text.translatable("lore.manhunt.single", Text.literal(String.valueOf(intvalue)).formatted(Formatting.GREEN))
                     .styled(style -> style.withColor(Formatting.GRAY).withItalic(false))
             );
         } else {
-            if (intvalue == 0) {
+            if (intvalue == 4) {
                 loreList.add(Text.translatable("lore.manhunt.triple",
-                        Text.translatable("lore.manhunt.off").formatted(Formatting.RED),
-                        Text.literal("5"),
-                        Text.literal("10")
+                        Text.literal("4").formatted(Formatting.RED),
+                        Text.literal("8"),
+                        Text.literal("12")
                 ).styled(style -> style.withColor(Formatting.GRAY).withItalic(false)));
-            } else if (intvalue == 5) {
+            } else if (intvalue == 8) {
                 loreList.add(Text.translatable("lore.manhunt.triple",
-                        Text.translatable("lore.manhunt.off"),
-                        Text.literal("5").formatted(Formatting.YELLOW),
-                        Text.literal("10")
+                        Text.literal("4"),
+                        Text.literal("8").formatted(Formatting.YELLOW),
+                        Text.literal("12")
                 ).styled(style -> style.withColor(Formatting.GRAY).withItalic(false)));
             } else {
                 loreList.add(Text.translatable("lore.manhunt.triple",
-                        Text.translatable("lore.manhunt.off"),
-                        Text.literal("5"),
-                        Text.literal("10").formatted(Formatting.GREEN)
+                        Text.literal("4"),
+                        Text.literal("8"),
+                        Text.literal("12").formatted(Formatting.GREEN)
                 ).styled(style -> style.withColor(Formatting.GRAY).withItalic(false)));
             }
         }
@@ -95,13 +95,13 @@ public class GameOptionsGui {
                                 if (type == ClickType.DROP) {
                                     Config.getConfig().gameOptions.preloadDistance = Config.getConfig().preloadDistanceDefault;
                                 } else {
-                                    if (preloadDistance != 0 && preloadDistance != 5) {
-                                        Config.getConfig().gameOptions.preloadDistance = 0;
+                                    if (preloadDistance != 4 && preloadDistance != 8) {
+                                        Config.getConfig().gameOptions.preloadDistance = 4;
                                     } else {
-                                        if (preloadDistance == 0) {
-                                            Config.getConfig().gameOptions.preloadDistance = 5;
+                                        if (preloadDistance == 4) {
+                                            Config.getConfig().gameOptions.preloadDistance = 8;
                                         } else {
-                                            Config.getConfig().gameOptions.preloadDistance = 10;
+                                            Config.getConfig().gameOptions.preloadDistance = 12;
                                         }
                                     }
                                 }
@@ -469,7 +469,7 @@ public class GameOptionsGui {
                             .setCallback(() -> {
                                 Config.getConfig().gameOptions.presetMode = "equal_split";
                                 equalSplit();
-                                SERVER.getPlayerManager().broadcast(Text.translatable("chat.manhunt.equal_split",
+                                server.getPlayerManager().broadcast(Text.translatable("chat.manhunt.equal_split",
                                         Text.translatable("role.manhunt.hunters").formatted(Config.getConfig().gameOptions.teamColor.huntersColor),
                                         Text.translatable("role.manhunt.runners").formatted(Config.getConfig().gameOptions.teamColor.runnersColor)),
                                         false
@@ -483,7 +483,7 @@ public class GameOptionsGui {
                             .setCallback(() -> {
                                 Config.getConfig().gameOptions.presetMode = "speedrun_showdown";
                                 speedrunShowdown();
-                                SERVER.getPlayerManager().broadcast(Text.translatable("chat.manhunt.set_role",
+                                server.getPlayerManager().broadcast(Text.translatable("chat.manhunt.set_role",
                                         Text.literal("Everyone").formatted(Config.getConfig().gameOptions.teamColor.runnersColor),
                                         Text.translatable("role.manhunt.runner").formatted(Config.getConfig().gameOptions.teamColor.runnersColor)),
                                         false
@@ -497,8 +497,8 @@ public class GameOptionsGui {
                             .setCallback(() -> {
                                 Config.getConfig().gameOptions.presetMode = "runner_cycle";
                                 runnerCycle();
-                                String runnerName = RUNNERS_TEAM.getPlayerList().iterator().next();
-                                SERVER.getPlayerManager().broadcast(Text.translatable("chat.manhunt.one_role",
+                                String runnerName = runnersTeam.getPlayerList().iterator().next();
+                                server.getPlayerManager().broadcast(Text.translatable("chat.manhunt.one_role",
                                         Text.literal(runnerName).formatted(Config.getConfig().gameOptions.teamColor.runnersColor),
                                         Text.translatable("role.manhunt.runner").formatted(Config.getConfig().gameOptions.teamColor.runnersColor)),
                                         false
@@ -512,8 +512,8 @@ public class GameOptionsGui {
                             .setCallback(() -> {
                                 Config.getConfig().gameOptions.presetMode = "hunter_infection";
                                 hunterInfection();
-                                String hunterName = HUNTERS_TEAM.getPlayerList().iterator().next();
-                                SERVER.getPlayerManager().broadcast(Text.translatable("chat.manhunt.one_role",
+                                String hunterName = huntersTeam.getPlayerList().iterator().next();
+                                server.getPlayerManager().broadcast(Text.translatable("chat.manhunt.one_role",
                                         Text.literal(hunterName).formatted(Config.getConfig().gameOptions.teamColor.huntersColor),
                                         Text.translatable("role.manhunt.hunter").formatted(Config.getConfig().gameOptions.teamColor.huntersColor)),
                                         false
@@ -592,7 +592,7 @@ public class GameOptionsGui {
 
                                             openGameOptionsGui(player);
                                         } else {
-                                            var hunters = HUNTERS_TEAM;
+                                            var hunters = huntersTeam;
                                             var huntersColorGui = new SimpleGui(ScreenHandlerType.GENERIC_9X2, player, false);
                                             huntersColorGui.setTitle(Text.translatable("config.manhunt.hunters_color"));
                                             Config.saveConfig();
@@ -791,7 +791,7 @@ public class GameOptionsGui {
                                             ConfigGui.playUISound(player);
                                             openGameOptionsGui(player);
                                         } else {
-                                            var runners = RUNNERS_TEAM;
+                                            var runners = runnersTeam;
                                             var runnersColorGui = new SimpleGui(ScreenHandlerType.GENERIC_9X2, player, false);
                                             runnersColorGui.setTitle(Text.translatable("config.manhunt.runners_color"));
                                             Config.saveConfig();

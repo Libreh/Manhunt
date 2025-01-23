@@ -20,7 +20,7 @@ import static net.minecraft.server.command.CommandManager.literal;
 public class PauseCommands {
     public static void pauseCommand(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(literal("pause")
-                .requires(source -> !paused && isPlaying() && requirePermissionOrOperator(source, "manhunt.pause"))
+                .requires(source -> !isPaused && isPlaying() && requirePermissionOrOperator(source, "manhunt.pause"))
                 .executes(context -> pauseCommand(5))
                 .then(argument("minutes", IntegerArgumentType.integer())
                         .executes(context -> pauseCommand(IntegerArgumentType.getInteger(context, "minutes")))));
@@ -33,13 +33,13 @@ public class PauseCommands {
     }
 
     public static void pauseGame(int minutes) {
-        paused = true;
+        isPaused = true;
 
         pauseTicks = minutes * 60 * 20;
 
-        SERVER.getTickManager().setFrozen(true);
+        server.getTickManager().setFrozen(true);
 
-        for (ServerPlayerEntity player : SERVER.getPlayerManager().getPlayerList()) {
+        for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
             player.playSoundToPlayer(SoundEvents.BLOCK_ANVIL_LAND, SoundCategory.MASTER, 0.1f, 0.5f);
 
             if (!player.getStatusEffects().isEmpty()) {
@@ -65,7 +65,7 @@ public class PauseCommands {
 
     public static void unpauseCommand(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(literal("unpause")
-                .requires(source -> paused && isPlaying() && requirePermissionOrOperator(source, "manhunt.unpause"))
+                .requires(source -> isPaused && isPlaying() && requirePermissionOrOperator(source, "manhunt.unpause"))
                 .executes(context -> unpauseCommand())
         );
     }
@@ -77,11 +77,11 @@ public class PauseCommands {
     }
 
     public static void unpauseGame() {
-        paused = false;
+        isPaused = false;
 
-        SERVER.getTickManager().setFrozen(false);
+        server.getTickManager().setFrozen(false);
 
-        for (ServerPlayerEntity player : SERVER.getPlayerManager().getPlayerList()) {
+        for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
             player.playSoundToPlayer(SoundEvents.BLOCK_ANVIL_LAND, SoundCategory.MASTER, 0.1f, 1.5f);
 
             resetAttributes(player);

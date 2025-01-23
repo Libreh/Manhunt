@@ -45,5 +45,5 @@ public class Constants {
     public static final HashMap<UUID, Collection<StatusEffectInstance>> SAVED_EFFECTS = new HashMap<>();
 
     public static final String PER_PLAYER = "per_player";
-    public static final String RUNNERS_PREFERENCE = "runners_preference";
+    public static final String PER_RUNNER = "per_runner";
 }

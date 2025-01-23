@@ -12,8 +12,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import static me.libreh.manhunt.utils.Fields.HUNTERS_TEAM;
 import static me.libreh.manhunt.utils.Fields.headStartTicks;
+import static me.libreh.manhunt.utils.Fields.huntersTeam;
 
 @Mixin(LivingEntity.class)
 public abstract class CancelDamageMixin extends Entity {
@@ -30,6 +30,6 @@ public abstract class CancelDamageMixin extends Entity {
 
     @Unique
     private boolean shouldCancelDamage() {
-        return headStartTicks != 0 && this.isTeamPlayer(HUNTERS_TEAM);
+        return headStartTicks != 0 && this.isTeamPlayer(huntersTeam);
     }
 }
