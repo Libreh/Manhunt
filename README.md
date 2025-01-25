@@ -1,13 +1,10 @@
-# IMPORTANT LICENSE NOTICE
-By using this project in any form, you hereby give your "express assent" for the terms of the license of this project (see [LICENSE](https://raw.githubusercontent.com/Libreh/Manhunt/refs/heads/main/LICENSE)), and acknowledge that I (the author of this project) have fulfilled my obligation under the license to "make a reasonable effort under the circumstances to obtain the express assent of recipients to the terms of this License".
- 
 # Manhunt
 A server-side Manhunt mod for Fabric.
 
 ```txt
 ⚠️⚠️⚠️ WARNING ⚠️⚠️⚠️
 This mod DELETES WORLD FILES on startup and shutdown!
-You can customize this with the "files_to_reset" config property
+You can customize this with the "filesToReset" config property
 ```
 
 ## Commands (and permissions):
@@ -65,8 +62,8 @@ All permissions are available with `manhunt.operator`
     "announceDuration": "per_player"
   },
   "modIntegrations": {
+    // Vanilla settings and gamerules
     "vanillaIntegration": {
-      // Vanilla settings and gamerules
       "enabled": true,
       "difficulty": "NORMAL",
       "borderSize": 59999968,

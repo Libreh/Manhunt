@@ -29,7 +29,7 @@ public class Config {
     public ModIntegrations modIntegrations = new ModIntegrations();
     
     public static class GameOptions {
-        public int preloadDistance = 5;
+        public int preloadDistance = 4;
         public String presetMode = "free_select";
         public TeamColor teamColor = new TeamColor();
         public int headStart = 0;

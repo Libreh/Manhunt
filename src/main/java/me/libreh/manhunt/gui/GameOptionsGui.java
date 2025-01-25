@@ -676,7 +676,7 @@ public class GameOptionsGui {
                                                     .setName(Text.translatable("text.manhunt.go_back")
                                                             .formatted(Formatting.WHITE)
                                                     )
-                                                    .setCallback(() -> openGameOptionsGui(player))
+                                                    .setCallback(() -> openTeamColorGui(player, clickType, boolvalue))
                                             );
 
                                             huntersColorGui.setSlot(9, new GuiElementBuilder(Items.LIME_WOOL)
@@ -876,7 +876,7 @@ public class GameOptionsGui {
                                                     .setName(Text.translatable("text.manhunt.go_back")
                                                             .formatted(Formatting.WHITE)
                                                     )
-                                                    .setCallback(() -> openGameOptionsGui(player))
+                                                    .setCallback(() -> openTeamColorGui(player, clickType, boolvalue))
                                             );
 
                                             runnersColorGui.setSlot(9, new GuiElementBuilder(Items.LIME_WOOL)
