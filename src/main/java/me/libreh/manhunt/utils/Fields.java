@@ -34,4 +34,5 @@ public class Fields {
     public static boolean canStart;
     public static int tickCount;
     public static boolean shouldCancelSaving;
+    public static int startTicks;
 }

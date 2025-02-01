@@ -55,7 +55,7 @@ public class ServerTick {
         }
 
         if (isPreGame()) {
-            if (canStart) {
+            if (canStart && startTicks >= 100) {
                 int runners = 0;
 
                 for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
@@ -73,6 +73,15 @@ public class ServerTick {
                     server.getPlayerManager().broadcast(Text.translatable("chat.manhunt.minimum",
                             Text.translatable("role.manhunt.runner")).formatted(Formatting.RED), false);
                 }
+            }
+
+            tickCount++;
+            if (tickCount == 19) {
+                if (startTicks < 100) {
+                    startTicks += 20;
+                }
+
+                tickCount = 0;
             }
         } else if (isPlaying()) {
             if (shouldEnd) {
@@ -116,8 +125,7 @@ public class ServerTick {
                         for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
                             player.networkHandler.sendPacket(new TitleFadeS2CPacket(0, 20, 5));
                             player.networkHandler.sendPacket(new TitleS2CPacket(Text.translatable("title.manhunt.paused").formatted(Formatting.YELLOW)));
-                            player.networkHandler.sendPacket(new SubtitleS2CPacket(Text.translatable("chat.manhunt.time.triple",
-                                            hoursString, minutesString, secondsString).formatted(Formatting.GOLD)));
+                            player.networkHandler.sendPacket(new SubtitleS2CPacket(Text.translatable("chat.manhunt.time.triple", hoursString, minutesString, secondsString).formatted(Formatting.GOLD)));
                         }
                     }
                 } else {
@@ -153,8 +161,7 @@ public class ServerTick {
 
                         if (headStartTicks == 0 && Config.getConfig().gameOptions.timeLimit != 0) {
                             for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
-                                player.sendMessage(Text.translatable("chat.manhunt.time.triple",
-                                        hoursString, minutesString, secondsString).styled(style -> style.withBold(true)), true);
+                                player.sendMessage(Text.translatable("chat.manhunt.time.triple", hoursString, minutesString, secondsString).styled(style -> style.withBold(true)), true);
                             }
                         }
 
@@ -202,8 +209,7 @@ public class ServerTick {
                         }
 
                         for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
-                            player.sendMessage(Text.translatable("chat.manhunt.head_start",
-                                    Text.literal(String.valueOf(seconds))).styled(style -> style.withColor(color)), true);
+                            player.sendMessage(Text.translatable("chat.manhunt.head_start", Text.literal(String.valueOf(seconds))).styled(style -> style.withColor(color)), true);
                             if (pitch != 0.0F) {
                                 player.playSoundToPlayer(SoundEvents.BLOCK_NOTE_BLOCK_BASS.value(), SoundCategory.MASTER, 0.5F, pitch);
                             }
@@ -217,7 +223,6 @@ public class ServerTick {
                         }
                     }
                 }
-
                 tickCount = 0;
             }
         }
@@ -274,152 +279,149 @@ public class ServerTick {
                     updateGameMode(player, true);
                 }
 
-                if (!hasItem(player, Items.PLAYER_HEAD)) {
-                    var nbt = new NbtCompound();
-                    nbt.putBoolean("Remove", true);
-
-                    var stack = new ItemStack(Items.PLAYER_HEAD);
-                    stack.set(DataComponentTypes.CUSTOM_NAME, Text.translatable("item.manhunt.preferences")
-                            .styled(style -> style.withColor(Formatting.YELLOW).withItalic(false)));
-                    stack.set(DataComponentTypes.HIDE_ADDITIONAL_TOOLTIP, Unit.INSTANCE);
-                    stack.set(DataComponentTypes.PROFILE, new ProfileComponent(player.getGameProfile()));
-                    stack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(nbt));
-
-                    player.getInventory().setStack(0, stack);
-                } else {
-                    removeDuplicateItems(player, Items.PLAYER_HEAD, 0);
-                }
-
-                if (Config.getConfig().gameOptions.presetMode.equals("free_select")) {
-                    if (!hasItem(player, Items.RECOVERY_COMPASS)) {
+                if (player.isAlive()) {
+                    if (!hasItem(player, Items.PLAYER_HEAD)) {
                         var nbt = new NbtCompound();
                         nbt.putBoolean("Remove", true);
 
-                        var stack = new ItemStack(Items.RECOVERY_COMPASS);
-                        stack.set(DataComponentTypes.CUSTOM_NAME, Text.translatable("item.manhunt.join_hunters")
-                                .styled(style -> style.withColor(Formatting.GOLD).withItalic(false)));
+                        var stack = new ItemStack(Items.PLAYER_HEAD);
+                        stack.set(DataComponentTypes.CUSTOM_NAME, Text.translatable("item.manhunt.preferences").styled(style -> style.withColor(Formatting.YELLOW).withItalic(false)));
+                        stack.set(DataComponentTypes.HIDE_ADDITIONAL_TOOLTIP, Unit.INSTANCE);
+                        stack.set(DataComponentTypes.PROFILE, new ProfileComponent(player.getGameProfile()));
                         stack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(nbt));
 
-                        player.getInventory().setStack(2, stack);
+                        player.getInventory().setStack(0, stack);
                     } else {
-                        removeDuplicateItems(player, Items.RECOVERY_COMPASS, 2);
+                        removeDuplicateItems(player, Items.PLAYER_HEAD, 0);
                     }
 
-                    if (!hasItem(player, Items.CLOCK)) {
-                        var nbt = new NbtCompound();
-                        nbt.putBoolean("Remove", true);
+                    if (Config.getConfig().gameOptions.presetMode.equals("free_select")) {
+                        if (!hasItem(player, Items.RECOVERY_COMPASS)) {
+                            var nbt = new NbtCompound();
+                            nbt.putBoolean("Remove", true);
 
-                        var stack = new ItemStack(Items.CLOCK);
-                        stack.set(DataComponentTypes.CUSTOM_NAME, Text.translatable("item.manhunt.join_runners")
-                                .styled(style -> style.withColor(Formatting.GOLD).withItalic(false)));
-                        stack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(nbt));
+                            var stack = new ItemStack(Items.RECOVERY_COMPASS);
+                            stack.set(DataComponentTypes.CUSTOM_NAME, Text.translatable("item.manhunt.join_hunters").styled(style -> style.withColor(Formatting.GOLD).withItalic(false)));
+                            stack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(nbt));
 
-                        player.getInventory().setStack(6, stack);
-                    } else {
-                        removeDuplicateItems(player, Items.CLOCK, 6);
-                    }
-
-                    if (!hasItem(player, Items.RED_CONCRETE) && !hasItem(player, Items.LIME_CONCRETE)) {
-                        var nbt = new NbtCompound();
-                        nbt.putBoolean("Remove", true);
-
-                        var stack = new ItemStack(Items.RED_CONCRETE);
-                        stack.set(DataComponentTypes.CUSTOM_NAME, Text.translatable("item.manhunt.not_ready")
-                                .styled(style -> style.withColor(Formatting.RED).withItalic(false)));
-                        stack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(nbt));
-
-                        player.getInventory().setStack(4, stack);
-                    } else {
-                        if (hasItem(player, Items.RED_CONCRETE)) {
-                            removeDuplicateItems(player, Items.RED_CONCRETE, 4);
-                        }
-
-                        if (hasItem(player, Items.LIME_CONCRETE)) {
-                            removeDuplicateItems(player, Items.LIME_CONCRETE, 4);
-                        }
-                    }
-                } else {
-                    clearItem(player, Items.RECOVERY_COMPASS);
-                    clearItem(player, Items.RED_CONCRETE);
-                    clearItem(player, Items.LIME_CONCRETE);
-                    clearItem(player, Items.CLOCK);
-                }
-
-                if (!hasItem(player, Items.COMMAND_BLOCK)) {
-                    var nbt = new NbtCompound();
-                    nbt.putBoolean("Remove", true);
-
-                    var stack = new ItemStack(Items.COMMAND_BLOCK);
-                    stack.set(DataComponentTypes.CUSTOM_NAME, Text.translatable("item.manhunt.config")
-                            .styled(style -> style.withColor(Formatting.YELLOW).withItalic(false)));
-                    stack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(nbt));
-
-                    player.getInventory().setStack(8, stack);
-                } else {
-                    removeDuplicateItems(player, Items.COMMAND_BLOCK, 8);
-                }
-
-                if (!canStart && !Permissions.check(player, "manhunt.parkour")) {
-                    if (player.getZ() < -2 && player.getWorld().getRegistryKey() == LOBBY_REGISTRY_KEY) {
-                        PARKOUR_TIMER.putIfAbsent(playerUuid, 0);
-                        STARTED_PARKOUR.putIfAbsent(playerUuid, false);
-                        FINISHED_PARKOUR.putIfAbsent(playerUuid, false);
-
-                        int tick = PARKOUR_TIMER.get(playerUuid);
-
-                        var sec = (int) Math.floor((double) (tick % (20 * 60)) / (20));
-
-                        String secStr;
-                        if (sec < 10) {
-                            secStr = "0" + sec;
+                            player.getInventory().setStack(2, stack);
                         } else {
-                            secStr = String.valueOf(sec);
+                            removeDuplicateItems(player, Items.RECOVERY_COMPASS, 2);
                         }
 
-                        var ms = (int) Math.floor((double) (tick * 5) % 100);
+                        if (!hasItem(player, Items.CLOCK)) {
+                            var nbt = new NbtCompound();
+                            nbt.putBoolean("Remove", true);
 
-                        String msStr;
-                        if (ms < 10) {
-                            msStr = "0" + ms;
-                        } else if (ms > 99) {
-                            msStr = "00";
+                            var stack = new ItemStack(Items.CLOCK);
+                            stack.set(DataComponentTypes.CUSTOM_NAME, Text.translatable("item.manhunt.join_runners").styled(style -> style.withColor(Formatting.GOLD).withItalic(false)));
+                            stack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(nbt));
+
+                            player.getInventory().setStack(6, stack);
                         } else {
-                            msStr = String.valueOf(ms);
+                            removeDuplicateItems(player, Items.CLOCK, 6);
                         }
 
-                        if (!FINISHED_PARKOUR.get(playerUuid)) {
-                            if (!STARTED_PARKOUR.get(playerUuid) && player.getZ() < -3 && !(player.getZ() < -6)) {
-                                player.playSoundToPlayer(SoundEvents.BLOCK_NOTE_BLOCK_FLUTE.value(), SoundCategory.MASTER, 1.0F, 1.0F);
-                                STARTED_PARKOUR.put(playerUuid, true);
+                        if (!hasItem(player, Items.RED_CONCRETE) && !hasItem(player, Items.LIME_CONCRETE)) {
+                            var nbt = new NbtCompound();
+                            nbt.putBoolean("Remove", true);
+
+                            var stack = new ItemStack(Items.RED_CONCRETE);
+                            stack.set(DataComponentTypes.CUSTOM_NAME, Text.translatable("item.manhunt.not_ready").styled(style -> style.withColor(Formatting.RED).withItalic(false)));
+                            stack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(nbt));
+
+                            player.getInventory().setStack(4, stack);
+                        } else {
+                            if (hasItem(player, Items.RED_CONCRETE)) {
+                                removeDuplicateItems(player, Items.RED_CONCRETE, 4);
                             }
 
-                            if (STARTED_PARKOUR.get(playerUuid)) {
-                                if (player.getZ() < -3) {
-                                    player.sendMessage(Text.translatable("chat.manhunt.time.double", secStr, msStr), true);
-                                    PARKOUR_TIMER.put(playerUuid, PARKOUR_TIMER.get(playerUuid) + 1);
-                                    player.addStatusEffect(new StatusEffectInstance(StatusEffects.INVISIBILITY, StatusEffectInstance.INFINITE, 255, false, false, false));
+                            if (hasItem(player, Items.LIME_CONCRETE)) {
+                                removeDuplicateItems(player, Items.LIME_CONCRETE, 4);
+                            }
+                        }
+                    } else {
+                        clearItem(player, Items.RECOVERY_COMPASS);
+                        clearItem(player, Items.RED_CONCRETE);
+                        clearItem(player, Items.LIME_CONCRETE);
+                        clearItem(player, Items.CLOCK);
+                    }
 
-                                    if (player.getZ() < -24 && player.getZ() > -26 && player.getX() < -6 && player.getY() >= -4 && player.getY() < 8) {
-                                        player.sendMessage(Text.translatable("chat.manhunt.time.double", secStr, msStr).formatted(Formatting.GREEN), true);
-                                        player.playSoundToPlayer(SoundEvents.BLOCK_NOTE_BLOCK_FLUTE.value(), SoundCategory.MASTER, 1.0F, 2.0F);
-                                        FINISHED_PARKOUR.put(playerUuid, true);
+                    if (!hasItem(player, Items.COMMAND_BLOCK)) {
+                        var nbt = new NbtCompound();
+                        nbt.putBoolean("Remove", true);
+
+                        var stack = new ItemStack(Items.COMMAND_BLOCK);
+                        stack.set(DataComponentTypes.CUSTOM_NAME, Text.translatable("item.manhunt.config").styled(style -> style.withColor(Formatting.YELLOW).withItalic(false)));
+                        stack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(nbt));
+
+                        player.getInventory().setStack(8, stack);
+                    } else {
+                        removeDuplicateItems(player, Items.COMMAND_BLOCK, 8);
+                    }
+
+                    if (!canStart && !Permissions.check(player, "manhunt.parkour")) {
+                        if (player.getZ() < -2 && player.getWorld().getRegistryKey() == LOBBY_REGISTRY_KEY) {
+                            PARKOUR_TIMER.putIfAbsent(playerUuid, 0);
+                            STARTED_PARKOUR.putIfAbsent(playerUuid, false);
+                            FINISHED_PARKOUR.putIfAbsent(playerUuid, false);
+
+                            int tick = PARKOUR_TIMER.get(playerUuid);
+
+                            var sec = (int) Math.floor((double) (tick % (20 * 60)) / (20));
+
+                            String secStr;
+                            if (sec < 10) {
+                                secStr = "0" + sec;
+                            } else {
+                                secStr = String.valueOf(sec);
+                            }
+
+                            var ms = (int) Math.floor((double) (tick * 5) % 100);
+
+                            String msStr;
+                            if (ms < 10) {
+                                msStr = "0" + ms;
+                            } else if (ms > 99) {
+                                msStr = "00";
+                            } else {
+                                msStr = String.valueOf(ms);
+                            }
+
+                            if (!FINISHED_PARKOUR.get(playerUuid)) {
+                                if (!STARTED_PARKOUR.get(playerUuid) && player.getZ() < -3 && !(player.getZ() < -6)) {
+                                    player.playSoundToPlayer(SoundEvents.BLOCK_NOTE_BLOCK_FLUTE.value(), SoundCategory.MASTER, 1.0F, 1.0F);
+                                    STARTED_PARKOUR.put(playerUuid, true);
+                                }
+
+                                if (STARTED_PARKOUR.get(playerUuid)) {
+                                    if (player.getZ() < -3) {
+                                        player.sendMessage(Text.translatable("chat.manhunt.time.double", secStr, msStr), true);
+                                        PARKOUR_TIMER.put(playerUuid, PARKOUR_TIMER.get(playerUuid) + 1);
+                                        player.addStatusEffect(new StatusEffectInstance(StatusEffects.INVISIBILITY, StatusEffectInstance.INFINITE, 255, false, false, false));
+
+                                        if (player.getZ() < -24 && player.getZ() > -26 && player.getX() < -6 && player.getY() >= -4 && player.getY() < 8) {
+                                            player.sendMessage(Text.translatable("chat.manhunt.time.double", secStr, msStr).formatted(Formatting.GREEN), true);
+                                            player.playSoundToPlayer(SoundEvents.BLOCK_NOTE_BLOCK_FLUTE.value(), SoundCategory.MASTER, 1.0F, 2.0F);
+                                            FINISHED_PARKOUR.put(playerUuid, true);
+                                        }
                                     }
                                 }
                             }
-                        }
 
-                        if (STARTED_PARKOUR.get(playerUuid)) {
-                            if (sec > 59 || (player.getZ() > -3 || player.getY() < -2 || (player.getZ() < -27 && player.getY() < 6))) {
-                                if (!FINISHED_PARKOUR.get(playerUuid)) {
-                                    player.sendMessage(Text.translatable("chat.manhunt.time.double", secStr, msStr).formatted(Formatting.RED), true);
+                            if (STARTED_PARKOUR.get(playerUuid)) {
+                                if (sec > 59 || (player.getZ() > -3 || player.getY() < -2 || (player.getZ() < -27 && player.getY() < 6))) {
+                                    if (!FINISHED_PARKOUR.get(playerUuid)) {
+                                        player.sendMessage(Text.translatable("chat.manhunt.time.double", secStr, msStr).formatted(Formatting.RED), true);
+                                    }
+
+                                    parkourReset(player);
+                                    player.networkHandler.sendPacket(new PlaySoundS2CPacket(SoundEvents.BLOCK_NOTE_BLOCK_FLUTE, SoundCategory.RECORDS, LOBBY_SPAWN.x, LOBBY_SPAWN.y, LOBBY_SPAWN.z, 1.0F, 0.5F, Random.create().nextLong()));
                                 }
-
-                                parkourReset(player);
-                                player.networkHandler.sendPacket(new PlaySoundS2CPacket(SoundEvents.BLOCK_NOTE_BLOCK_FLUTE, SoundCategory.RECORDS, LOBBY_SPAWN.x, LOBBY_SPAWN.y, LOBBY_SPAWN.z, 1.0F, 0.5F, Random.create().nextLong()));
                             }
+                        } else if ((player.getZ() > 16 && player.getY() < -5) || (player.getZ() < 16 && (player.getY() < -3 || player.getY() > 10))) {
+                            teleportToLobby(player);
                         }
-                    } else if ((player.getZ() > 16 && player.getY() < -5) || (player.getZ() < 16 && (player.getY() < -3 || player.getY() > 10))) {
-                        teleportToLobby(player);
                     }
                 }
             }

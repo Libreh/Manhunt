@@ -22,6 +22,7 @@ import static me.libreh.manhunt.utils.Methods.*;
 public class ManhuntGame {
     public static void startGame() {
         canStart = false;
+        startTicks = 0;
 
         if (!chunkFutureList.isEmpty()) {
             chunkFutureList = new ArrayList<>();

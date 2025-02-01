@@ -594,7 +594,5 @@ public class Methods {
         } catch (IOException e) {
             Manhunt.LOGGER.info("Failed to unzip world", e);
         }
-
-        Manhunt.LOGGER.info("Manhunt lobby loaded");
     }
 }
