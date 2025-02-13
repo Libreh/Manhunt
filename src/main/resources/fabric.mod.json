@@ -3,7 +3,7 @@
     "id": "manhunt",
     "version": "${version}",
     "name": "Manhunt",
-    "description": " Server-side Manhunt mod for Fabric ",
+    "description": "Speedrunner vs hunter minigame mod",
     "authors": [
         "Libreh"
     ],
